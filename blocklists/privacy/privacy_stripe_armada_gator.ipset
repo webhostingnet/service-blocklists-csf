@@ -5,7 +5,7 @@
 #   @service        https://stripe.com/files/ips/ips_armada_gator.txt
 #   @id             privacy_stripe_armada_gator_ipset
 #   @uuid           eefbeb4d-cbbd-39b2-8d1c-3c02fb029cf8
-#   @updated        Tue Feb 17 01:48:44 UTC 2026
+#   @updated        Tue Feb 17 12:55:52 UTC 2026
 #   @entries        548 ips
 #                   2 subnets
 #                   38 lines
