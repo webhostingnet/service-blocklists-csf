@@ -11,17 +11,17 @@
 #                       Supports multiple URLs as arguments.
 #   
 #   @notes              API format changed 09/2025; update script to accept new format, regex rules, remove dupes.
-#
+#   
 #   @terminal           .github/scripts/bl-master.sh blocklists/01_master.ipset \
 #                           https://blocklist.url1.txt \
 #                           https://blocklist.url2.txt \
 #                           https://blocklist.url3.txt \
 #                           https://blocklist.url4.txt
-#
+#   
 #   @workflow           chmod +x ".github/scripts/bl-master.sh"
 #                       run_master=".github/scripts/bl-master.sh 01_master.ipset ${{ secrets.API_01_FILE_01 }} ${{ secrets.API_01_FILE_02 }} ${{ secrets.API_01_FILE_03 }} "
 #                       eval "./$run_master"
-#
+#   
 #   @command            bl-master.sh
 #                           <ARG_SAVEFILE>
 #                           <URL_1>
@@ -29,7 +29,7 @@
 #                           {...}
 #                       bl-master.sh 01_master.ipset URL_1
 #                       bl-master.sh 01_master.ipset URL_1 URL_2 URL_3
-#
+#   
 #                       📁 .github
 #                           📁 scripts
 #                               📄 bl-master.sh
@@ -473,8 +473,15 @@ download_list()
 
     info "    🌎 Downloading IP blacklist to ${bluel}${PWD}/${fnFileTemp}${greym}"
 
-    # curl to grab file
-    curl -sSL -k -A "${APP_AGENT}" "${fnUrl}" -o "${fnFileTemp}" >/dev/null 2>&1      # download file
+    # #
+    #   download file
+    # #
+
+    curl -sSL -k -A "${APP_AGENT}" "${fnUrl}" -o "${fnFileTemp}" >/dev/null 2>&1
+
+    # #
+    #   Perform sed actions on downloaded file.
+    # #
 
     # normalize CRLF
     sed -i 's/\r$//' "${fnFileTemp}"
@@ -495,11 +502,11 @@ download_list()
     sed -i '/^$/d' "${fnFileTemp}"
 
     # #
-    #    print contents of file (commented out)
+    #    Print contents of file (commented out)
     # #
 
     # #
-    #   calculate how many IPs are in a subnet
+    #   Calculate how many IPs are in a subnet
     #   if you want to calculate the USABLE IP addresses, subtract -2 from any subnet not ending with 31 or 32.
     #   
     #   for our purpose, we want to block them all in the event that the network has reconfigured their network / broadcast IPs,
@@ -508,12 +515,19 @@ download_list()
 
     info "    📊 Fetching statistics for clean file ${bluel}${PWD}/${fnFileTemp}${greym}"
     while IFS= read -r line; do
-        # is ipv6
+
+        # #
+        #   is ipv6
+        # #
+
         if [ "$line" != "${line#*:[0-9a-fA-F]}" ]; then
             COUNT_TOTAL_IP=$(( COUNT_TOTAL_IP + 1 ))                           # GLOBAL count subnet
             DL_COUNT_TOTAL_IP=$(( DL_COUNT_TOTAL_IP + 1 ))                     # LOCAL count subnet
 
-        # is subnet (IPv4 CIDR)
+        # #
+        #   is subnet (IPv4 CIDR)
+        # #
+
         elif [[ $line =~ /[0-9]{1,2}$ ]]; then
             ips=$(( 1 << (32 - ${line#*/}) ))
 
@@ -525,7 +539,10 @@ download_list()
                 DL_COUNT_TOTAL_SUBNET=$(( DL_COUNT_TOTAL_SUBNET + 1 ))          # LOCAL count subnet
             fi
 
-        # is normal IPv4
+        # #
+        #   is IPv4
+        # #
+
         elif [[ $line =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             COUNT_TOTAL_IP=$(( COUNT_TOTAL_IP + 1 ))
             DL_COUNT_TOTAL_IP=$(( DL_COUNT_TOTAL_IP + 1 ))
@@ -537,7 +554,15 @@ download_list()
 
     info "    🚛 Move ${bluel}${fnFileTemp}${greym} to ${bluel}${fnFile}${greym}"
 
-    cat "${fnFileTemp}" >> "${fnFile}"                                          # copy .tmp contents to real file
+    # #
+    #   Ensure dest file ends with newline before append
+    # #
+
+    if [ -s "${fnFile}" ] && [ "$(tail -c1 "${fnFile}")" != "" ]; then
+        echo >> "${fnFile}"
+    fi
+
+    cat "${fnFileTemp}" >> "${fnFile}"                                          # copy .tmp to permanent file
     rm "${fnFileTemp}"                                                          # delete temp file
 
     if [ ! -f "${fnFileTemp}" ]; then
