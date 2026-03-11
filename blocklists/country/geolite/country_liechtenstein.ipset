@@ -1,14 +1,14 @@
 # #
 #   🧱 Firewall Blocklist - country_liechtenstein.ipset
 #
-#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_liechtenstein.ipset
-#   @source         http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_liechtenstein.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_liechtenstein_ipset
 #   @uuid           db8a7760-9c01-3fae-84a4-35800842bd28
-#   @updated        Fri Jan 16 08:58:12 UTC 2026
-#   @entries        110803 ips
-#                   728 subnets
-#                   728 lines
+#   @updated        Wed Mar 11 13:00:35 UTC 2026
+#   @entries        110895 ips
+#                   713 subnets
+#                   713 lines
 #   @country        Liechtenstein (LI)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -166,6 +166,7 @@
 134.238.123.128/25
 134.238.124.0/24
 134.238.219.0/25
+135.136.18.0/25
 136.23.6.101/32
 136.23.20.13/32
 136.227.140.102/31
@@ -197,21 +198,8 @@
 146.75.186.22/31
 149.126.9.72/29
 149.255.176.0/21
-150.48.141.44/31
-150.48.147.174/31
-150.48.147.176/28
-150.48.147.192/30
-150.48.147.196/31
-150.48.148.192/30
-150.48.148.196/31
 150.228.72.0/23
 154.14.0.200/30
-157.5.85.115/32
-157.5.85.144/32
-157.5.99.88/32
-157.5.99.240/32
-157.5.107.88/32
-157.5.107.240/32
 162.120.206.7/32
 162.120.215.193/32
 163.116.163.162/31
@@ -349,6 +337,7 @@
 196.197.123.0/24
 196.198.123.0/24
 196.199.123.0/24
+198.54.100.68/31
 202.181.128.66/31
 202.181.128.68/30
 208.127.13.192/27
@@ -437,13 +426,6 @@
 2606:f4c0:2150::/44
 2606:f4c0:b740::/44
 2607:6b80:52::/48
-2607:8940:3528::/46
-2607:8940:4163:5800::/56
-2607:8940:4163:f000::/56
-2607:8940:4183:5800::/56
-2607:8940:4183:f000::/56
-2607:8940:4250:7300::/56
-2607:8940:4250:9000::/56
 2a00:ec0::/32
 2a00:abc0::/32
 2a00:da60::/29
@@ -585,7 +567,7 @@
 2a0e:97c0:3ea:8000::/49
 2a0e:97c0:3eb::/48
 2a0e:97c0:3ec::/46
-2a0e:97c0:3f0::/47
+2a0e:97c0:3f1::/48
 2a0e:97c0:3f3::/48
 2a0e:97c0:3f4::/46
 2a0e:97c0:3f8::/45
@@ -646,7 +628,11 @@
 2a0e:97c0:7c8::/48
 2a0e:97c0:7cb::/48
 2a0e:97c0:7cc::/46
-2a0e:97c0:7d1::/48
+2a0e:97c0:7d0::/47
+2a0e:97c0:7d5::/48
+2a0e:97c0:7d6::/48
+2a0e:97c0:7d8::/47
+2a0e:97c0:7db::/48
 2a0e:97c0:7e0::/43
 2a0e:97c0:800::/43
 2a0e:97c0:820::/44
@@ -741,7 +727,6 @@
 2a10:4140::/29
 2a10:8940::/29
 2a10:d2c0::/32
-2a11:3a87::/35
 2a13:7c40::/32
 2a13:8500::/29
 2a13:9500:31::/48

@@ -1,14 +1,14 @@
 # #
 #   🧱 Firewall Blocklist - country_malawi.ipset
 #
-#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_malawi.ipset
-#   @source         http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_malawi.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_malawi_ipset
 #   @uuid           1a801e6d-a38b-372d-88c0-5e4e99df7c4a
-#   @updated        Fri Jan 16 08:58:18 UTC 2026
-#   @entries        561406 ips
-#                   254 subnets
-#                   254 lines
+#   @updated        Wed Mar 11 13:00:45 UTC 2026
+#   @entries        561872 ips
+#                   236 subnets
+#                   236 lines
 #   @country        Malawi (MW)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -114,16 +114,8 @@
 146.75.168.146/31
 146.75.185.146/31
 146.75.198.18/31
-150.48.151.118/31
-150.48.151.120/30
-150.48.191.198/31
-150.48.191.200/29
-150.48.191.208/28
-150.48.191.224/30
-150.48.191.228/31
+153.67.82.0/23
 154.66.120.0/21
-157.5.101.130/31
-157.5.109.130/31
 162.10.8.97/32
 162.10.8.98/32
 163.116.167.140/31
@@ -156,9 +148,6 @@
 196.223.27.0/24
 197.211.96.0/19
 199.19.254.48/28
-204.195.243.63/32
-204.195.243.64/31
-204.195.243.66/32
 213.156.254.10/32
 216.234.216.0/23
 2001:470:d:f3::/64
@@ -185,15 +174,10 @@
 2001:43fd:f000::/48
 2001:43ff:f000::/48
 2605:59c0:2f00::/40
-2605:59c0:5d80::/41
 2605:59ca:8900::/40
 2606:54c0:48f0::/44
 2606:54c3:0:11e7::/64
 2606:54c3:0:19a3::/64
-2607:8940:214a::/47
-2607:8940:214e::/47
-2607:8940:4171:8200::/55
-2607:8940:4191:8200::/55
 2a00:ca0:2003:e000::/52
 2a00:ca0:2038:c000::/50
 2a02:26f7:d480:4000::/64
@@ -251,14 +235,12 @@
 2a0c:9a40:95b8:3000::/52
 2a0f:85c1:81b:f6b0::/60
 2a10:500:2700::/40
-2a11:a686:f000::/36
 2a13:a5c7:259c::/48
 2a13:a5c7:25ff:9b00::/56
+2a14:c380:7ff::/48
 2c0e:7800::/24
 2c0e:7e80::/28
 2c0f:1300::/32
-2c0f:2a80:21c0::/42
-2c0f:2a80:2200::/42
 2c0f:3740::/32
 2c0f:4120::/32
 2c0f:57c0::/32

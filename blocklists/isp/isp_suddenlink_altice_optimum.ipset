@@ -1,14 +1,14 @@
 # #
 #   🧱 Firewall Blocklist - blocklists/isp/isp_suddenlink_altice_optimum.ipset
 #
-#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/isp/isp_suddenlink_altice_optimum.ipset
-#   @source         None
+#   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/isp/isp_suddenlink_altice_optimum.ipset
+#   @service        None
 #   @id             isp_suddenlink_altice_optimum_ipset
 #   @uuid           10b6335a-b4db-3e3e-a5f9-80a82a8db3f9
-#   @updated        Fri Jan 16 09:20:39 UTC 2026
-#   @entries        6979840 ips
-#                   441 subnets
-#                   441 lines
+#   @updated        Wed Mar 11 12:57:15 UTC 2026
+#   @entries        6979584 ips
+#                   442 subnets
+#                   442 lines
 #   @expires        6 hours
 #   @category       Uncategorized
 #
@@ -386,7 +386,6 @@
 205.201.72.0/24
 205.201.83.0/24
 205.201.93.0/24
-205.201.100.0/24
 205.201.107.0/24
 205.201.113.0/24
 205.201.114.0/23
@@ -454,5 +453,7 @@
 2600:5400:9000::/48
 2600:5400:9001::/48
 2600:5400:9002::/48
+2600:5401::/44
+2600:5408::/32
 2600:5408::/44
 2620:121:d000::/44

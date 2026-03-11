@@ -1,14 +1,14 @@
 # #
 #   🧱 Firewall Blocklist - country_norfolk_island.ipset
 #
-#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_norfolk_island.ipset
-#   @source         http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_norfolk_island.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_norfolk_island_ipset
 #   @uuid           ea4afea7-f3db-35ac-bd2f-719d44c45ab8
-#   @updated        Fri Jan 16 08:58:20 UTC 2026
-#   @entries        904 ips
-#                   123 subnets
-#                   123 lines
+#   @updated        Wed Mar 11 13:00:47 UTC 2026
+#   @entries        898 ips
+#                   117 subnets
+#                   117 lines
 #   @country        Norfolk Island (NF)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -24,7 +24,7 @@
 5.62.56.158/31
 5.175.190.156/32
 45.138.10.16/30
-81.144.122.152/30
+81.144.122.154/31
 103.43.204.0/23
 104.28.12.21/32
 104.28.12.22/31
@@ -59,9 +59,6 @@
 140.248.63.162/32
 146.75.136.16/31
 146.75.190.4/31
-157.5.113.204/31
-157.5.122.51/32
-157.5.122.52/32
 162.120.192.228/32
 162.120.204.54/32
 163.116.192.96/32
@@ -77,6 +74,7 @@
 2001:470:24:4d6::/64
 2001:470:24:f19::/64
 2001:470:24:f94::/64
+2001:470:28:bd4::/64
 2001:470:36:449::/64
 2001:470:36:51a::/64
 2001:470:36:d3d::/64
@@ -101,9 +99,6 @@
 2606:40:217e:c000::/54
 2606:54c0:4cc0::/45
 2606:54c3:0:8c9::/64
-2607:8940:41a1:cc00::/55
-2607:8940:41e0:3300::/56
-2607:8940:41e0:3400::/56
 2a02:26f7:f500:4000::/64
 2a02:26f7:f500:c620::/64
 2a02:26f7:f501:4000::/64
@@ -140,6 +135,5 @@
 2a0a:6044:f21e::/47
 2a0a:6044:f220::/48
 2a0c:9a40:95ba:1000::/52
-2a11:a687:4000::/36
 2a13:a5c7:25a3::/48
 2a13:a5c7:25ff:a200::/56

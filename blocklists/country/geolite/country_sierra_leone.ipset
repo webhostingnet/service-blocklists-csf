@@ -1,14 +1,14 @@
 # #
 #   🧱 Firewall Blocklist - country_sierra_leone.ipset
 #
-#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_sierra_leone.ipset
-#   @source         http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_sierra_leone.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_sierra_leone_ipset
 #   @uuid           92971a41-1b3e-385c-9405-99bc753600a2
-#   @updated        Fri Jan 16 08:58:33 UTC 2026
-#   @entries        92402 ips
-#                   204 subnets
-#                   204 lines
+#   @updated        Wed Mar 11 13:01:04 UTC 2026
+#   @entries        92356 ips
+#                   183 subnets
+#                   183 lines
 #   @country        Sierra Leone (SL)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -76,20 +76,8 @@
 146.75.168.170/31
 146.75.174.134/31
 146.75.185.170/31
-150.48.152.72/30
-150.48.185.230/31
-150.48.185.232/29
-150.48.185.240/28
-150.48.186.0/30
-150.48.186.4/31
-150.48.187.4/30
-150.48.187.8/31
 154.14.245.168/29
 154.53.196.0/23
-157.5.101.169/32
-157.5.101.170/32
-157.5.109.169/32
-157.5.109.170/32
 159.26.127.144/30
 160.19.152.0/22
 160.20.112.0/22
@@ -152,12 +140,6 @@
 2606:40:22e2::/54
 2606:54c0:5520::/45
 2606:54c3:0:af5::/64
-2607:8940:21aa::/47
-2607:8940:21ae::/47
-2607:8940:4171:a900::/56
-2607:8940:4171:aa00::/56
-2607:8940:4191:a900::/56
-2607:8940:4191:aa00::/56
 2a02:26f7:cac0:4000::/64
 2a02:26f7:cac0:c760::/64
 2a02:26f7:cac1:4000::/64
@@ -214,11 +196,8 @@
 2a0c:9a40:95bc:5000::/52
 2a0f:85c1:81b:f9d0::/60
 2a10:500:3400::/40
-2a11:3a82::/35
 2a13:a5c7:25ca::/48
-2a13:a5c7:25ff:ca00::/56
 2c0f:27c0::/32
-2c0f:2a80:4c0::/42
 2c0f:3000::/32
 2c0f:5640::/32
 2c0f:eaf8::/32

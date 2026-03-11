@@ -1,12 +1,12 @@
 # #
 #   🧱 Firewall Blocklist - country_somalia.ipset
 #
-#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_somalia.ipset
-#   @source         http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_somalia.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_somalia_ipset
 #   @uuid           b3c221ba-a4ed-3fbf-9d1f-fa0d5961be05
-#   @updated        Fri Jan 16 08:58:34 UTC 2026
-#   @entries        56049 ips
+#   @updated        Wed Mar 11 13:01:05 UTC 2026
+#   @entries        55795 ips
 #                   202 subnets
 #                   202 lines
 #   @country        Somalia (SO)
@@ -80,7 +80,6 @@
 154.73.124.0/22
 154.115.192.0/18
 154.118.240.0/22
-157.73.124.0/24
 159.26.127.152/30
 163.116.183.103/32
 163.116.183.104/32
@@ -105,6 +104,7 @@
 197.157.244.0/22
 197.220.64.0/19
 197.231.200.0/22
+198.54.100.62/31
 212.32.91.0/24
 2001:470:d:63f::/64
 2001:470:d:659::/64
@@ -116,6 +116,7 @@
 2001:470:7c:1e6::/64
 2001:470:7c:308::/64
 2001:470:7c:30a::/64
+2001:470:19a6::/48
 2001:470:1f07:316::/64
 2001:470:1f0b:11c5::/64
 2001:470:1f15:334::/64
@@ -129,6 +130,7 @@
 2001:470:1f17:15a::/64
 2001:470:1f17:15e::/64
 2001:470:1f17:178::/64
+2001:470:1f1d:415::/64
 2001:470:1f27:37::/64
 2001:470:3096::/48
 2001:470:30ab::/48
@@ -205,13 +207,11 @@
 2a0f:85c1:81b:fa20::/60
 2a10:500:3500::/40
 2a10:9007:2:1a::/64
-2a11:3a82:4000::/35
 2a12:bec0:685::/48
 2a13:a5c3:d654::/46
 2a13:a5c7:25cd::/48
 2a13:a5c7:25ff:cd00::/56
 2c0f:b00::/32
-2c0f:2a80:3180::/41
 2c0f:4700::/32
 2c0f:5d40::/32
 2c0f:ed08::/32

@@ -1,14 +1,14 @@
 # #
 #   🧱 Firewall Blocklist - country_british_indian_ocean_territory.ipset
 #
-#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_british_indian_ocean_territory.ipset
-#   @source         http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_british_indian_ocean_territory.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_british_indian_ocean_territory_ipset
 #   @uuid           e28ec2a7-c431-3091-a7df-8562d41f1971
-#   @updated        Fri Jan 16 08:58:06 UTC 2026
-#   @entries        3177 ips
-#                   107 subnets
-#                   107 lines
+#   @updated        Wed Mar 11 13:00:26 UTC 2026
+#   @entries        3178 ips
+#                   111 subnets
+#                   111 lines
 #   @country        British Indian Ocean Territory (IO)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -50,6 +50,7 @@
 146.75.185.128/31
 162.120.208.8/32
 162.120.214.11/32
+162.120.235.179/32
 163.116.195.93/32
 163.116.195.94/32
 163.116.199.98/31
@@ -61,6 +62,7 @@
 203.83.48.0/21
 2001:470:b:255::/64
 2001:470:d:232::/64
+2001:470:d:724::/64
 2001:470:d:d1a::/64
 2001:470:19:2ae::/64
 2001:470:19:10a4::/64
@@ -71,11 +73,13 @@
 2001:470:18d1::/48
 2001:470:1f11:99::/64
 2001:470:1f1d:17a::/64
+2001:470:1f1d:454::/64
 2001:470:1f27:84::/64
 2001:470:c050::/48
 2001:470:e967::/48
 2001:470:f288::/48
 2001:470:f51b::/48
+2001:470:f6a1::/48
 2001:470:f952::/48
 2001:470:fbee::/48
 2001:470:fc71::/48
@@ -87,6 +91,7 @@
 2606:40:1340::/44
 2606:40:2201::/54
 2606:40:22c1:6000::/54
+2606:40:294e:cc00::/54
 2606:54c0:40b0::/45
 2606:54c3:0:183a::/64
 2a02:26f7:d680:4000::/64
@@ -123,7 +128,6 @@
 2a09:bac6:4148::/45
 2a0c:9a40:95b2::/52
 2a0f:1cc5:1fe9::/48
-2a11:a684:9000::/36
 2a13:a5c3:d418::/46
 2a13:a5c7:256a::/48
 2a13:a5c7:25ff:6900::/56

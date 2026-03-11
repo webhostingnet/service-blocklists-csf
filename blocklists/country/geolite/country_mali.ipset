@@ -1,14 +1,14 @@
 # #
 #   🧱 Firewall Blocklist - country_mali.ipset
 #
-#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_mali.ipset
-#   @source         http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_mali.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_mali_ipset
 #   @uuid           fed0fb03-3c9f-3e5f-9398-a3971cd09107
-#   @updated        Fri Jan 16 08:58:16 UTC 2026
-#   @entries        96720 ips
-#                   170 subnets
-#                   170 lines
+#   @updated        Wed Mar 11 13:00:41 UTC 2026
+#   @entries        97228 ips
+#                   162 subnets
+#                   162 lines
 #   @country        Mali (ML)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -76,12 +76,9 @@
 140.248.63.144/32
 146.75.182.44/31
 146.75.210.44/31
+153.67.68.0/23
 154.70.192.0/22
 154.118.128.0/18
-157.5.101.123/32
-157.5.101.124/32
-157.5.109.123/32
-157.5.109.124/32
 163.116.169.143/32
 163.116.169.152/32
 163.116.190.96/31
@@ -127,10 +124,6 @@
 2606:40:10d0::/44
 2606:54c0:4870::/45
 2606:54c3:0:194::/64
-2607:8940:4171:7b00::/56
-2607:8940:4171:7c00::/56
-2607:8940:4191:7b00::/56
-2607:8940:4191:7c00::/56
 2a02:26f7:c2c0:4000::/64
 2a02:26f7:c2c0:ce80::/62
 2a02:26f7:c2c1:4000::/64
@@ -183,7 +176,6 @@
 2a0c:9a40:95b8:6000::/52
 2a0f:85c1:81b:f6e0::/60
 2a10:500:2800::/40
-2a11:a686:6000::/36
 2a13:a5c7:2591::/48
 2a13:a5c7:25ff:9000::/56
 2c0f:1b00::/32
