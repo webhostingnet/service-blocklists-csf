@@ -1,14 +1,14 @@
 # #
 #   🧱 Firewall Blocklist - country_solomon_islands.ipset
 #
-#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_solomon_islands.ipset
-#   @source         http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_solomon_islands.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_solomon_islands_ipset
 #   @uuid           7f68bfc0-2bc4-3002-8ca7-1e13bba85f80
-#   @updated        Fri Jan 16 08:58:30 UTC 2026
-#   @entries        17822 ips
-#                   155 subnets
-#                   155 lines
+#   @updated        Wed Mar 11 13:01:01 UTC 2026
+#   @entries        17777 ips
+#                   139 subnets
+#                   139 lines
 #   @country        Solomon Islands (SB)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -66,21 +66,10 @@
 146.75.146.18/31
 146.75.154.20/31
 146.75.190.22/31
-150.48.183.98/31
-150.48.187.130/31
-150.48.187.132/30
-150.48.187.136/29
-150.48.187.144/28
-150.48.187.160/31
-150.48.188.210/31
-150.48.188.212/30
-150.48.188.216/31
 150.228.196.0/23
-157.5.114.30/31
-157.5.122.67/32
-157.5.122.68/32
 162.120.204.59/32
 162.120.216.73/32
+162.120.228.73/32
 163.116.192.122/31
 163.116.203.101/32
 163.116.203.102/32
@@ -108,7 +97,6 @@
 2405:1cc0::/32
 2405:8300::/32
 2405:c0c0::/32
-2406:2d40:4380::/42
 2406:2d40:a000::/40
 2407:3800::/32
 2606:40:69c::/46
@@ -117,13 +105,9 @@
 2606:40:1000::/44
 2606:40:217f:6000::/54
 2606:40:2301:2000::/54
+2606:40:2939:a400::/54
 2606:54c0:5150::/45
 2606:54c3:0:10e1::/64
-2607:8940:2922::/47
-2607:8940:2926::/47
-2607:8940:41a2:1e00::/55
-2607:8940:41e0:4300::/56
-2607:8940:41e0:4400::/56
 2a02:26f7:f300:4000::/64
 2a02:26f7:f300:c720::/64
 2a02:26f7:f301:4000::/64
@@ -172,6 +156,6 @@
 2a0f:1cc5:1fed::/48
 2a0f:85c1:81b:fa10::/60
 2a10:500:bb00::/40
-2a11:3a81:4000::/35
 2a13:a5c7:25c2::/48
 2a13:a5c7:25ff:c100::/56
+2a14:c380:7e4::/48

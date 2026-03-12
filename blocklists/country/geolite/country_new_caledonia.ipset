@@ -1,14 +1,14 @@
 # #
 #   🧱 Firewall Blocklist - country_new_caledonia.ipset
 #
-#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_new_caledonia.ipset
-#   @source         http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_new_caledonia.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_new_caledonia_ipset
 #   @uuid           3f4459a8-2032-30af-a8d0-1922d6cd53f8
-#   @updated        Fri Jan 16 08:58:20 UTC 2026
-#   @entries        150239 ips
-#                   205 subnets
-#                   205 lines
+#   @updated        Wed Mar 11 13:00:46 UTC 2026
+#   @entries        150194 ips
+#                   193 subnets
+#                   193 lines
 #   @country        New Caledonia (NC)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -77,17 +77,9 @@
 146.75.136.14/31
 146.75.160.96/31
 146.75.190.2/31
-150.48.167.56/31
-150.48.176.220/30
-150.48.176.224/28
-150.48.176.240/29
-150.48.176.248/31
-150.48.177.166/31
-150.48.177.168/29
-157.5.113.202/31
-157.5.122.2/31
 162.120.204.53/32
 162.120.216.68/32
+162.120.228.79/32
 163.47.224.0/22
 163.47.248.0/22
 163.116.192.191/32
@@ -157,14 +149,11 @@
 2606:40:f50::/44
 2606:40:217e:a000::/54
 2606:40:2300:8000::/54
+2606:40:2939:bc00::/54
 2606:54c0:4ca8::/45
 2606:54c0:4cb0::/45
 2606:54c3:0:1444::/64
 2606:54c3:0:16cd::/64
-2607:8940:3af2::/47
-2607:8940:3af4::/47
-2607:8940:41a1:ca00::/55
-2607:8940:41e0:200::/55
 2a01:ce99:1000::/36
 2a02:26f7:fb80:4000::/64
 2a02:26f7:fb80:c5e0::/64
@@ -222,6 +211,5 @@
 2a0a:6044:f604::/46
 2a0a:6044:f608::/45
 2a0c:9a40:95b9:b000::/52
-2a11:a687:3000::/36
 2a13:a5c7:25a1::/48
 2a13:a5c7:25ff:a000::/56

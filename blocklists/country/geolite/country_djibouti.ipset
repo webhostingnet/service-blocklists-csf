@@ -1,14 +1,14 @@
 # #
 #   🧱 Firewall Blocklist - country_djibouti.ipset
 #
-#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_djibouti.ipset
-#   @source         http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_djibouti.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_djibouti_ipset
 #   @uuid           b9cadc49-d8af-3313-a6ef-2db51245c5d5
-#   @updated        Fri Jan 16 08:57:49 UTC 2026
-#   @entries        58677 ips
-#                   197 subnets
-#                   197 lines
+#   @updated        Wed Mar 11 13:00:05 UTC 2026
+#   @entries        58634 ips
+#                   180 subnets
+#                   180 lines
 #   @country        Djibouti (DJ)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -63,24 +63,13 @@
 146.75.166.40/31
 146.75.169.70/31
 149.11.242.194/31
-150.48.149.222/31
-150.48.186.128/30
-150.48.186.132/31
-150.48.190.38/31
-150.48.190.40/29
-150.48.190.48/28
-150.48.190.64/30
-150.48.190.68/31
 154.30.27.192/26
 154.66.245.0/24
 154.209.21.0/24
-157.5.101.37/32
-157.5.101.38/32
-157.5.109.37/32
-157.5.109.38/32
 159.26.127.28/30
 162.120.208.3/32
 162.120.216.176/32
+162.120.235.251/32
 163.116.174.190/31
 163.116.183.99/32
 163.116.183.100/32
@@ -152,14 +141,9 @@
 2606:40:12d0::/44
 2606:40:2200:6000::/54
 2606:40:230e::/54
+2606:40:294f:ec00::/54
 2606:54c0:2fd8::/45
 2606:54c3:0:14ac::/64
-2607:8940:206a::/47
-2607:8940:206e::/47
-2607:8940:4171:2500::/56
-2607:8940:4171:2600::/56
-2607:8940:4191:2500::/56
-2607:8940:4191:2600::/56
 2620:171:c3::/48
 2a02:26f7:c844:4000::/64
 2a02:26f7:c844:c1a0::/64
@@ -213,7 +197,6 @@
 2a0f:85c1:81b:f330::/60
 2a10:500:1700::/40
 2a10:8200::/29
-2a11:a682:7000::/36
 2a13:a5c7:253a::/48
 2a13:a5c7:25ff:3900::/56
 2c0f:44c0::/32

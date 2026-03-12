@@ -1,14 +1,14 @@
 # #
 #   🧱 Firewall Blocklist - country_bouvet_island.ipset
 #
-#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_bouvet_island.ipset
-#   @source         http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_bouvet_island.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_bouvet_island_ipset
 #   @uuid           0fcc357a-3aef-3193-86cd-ba6866297396
-#   @updated        Fri Jan 16 08:57:40 UTC 2026
+#   @updated        Wed Mar 11 12:59:54 UTC 2026
 #   @entries        273 ips
-#                   45 subnets
-#                   45 lines
+#                   44 subnets
+#                   44 lines
 #   @country        Bouvet Island (BV)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -44,7 +44,7 @@
 2001:470:36:441::/64
 2001:470:36:7be::/64
 2001:470:f2f2::/48
-2001:470:f544::/48
+2001:470:f545::/48
 2001:470:fe8f::/48
 2001:470:ffd7::/48
 2600:70ff:a75d::/48
@@ -62,6 +62,5 @@
 2a09:bac4:108::/45
 2a09:bac4:1108::/45
 2a0c:9a40:95b1:e000::/52
-2a11:a681:8000::/36
 2a13:a5c7:2522::/48
 2a13:a5c7:25ff:2100::/56

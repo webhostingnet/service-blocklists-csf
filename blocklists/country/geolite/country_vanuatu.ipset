@@ -1,14 +1,14 @@
 # #
 #   🧱 Firewall Blocklist - country_vanuatu.ipset
 #
-#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_vanuatu.ipset
-#   @source         http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_vanuatu.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_vanuatu_ipset
 #   @uuid           9d78205d-fb40-379a-8ab5-7195c3245fde
-#   @updated        Fri Jan 16 08:58:54 UTC 2026
-#   @entries        18735 ips
-#                   311 subnets
-#                   311 lines
+#   @updated        Wed Mar 11 13:01:28 UTC 2026
+#   @entries        18433 ips
+#                   292 subnets
+#                   292 lines
 #   @country        Vanuatu (VU)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -72,18 +72,6 @@
 146.75.190.30/31
 146.75.213.4/31
 147.45.112.0/24
-150.48.183.106/31
-150.48.188.66/31
-150.48.188.68/30
-150.48.188.72/29
-150.48.188.80/28
-150.48.188.96/31
-150.48.189.18/31
-150.48.189.20/30
-150.48.189.24/31
-157.5.115.46/31
-157.5.122.73/32
-157.5.122.74/32
 160.187.44.0/23
 162.120.204.62/32
 162.120.206.21/32
@@ -98,7 +86,6 @@
 185.112.134.26/32
 194.50.99.243/32
 194.127.165.0/24
-194.127.166.0/24
 196.48.203.0/24
 196.56.203.0/24
 196.57.203.0/24
@@ -116,12 +103,12 @@
 2001:470:24:2e5::/64
 2001:470:24:440::/64
 2001:470:36:1d6::/64
-2001:470:36:52a::/64
 2001:470:36:84d::/64
 2001:470:36:11be::/64
+2001:470:1f0b:475::/64
 2001:470:1f2d:189::/64
 2001:470:1f2d:1b9::/64
-2001:470:ec54::/48
+2001:470:7458::/48
 2001:470:f82a::/48
 2001:470:f84f::/48
 2001:470:fd04::/48
@@ -186,7 +173,6 @@
 2403:fbc0:7400::/38
 2403:fbc0:7800::/37
 2403:fbc0:8000::/33
-2406:2d40:7540::/42
 2406:2d40:a900::/40
 2600:70ff:c0d5::/48
 2600:70ff:c0dd::/48
@@ -199,11 +185,6 @@
 2606:40:21c2:a000::/54
 2606:54c0:d370::/45
 2606:54c3:0:504::/64
-2607:8940:2942::/47
-2607:8940:2946::/47
-2607:8940:41a3:2e00::/55
-2607:8940:41e0:4900::/56
-2607:8940:41e0:4a00::/56
 2620:0:876:4600::/56
 2a02:26f7:f200:4000::/64
 2a02:26f7:f200:c940::/64
@@ -328,6 +309,6 @@
 2a0c:9a40:95be:d000::/52
 2a0f:1cc5:1fec::/48
 2a0f:85c1:81b:fbf0::/60
-2a11:3a85:c000::/35
 2a13:a5c7:25f1::/48
-2a13:a5c7:25ff:f100::/56
+2a14:7583:ff3f:900::/56
+2a14:c380:7e5::/48

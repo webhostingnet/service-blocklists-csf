@@ -1,14 +1,14 @@
 # #
 #   🧱 Firewall Blocklist - country_saint_pierre_miquelon.ipset
 #
-#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_saint_pierre_miquelon.ipset
-#   @source         http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_saint_pierre_miquelon.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_saint_pierre_miquelon_ipset
 #   @uuid           dafdc303-5d32-3134-aa6a-c7385f33cbf0
-#   @updated        Fri Jan 16 08:58:26 UTC 2026
-#   @entries        6891 ips
-#                   156 subnets
-#                   156 lines
+#   @updated        Wed Mar 11 13:00:55 UTC 2026
+#   @entries        6348 ips
+#                   121 subnets
+#                   121 lines
 #   @country        Saint Pierre Miquelon (PM)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -64,14 +64,7 @@
 146.75.128.18/31
 146.75.188.0/31
 146.75.236.18/31
-150.48.183.120/31
-157.5.67.174/31
-157.5.74.205/32
-157.5.74.213/32
-157.5.82.153/32
-157.5.82.154/32
-157.5.91.173/32
-157.5.91.174/32
+153.67.174.0/23
 162.120.199.176/32
 162.120.203.205/32
 163.116.130.91/32
@@ -82,25 +75,7 @@
 172.225.139.32/27
 172.225.236.64/27
 172.225.255.160/27
-185.66.232.0/25
-185.66.232.128/27
-185.66.232.160/29
-185.66.232.168/30
-185.66.232.172/32
-185.66.232.176/28
-185.66.232.192/26
-185.66.233.0/24
-185.66.234.0/23
 194.50.99.181/32
-204.195.248.25/32
-204.195.248.26/31
-204.195.248.28/30
-204.195.248.32/29
-204.195.248.40/32
-204.195.248.89/32
-204.195.248.90/31
-204.195.248.92/30
-204.195.248.96/32
 2001:470:d:708::/64
 2001:470:24:22f::/64
 2001:470:24:2a7::/64
@@ -117,22 +92,13 @@
 2001:470:ffcc::/48
 2001:3786:5003:200::/56
 2604:ca40::/32
-2605:59c8:2d00::/42
+2605:59c0:7900::/40
 2606:40:16d0::/44
 2606:40:16e0::/44
 2606:40:20f6::/54
 2606:40:2171:a000::/54
 2606:54c0:4fc0::/45
 2606:54c3:0:d87::/64
-2607:8940:2976::/47
-2607:8940:297a::/47
-2607:8940:4023:ae00::/55
-2607:8940:4070:cd00::/56
-2607:8940:4070:ce00::/56
-2607:8940:40f0:9900::/56
-2607:8940:40f0:9a00::/56
-2607:8940:4143:ad00::/56
-2607:8940:4143:ae00::/56
 2a02:26f7:e5c0:4000::/64
 2a02:26f7:e5c0:c6c0::/64
 2a02:26f7:e5c1:4000::/64
@@ -173,6 +139,5 @@
 2a0a:6044:f65c::/46
 2a0c:9a40:95bb:c000::/52
 2a0f:1cc5:1f40::/48
-2a11:3a80:4000::/35
 2a13:a5c7:25b4::/48
 2a13:a5c7:25ff:b300::/56

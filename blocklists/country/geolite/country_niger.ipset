@@ -1,14 +1,14 @@
 # #
 #   🧱 Firewall Blocklist - country_niger.ipset
 #
-#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_niger.ipset
-#   @source         http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_niger.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_niger_ipset
 #   @uuid           18c01990-879e-3515-9211-f24f69b42f4e
-#   @updated        Fri Jan 16 08:58:20 UTC 2026
-#   @entries        54201 ips
-#                   157 subnets
-#                   157 lines
+#   @updated        Wed Mar 11 13:00:47 UTC 2026
+#   @entries        53899 ips
+#                   147 subnets
+#                   147 lines
 #   @country        Niger (NE)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -64,19 +64,8 @@
 146.75.182.50/31
 146.75.197.34/31
 146.75.210.50/31
-150.48.151.142/31
-150.48.151.144/31
-150.48.184.230/31
-150.48.184.232/29
-150.48.184.240/28
-150.48.185.0/30
-150.48.185.4/31
-150.48.186.176/30
-150.48.186.180/31
 154.66.220.0/22
 154.127.80.0/20
-157.5.101.136/31
-157.5.109.136/31
 162.43.192.0/23
 163.116.180.39/32
 163.116.180.43/32
@@ -98,7 +87,12 @@
 196.197.148.0/24
 196.198.148.0/24
 196.199.148.0/24
-197.214.0.0/18
+197.214.0.0/20
+197.214.16.0/21
+197.214.24.0/23
+197.214.26.0/24
+197.214.28.0/22
+197.214.32.0/19
 2001:470:24:67e::/64
 2001:470:26:246::/64
 2001:470:36:156::/64
@@ -113,10 +107,6 @@
 2605:59c0:3500::/40
 2606:54c0:4cb8::/45
 2606:54c3:0:1101::/64
-2607:8940:2166::/47
-2607:8940:216a::/47
-2607:8940:4171:8800::/55
-2607:8940:4191:8800::/55
 2a02:26f7:ed80:4000::/64
 2a02:26f7:ed80:c600::/64
 2a02:26f7:ed81:4000::/64
@@ -172,7 +162,7 @@
 2a0f:85c1:81b:f820::/60
 2a13:a5c7:25a2::/48
 2a13:a5c7:25ff:a100::/56
-2c0f:2a80:880::/41
+2a14:c380:7f6::/48
 2c0f:3700::/32
 2c0f:6880::/32
 2c0f:eae8::/32

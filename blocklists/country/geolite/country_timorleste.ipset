@@ -1,14 +1,14 @@
 # #
 #   🧱 Firewall Blocklist - country_timorleste.ipset
 #
-#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_timorleste.ipset
-#   @source         http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_timorleste.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_timorleste_ipset
 #   @uuid           bfa1118c-5c38-3038-a67a-95e5831386c1
-#   @updated        Fri Jan 16 08:58:37 UTC 2026
-#   @entries        29746 ips
-#                   196 subnets
-#                   196 lines
+#   @updated        Wed Mar 11 13:01:10 UTC 2026
+#   @entries        30220 ips
+#                   186 subnets
+#                   186 lines
 #   @country        Timor-Leste (TL)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -68,7 +68,6 @@
 104.28.240.204/31
 104.28.240.206/32
 116.199.172.0/22
-131.125.103.100/31
 138.252.62.0/23
 138.252.182.0/24
 140.248.24.90/31
@@ -84,17 +83,11 @@
 140.248.63.220/32
 146.75.132.146/31
 146.75.160.146/31
-150.48.172.228/31
-150.48.176.130/31
-150.48.176.132/30
-150.48.176.136/29
-150.48.176.144/28
-150.48.177.160/31
 150.228.168.0/23
 150.242.108.0/22
+151.158.20.0/23
 154.18.202.0/23
 154.30.31.64/26
-157.5.114.224/31
 157.167.30.0/24
 160.22.52.0/23
 160.30.30.0/23
@@ -127,6 +120,7 @@
 196.198.79.0/24
 196.199.79.0/24
 2001:470:d:7e3::/64
+2001:470:19:1256::/64
 2001:470:26:7cb::/64
 2001:470:36:171::/64
 2001:470:36:7da::/64
@@ -145,14 +139,10 @@
 2402:d080::/32
 2405:1f00::/32
 2405:d540::/32
-2406:2d40:2740::/42
 2406:2d40:9d00::/40
 2407:f2c0::/32
 2606:54c0:5788::/45
 2606:54c3:0:c71::/64
-2607:8940:3d2c::/46
-2607:8940:41a2:e000::/55
-2607:8940:41d1:6400::/55
 2a02:26f7:c600:4000::/64
 2a02:26f7:c600:c8a0::/64
 2a02:26f7:c601:4000::/64
@@ -212,7 +202,7 @@
 2a0f:1cc5:1fda::/48
 2a0f:85c1:81b:fb00::/60
 2a10:500:4700::/40
-2a11:3a83:e000::/35
 2a13:a5c3:d4b0::/46
 2a13:a5c7:25dc::/48
 2a13:a5c7:25ff:dc00::/56
+2a14:c380:7db::/48

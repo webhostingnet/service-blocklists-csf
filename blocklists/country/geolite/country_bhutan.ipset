@@ -1,14 +1,14 @@
 # #
 #   🧱 Firewall Blocklist - country_bhutan.ipset
 #
-#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_bhutan.ipset
-#   @source         http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/country/geolite/country_bhutan.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_bhutan_ipset
 #   @uuid           ed91133f-1493-30e0-ac7c-8e8b0ab3b0d9
-#   @updated        Fri Jan 16 08:57:40 UTC 2026
-#   @entries        52471 ips
-#                   260 subnets
-#                   260 lines
+#   @updated        Wed Mar 11 12:59:53 UTC 2026
+#   @entries        52431 ips
+#                   245 subnets
+#                   245 lines
 #   @country        Bhutan (BT)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -84,7 +84,6 @@
 108.171.110.192/26
 118.103.136.0/21
 119.2.96.0/19
-131.125.102.2/31
 138.252.94.0/24
 140.248.20.4/31
 140.248.38.42/31
@@ -102,16 +101,8 @@
 146.75.160.14/31
 146.75.214.44/31
 149.126.9.128/29
-150.48.157.254/31
-150.48.158.0/31
-150.48.175.56/29
-150.48.175.64/28
-150.48.175.80/30
-150.48.175.84/31
-150.48.177.142/31
 150.228.178.0/23
 154.30.29.192/26
-157.5.112.68/31
 157.10.120.0/21
 157.10.128.0/23
 157.10.136.0/21
@@ -194,9 +185,6 @@
 2404:5540::/32
 2405:d000::/32
 2405:ec00::/31
-2406:2d40:2d80::/41
-2406:2d40:6200::/42
-2406:2d40:9a00::/40
 2406:2d40:a300::/40
 2407:5040::/32
 2600:70ff:aa50::/48
@@ -204,9 +192,6 @@
 2606:54c3:0:12e8::/64
 2607:740:35::/48
 2607:6b80:32::/48
-2607:8940:37d8::/46
-2607:8940:41a0:4400::/55
-2607:8940:41d0:200::/55
 2620:0:876:9100::/56
 2a02:26f7:cec0:4000::/64
 2a02:26f7:cec0:cf00::/62
@@ -276,7 +261,7 @@
 2a0f:85c1:81b:f180::/60
 2a10:500:4200::/40
 2a10:9007:5:2::/64
-2a11:a681:7000::/36
 2a13:a5c3:d414::/46
 2a13:a5c7:2521::/48
 2a13:a5c7:25ff:2000::/56
+2a14:7583:ff3f:200::/56
