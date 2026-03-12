@@ -3,18 +3,15 @@
 # #
 #   @for                https://github.com/ConfigServer-Software/service-blocklists
 #   @workflow           blocklist-generate.yml
-#   @type               bash script
-#   @summary            generate ipset from online plain-text url / page.
+#   @type               Bash script
+#   @summary            Generate ipset from online plain-text url / page.
 #                           Specify a URL to fetch a plaintext file from the internet.
 #                           Supports VARARG for URLS parameter.
 #                           Removes any lines starting with ';' and '#'.
-#   
 #   @terminal           .github/scripts/bl-plain.sh blocklists/03_spam_spamhaus.ipset https://www.spamhaus.org/drop/drop.txt https://url2.com
-#   
 #   @workflow           chmod +x ".github/scripts/bl-plain.sh"
 #                       run_spamhaus=".github/scripts/bl-plain.sh 03_spam_spamhaus.ipset https://www.spamhaus.org/drop/drop.txt"
 #                       eval "./$run_spamhaus"
-#   
 #   @uage               bl-plain.sh
 #                           <argFileSaveto>
 #                           <argUrl1>
@@ -41,14 +38,14 @@ export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
 #   Define › Files
 # #
 
-app_file_this=$(basename "$0")                                                  # bl-format.sh   (with ext)
-app_file_bin="${app_file_this%.*}"                                              # bl-format      (without ext)
+app_file_this=$(basename "$0")                                                  # bl-plain.sh   (with ext)
+app_file_bin="${app_file_this%.*}"                                              # bl-plain      (without ext)
 
 # #
 #   Define › Folders
 # #
 
-app_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"        # path where script was last found in
+app_dir="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"                        # path where script was last found in
 app_dir_this_dir="${PWD}"                                                       # current script directory
 app_dir_github="${app_dir_this_dir}/.github"                                    # .github folder
 
@@ -57,8 +54,8 @@ app_dir_github="${app_dir_this_dir}/.github"                                    
 #   
 #   This bash script has the following arguments:
 #   
-#   @param  argFileSaveto       str         file to save IP addresses into
-#           {...}               vararg      list of source file urls
+#   @param  argFileSaveto       str         File to save IP addresses into
+#           {...}               vararg      List of source file urls
 # #
 
 argFileSaveto=$1
@@ -217,6 +214,22 @@ print( )
 {
     echo "${greym}$1${end}"
 }
+
+# #
+#   Verify › Arguments
+# #
+
+if [ -z "$argFileSaveto" ]; then
+    echo
+    error "    ⭕  No target file specified ${yellowd}${app_file_this}${greym}; aborting${end}"
+    echo
+    exit 0
+fi
+
+if test "$#" -lt 2; then
+    error "    ⭕  Did not provide valid URL arguments for sources to save to ${yellowd}${argFileSaveto}${greym}; aborting${end}"
+    exit 0
+fi
 
 # #
 #   Print › Demo Notifications
@@ -579,7 +592,7 @@ log( )
 check_sudo( )
 {
     if [ "$(id -u)" != "0" ]; then
-        error "    ❌ Must run script with ${redl}sudo"
+        error "    ❌ Must run script with ${redl}sudo${end}"
         exit 1
     fi
 }
@@ -714,7 +727,7 @@ count_ip_stats( )
     #   Unset
     # #
 
-    unset   _fnCountFile _fnSubnetIps _fnTotalIps _fnTotalSubnets _fnLine
+    unset   _fnCountFile _fnSubnetIps _fnTotalIps _fnTotalSubnets _fnLine _fnCidr
 }
 
 # #
@@ -821,24 +834,6 @@ download_list()
 }
 
 # #
-#   Verify › Arguments
-# #
-
-if [ -z "$argFileSaveto" ]; then
-    echo
-    echo "  ⭕ ${yellowd}[${app_file_this}]${end}: No target file specified"
-    echo
-    exit 0
-fi
-
-if test "$#" -lt 2; then
-    echo -e
-    echo -e "  ⭕  ${yellowd}[${app_file_this}]${end}: Aborting -- did not provide URL arguments for ${yellowd}${argFileSaveto}${end}"
-    echo -e
-    exit 0
-fi
-
-# #
 #   Define › App
 # #
 
@@ -853,7 +848,7 @@ templ_now="$(date -u)"                                                          
 templ_id=$(basename -- "${file_ipset_target}")                                  # ipset id, get base filename
 templ_id="${templ_id//[^[:alnum:]]/_}"                                          # ipset id, only allow alphanum and underscore, /description/* and /category/* files must match this value
 templ_uuid="$(uuidgen -m -N "${templ_id}" -n @url)"                             # uuid associated to each release
-templ_curl_opts=(-sSL -A "$app_agent")
+templ_curl_opts=(-sSL -A "$app_agent")                                          # curl command
 
 # #
 #   Define › Template › External Sources
@@ -956,36 +951,34 @@ done
 #       - Delete temp sort file
 # #
 
-grep -vE '^[[:space:]]*(#|;|$)' "${file_ipset_target}" | sort_results > "${file_ipset_target}.sort"
-> "${file_ipset_target}"
-cat "${file_ipset_target}.sort" >> "${file_ipset_target}"
-rm "${file_ipset_target}.sort"
+if [ -f "${file_ipset_target}" ]; then
+    info "    🧹 Sorting and removing duplicate IP entries from ${bluel}${PWD}/${file_ipset_target}${greym}"
+    grep -vE '^[[:space:]]*(#|;|$)' "${file_ipset_target}" | sort_results > "${file_ipset_target}.sort"
+    > "${file_ipset_target}"
+    cat "${file_ipset_target}.sort" >> "${file_ipset_target}"
+    rm "${file_ipset_target}.sort"
+    ok "    ✅ Duplicate IPs removed"
+fi
 
 # #
-#   Format Counts
+#   Final Counts (from final cleaned + deduped file)
 # #
 
-total_lines=$(wc -l < "${file_ipset_target}")                                   # count ip lines
+if [ -f "${file_ipset_target}" ]; then
+    count_ip_stats "${file_ipset_target}"
+    total_ips=$total_ips
+    total_subnets=$total_subnets
+
+    total_lines=$(wc -l < "${file_ipset_target}")                               # count ip lines
+    total_lines=$(printf "%'d" "$total_lines")                                  # GLOBAL add commas to thousands
+    total_subnets=$(printf "%'d" "$total_subnets")                              # GLOBAL add commas to thousands
+    total_ips=$(printf "%'d" "$total_ips")                                      # GLOBAL add commas to thousands
+fi
 
 # #
-#   Count totals from final deduped file
-# #
-
-count_ip_stats "${file_ipset_target}"
-total_ips=$total_ips
-total_subnets=$total_subnets
-total_lines=$(printf "%'d" "$total_lines")                                      # GLOBAL add commas to thousands
-
-# #
-#   Format count totals since we no longer need to add
-# #
-
-total_ips=$(printf "%'d" "$total_ips")                                          # GLOBAL add commas to thousands
-total_subnets=$(printf "%'d" "$total_subnets")                                  # GLOBAL add commas to thousands
-
-# #
-#   ed
-#       0a  top of file
+#   Template › Header
+#   
+#   0a      place at top of file
 # #
 
 ed -s ${file_ipset_target} <<END_ED
