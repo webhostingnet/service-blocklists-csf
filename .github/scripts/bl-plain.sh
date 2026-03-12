@@ -4,363 +4,1007 @@
 #   @for                https://github.com/ConfigServer-Software/service-blocklists
 #   @workflow           blocklist-generate.yml
 #   @type               bash script
-#   @summary            generate ipset from online plain-text url / page | URLs: VARARG
-#                       Uses a URL to fetch a plaintext file from the internet.
-#                       Then reads each line, counts how many IP addresses and subnets it contains, and removes 
-#                       any comments the original file had, including text that starts with the characters `;` and `#`.
-#                       Supports multiple URLs as arguments.
-# 
-#   @terminal           .github/scripts/bl-plain.sh \
-#                           blocklists/03_spam_spamhaus.ipset \
-#                           https://www.spamhaus.org/drop/drop.txt
-#
+#   @summary            generate ipset from online plain-text url / page.
+#                           Specify a URL to fetch a plaintext file from the internet.
+#                           Supports VARARG for URLS parameter.
+#                           Removes any lines starting with ';' and '#'.
+#   
+#   @terminal           .github/scripts/bl-plain.sh blocklists/03_spam_spamhaus.ipset https://www.spamhaus.org/drop/drop.txt https://url2.com
+#   
 #   @workflow           chmod +x ".github/scripts/bl-plain.sh"
 #                       run_spamhaus=".github/scripts/bl-plain.sh 03_spam_spamhaus.ipset https://www.spamhaus.org/drop/drop.txt"
 #                       eval "./$run_spamhaus"
-#
+#   
 #   @uage               bl-plain.sh
-#                           <ARG_SAVEFILE>
-#                           <URL_1>
-#                           <URL_2>
+#                           <argFileSaveto>
+#                           <argUrl1>
+#                           <argUrl2>
 #                           {...}
-#                       bl-plain.sh 03_spam_spamhaus.ipset URL_1 
-#                       bl-plain.sh 03_spam_spamhaus.ipset URL_1 URL_2 URL_3
-#
+#                       bl-plain.sh 03_spam_spamhaus.ipset argUrl1 
+#                       bl-plain.sh 03_spam_spamhaus.ipset argUrl1 argUrl2 argUrl3
+#   
 #                       📁 .github
 #                           📁 scripts
 #                               📄 bl-plain.sh
 #                           📁 workflows
 #                               📄 blocklist-generate.yml
-#
+#   
 # #
 
-APP_THIS_FILE=$(basename "$0")                          # current script file
-APP_THIS_DIR="${PWD}"                                   # current script directory
-APP_GITHUB_DIR="${APP_THIS_DIR}/.github"                # .github folder
+# #
+#   Define › Set PATH
+# #
+
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
 
 # #
-#   vars > colors
-#
+#   Define › Files
+# #
+
+app_file_this=$(basename "$0")                                                  # bl-format.sh   (with ext)
+app_file_bin="${app_file_this%.*}"                                              # bl-format      (without ext)
+
+# #
+#   Define › Folders
+# #
+
+app_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"        # path where script was last found in
+app_dir_this_dir="${PWD}"                                                       # current script directory
+app_dir_github="${app_dir_this_dir}/.github"                                    # .github folder
+
+# #
+#   Define › Arguments
+#   
+#   This bash script has the following arguments:
+#   
+#   @param  argFileSaveto       str         file to save IP addresses into
+#           {...}               vararg      list of source file urls
+# #
+
+argFileSaveto=$1
+
+# #
+#   Define › Colors
+#   
 #   Use the color table at:
 #       - https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
 # #
 
-RESET="\e[0m"
-WHITE="\e[97m"
-BOLD="\e[1m"
-DIM="\e[2m"
-UNDERLINE="\e[4m"
-BLINK="\e[5m"
-INVERTED="\e[7m"
-HIDDEN="\e[8m"
-BLACK="\e[38;5;0m"
-FUCHSIA1="\e[38;5;125m"
-FUCHSIA2="\e[38;5;198m"
-RED1="\e[38;5;160m"
-RED2="\e[38;5;196m"
-ORANGE1="\e[38;5;202m"
-ORANGE2="\e[38;5;208m"
-MAGENTA="\e[38;5;5m"
-BLUE1="\e[38;5;033m"
-BLUE2="\e[38;5;39m"
-CYAN="\e[38;5;6m"
-GREEN1="\e[38;5;2m"
-GREEN2="\e[38;5;76m"
-YELLOW1="\e[38;5;184m"
-YELLOW2="\e[38;5;190m"
-YELLOW3="\e[38;5;193m"
-GREY1="\e[38;5;240m"
-GREY2="\e[38;5;244m"
-GREY3="\e[38;5;250m"
+esc=$(printf '\033')
+end="${esc}[0m"
+bgEnd="${esc}[49m"
+fgEnd="${esc}[39m"
+bold="${esc}[1m"
+dim="${esc}[2m"
+underline="${esc}[4m"
+blink="${esc}[5m"
+white="${esc}[97m"
+black="${esc}[0;30m"
+redl="${esc}[0;91m"
+redd="${esc}[38;5;196m"
+magental="${esc}[38;5;197m"
+magentad="${esc}[38;5;161m"
+fuchsial="${esc}[38;5;206m"
+fuchsiad="${esc}[38;5;199m"
+bluel="${esc}[38;5;33m"
+blued="${esc}[38;5;27m"
+greenl="${esc}[38;5;47m"
+greend="${esc}[38;5;35m"
+orangel="${esc}[38;5;208m"
+oranged="${esc}[38;5;202m"
+yellowl="${esc}[38;5;226m"
+yellowd="${esc}[38;5;214m"
+greyl="${esc}[38;5;250m"
+greym="${esc}[38;5;244m"
+greyd="${esc}[38;5;240m"
+navy="${esc}[38;5;62m"
+olive="${esc}[38;5;144m"
+peach="${esc}[38;5;204m"
+cyan="${esc}[38;5;6m"
+bgVerbose="${esc}[1;38;5;15;48;5;125m"
+bgDebug="${esc}[1;38;5;15;48;5;237m"
+bgInfo="${esc}[1;38;5;15;48;5;27m"
+bgOk="${esc}[1;38;5;15;48;5;64m"
+bgWarn="${esc}[1;38;5;16;48;5;214m"
+bgDanger="${esc}[1;38;5;15;48;5;202m"
+bgError="${esc}[1;38;5;15;48;5;160m"
 
 # #
-#   print an error and exit with failure
-#   $1: error message
+#   Define › App
 # #
 
-function error()
+app_name="Blocklist Formatter"                                                  # name of app
+app_desc="Fetch list of IP addresses from plain-text source"                    # desc
+app_ver="1.2.0.0"                                                               # current script version
+app_repo="configserver-software/service-blocklists"                             # repository
+app_repo_branch="main"                                                          # repository branch
+app_agent="Mozilla/5.0 (Windows NT 10.0; WOW64) "\
+"AppleWebKit/537.36 (KHTML, like Gecko) "\
+"Chrome/51.0.2704.103 Safari/537.36"                                            # user agent used with curl
+
+# #
+#   Define › Args
+# #
+
+argDryrun="false"                                                               # dryrun mode
+argDevMode="false"                                                              # dev mode
+argVerbose="false"                                                              # verbose mode
+
+# #
+#   Define › Time
+# #
+
+time_start=$( date +%s )                                                        # record start time of script
+SECONDS=0                                                                       # set seconds count for beginning of script
+
+# #
+#   Define › Regex
+# #
+
+regex_url='^(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]\.[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]$'
+regex_ipv4='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+regex_ipv4_cidr='^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]{1,2})$'
+regex_ipv6='^[0-9A-Fa-f:.]+$'
+regex_ipv6_cidr='^[0-9A-Fa-f:.]+/[0-9]{1,3}$'
+
+# #
+#   Define › Defaults
+# #
+
+total_lines=0                                                                   # number of lines in doc
+total_subnets=0                                                                 # number of IPs in all subnets combined
+total_ips=0                                                                     # number of single IPs (counts each line)
+
+# #
+#   Define › Logging functions
+#   
+#   verbose "This is an verbose message"
+#   debug "This is an debug message"
+#   info "This is an info message"
+#   ok "This is an ok message"
+#   warn "This is a warn message"
+#   danger "This is a danger message"
+#   error "This is an error message"
+# #
+
+info( )
 {
-    echo -e "  ⭕ ${GREY2}${APP_THIS_FILE}${RESET}: \n     ${BOLD}${RED}Error${NORMAL}: ${RESET}$1"
-    echo -e
-    exit 0
+    printf '\033[0m\r%-41s %-65s\n' "   ${bgInfo} INFO ${end}" "${greym} $1 ${end}"
+}
+
+ok( )
+{
+    printf '\033[0m\r%-41s %-65s\n' "   ${bgOk} PASS ${end}" "${greym} $1 ${end}"
+}
+
+warn( )
+{
+    printf '\033[0m\r%-42s %-65s\n' "   ${bgWarn} WARN ${end}" "${greym} $1 ${end}"
+}
+
+danger( )
+{
+    printf '\033[0m\r%-42s %-65s\n' "   ${bgDanger} DNGR ${end}" "${greym} $1 ${end}"
+}
+
+error( )
+{
+    printf '\033[0m\r%-42s %-65s\n' "   ${bgError} FAIL ${end}" "${greym} $1 ${end}"
+}
+
+debug( )
+{
+    if [ "$argDevMode" = "true" ] || [ "$argDryrun" = "true" ]; then
+        printf '\033[0m\r%-42s %-65s\n' "   ${bgDebug} DBUG ${end}" "${greym} $1 ${end}"
+    fi
+}
+
+verbose( )
+{
+    case "${argVerbose:-0}" in
+        1|true|TRUE|yes|YES)
+            printf '\033[0m\r%-42s %-65s\n' "   ${bgVerbose} VRBO ${end}" "${greym} $1 ${end}"
+            ;;
+    esac
+}
+
+label( )
+{
+    printf '\033[0m\r%-31s %-65s\n' "   ${greyd}        ${end}" "${greyd} $1 ${end}"
+}
+
+print( )
+{
+    echo "${greym}$1${end}"
+}
+
+# #
+#   Print › Demo Notifications
+#   
+#   Outputs a list of example notifications
+#   
+#   @usage          demoNoti
+# #
+
+demoNoti()
+{
+    verbose "This is an verbose message"
+    debug "This is an debug message"
+    info "This is an info message"
+    ok "This is an ok message"
+    warn "This is a warn message"
+    danger "This is a danger message"
+    error "This is an error message"
+}
+
+# #
+#   truncate text; add ...
+#   
+#   @usage
+#       truncate "This is a long string" 10 "..."
+# #
+
+truncate()
+{
+    _text=$1
+    _maxlen=$2
+    _suffix=${3:-}
+
+    _len=$(printf %s "${_text}" | wc -c | tr -d '[:space:]')
+
+    if [ "${_len}" -gt "${_maxlen}" ]; then
+        printf '%s%s\n' "$(printf %s "${_text}" | cut -c1-"${_maxlen}")" "${_suffix}"
+    else
+        printf '%s\n' "${_text}"
+    fi
+
+    # #
+    #   Unset
+    # #
+
+    unset   _text _maxlen _suffix _len
+}
+
+# #
+#   Print › Line
+#   
+#   Prints single line horizontal line, no text
+#   
+#   @usage          prin0
+# #
+
+prin0()
+{
+    _indent="  "
+    _box_width=110
+    _line_width=$(( _box_width + 2 ))
+
+    _line=""
+    i=1
+    while [ "$i" -le "${_line_width}" ]; do
+        _line="${_line}─"
+        i=$(( i + 1 ))
+    done
+
+    printf '\n'
+    printf "%b%s%s%b\n" "${greyd}" "${_indent}" "${_line}" "${end}"
+    printf '\n'
+
+    # #
+    #   Unset
+    # #
+
+    unset   _indent _box_width _line_width _line i
+}
+
+# #
+#   Print › Box › Single
+#   
+#   Prints single line with a box surrounding it.
+#   
+#   @usage          prinb "${APP_NAME_SHORT:-CSF} › Customize csf.config"
+# #
+
+prinb()
+{
+    _title="$*"
+    _indent="   "                                                               # Left padding
+    _padding=6                                                                  # Extra horizontal space around text
+    _title_length=${#_title}
+    _inner_width=$(( _title_length + _padding ))
+    _box_width=110
+
+    # #
+    #   Minimum width for aesthetics
+    # #
+
+    if [ "$_inner_width" -lt "$_box_width" ]; then
+        _inner_width=$_box_width
+    fi
+
+    # #
+    #   Horizontal border
+    # #
+
+    _line=""
+    i=1
+    while [ "$i" -le "$_inner_width" ]; do
+        _line="${_line}─"
+        i=$(( i + 1 ))
+    done
+
+    # #
+    #   Draw box
+    # #
+
+    printf '\n'
+    printf '\n'
+    printf "%b%s┌%s┐\n" "${greym}" "$_indent" "$_line"
+    printf "%b%s│  %-${_inner_width}s \n" "${greym}" "$_indent" "$_title"
+    printf "%b%s└%s┘%b\n" "${greym}" "$_indent" "$_line" "${end}"
+    printf '\n'
+
+    # #
+    #   Unset
+    # #
+
+    unset   _title _indent _padding \
+            _title_length _inner_width _box_width \
+            _line i
+}
+
+# #
+#   Print › Box › Paragraph
+#   
+#   Places an ASCII box around text. Supports multi-lines with \n, and also emojis.
+#   Func determines the character count if color codes are used and ensures that
+#       the box borders are aligned properly.
+#   
+#   If using emojis; adjust the spacing so that the far-right line will align
+#       with the rest. Add the number of spaces to increase the value, which is
+#       represented with a number enclosed in square brackets.
+#           [1]     add 1 space to the right.
+#           [2]     add 2 spaces to the right.
+#           [-1]    remove 1 space to the right (needed for some emojis depending on if the emoji is 1 or 2 bytes)
+#   
+#   @usage          prinp "Certificate Generation Successful" "Your new certificate and keys have been generated successfully.\n\nYou can find them in the ${greenl}${app_dir_output}${greyd} folder."
+#                   prinp "🎗️[1]  ${file_domain_base}" "The following description will show on multiple lines with a ASCII box around it."
+#                   prinp "📄[-1] File Overview" "The following list outlines the files that you have generated using this utility, and what certs/keys may be missing."
+#                   prinp "➡️[15]  ${bluel}Paths${end}"
+# #
+
+prinp()
+{
+    _title="$1"
+    shift
+    _text="$*"
+    _indent="  "
+    _box_width=110
+    _pad=1
+    _content_width=$(( _box_width ))
+    _inner_width=$(( _box_width - _pad*2 ))
+    _hline=$(printf '─%.0s' $(seq 1 "$_content_width"))
+    _emoji_adjust=0
+
+    print
+    print
+    printf "${greyd}%s┌%s┐\n" "$_indent" "$_hline"
+
+    # #
+    #   Title
+    #   
+    #   Extract optional [N] adjustment from title (signed integer), portably
+    # #
+
+    _display_title="$_title"
+
+    # #
+    #   Get content inside first [...] (if present)
+    # #
+
+    if printf '%s\n' "$_title" | grep -q '\[[[:space:]]*[-0-9][-0-9[:space:]]*\]'; then
+
+        # #
+        #   Extract numeric inside brackets (allow optional leading -)
+        #       - use sed to capture first bracketed token, then strip non-digit except leading -
+        # #
+
+        _bracket=$(printf '%s' "$_title" | sed -n 's/.*\[\([-0-9][-0-9]*\)\].*/\1/p')
+
+        # #
+        #   Validate numeric and assign, otherwise fallback to 0
+        # #
+    
+        if printf '%s\n' "$_bracket" | grep -qE '^-?[0-9]+$'; then
+            _emoji_adjust=$_bracket
+        else
+            _emoji_adjust=0
+        fi
+
+        # #
+        #   Remove the first [...] token from the display_title
+        # #
+    
+        _display_title=$(printf '%s' "$_title" | sed 's/\[[^]]*\]//')
+    fi
+
+    # #
+    #   Ensure emoji_adjust is a decimal integer so math works
+    # #
+
+    case "$_emoji_adjust" in
+        ''|*[!0-9-]*)
+            _emoji_adjust=0
+            ;;
+    esac
+
+    _title_width=$(( _content_width - _pad ))
+
+    # #
+    #   Account for emoji adjustment in visible length calculation
+    # #
+  
+    _title_vis_len=$(( ${#_display_title} - _emoji_adjust ))
+    printf "${greyd}%s│%*s${bluel}%s${greyd}%*s│\n" \
+        "$_indent" "$_pad" "" "$_display_title" "$(( _title_width - _title_vis_len ))" ""
+
+    # #
+    #   Only render body text if provided
+    # #
+
+    if [ -n "$_text" ]; then
+        printf "${greyd}%s│%-${_content_width}s│\n" "$_indent" ""
+
+        # #
+        #   Convert literal \n to real newlines
+        # #
+
+        _text=$(printf "%b" "$_text")
+
+        # #
+        #   Handle each line with ANSI-aware wrapping and true padding
+        # #
+
+        printf "%s" "$_text" | while IFS= read -r line || [ -n "$line" ]; do
+
+        # #
+        #   Blank line
+        # #
+    
+        if [ -z "$line" ]; then
+            printf "${greyd}%s│%-*s│\n" "$_indent" "$_content_width" ""
+            continue
+        fi
+
+        # #
+        #   Optional [N] spacing adjustment in body line (same thing done for title)
+        # #    
+
+        _line_emoji_adjust=0
+        if printf '%s\n' "$line" | grep -q '\[[[:space:]]*[-0-9][-0-9[:space:]]*\]'; then
+            _line_bracket=$(printf '%s' "$line" | sed -n 's/.*\[\([-0-9][-0-9]*\)\].*/\1/p')
+
+            if printf '%s\n' "$_line_bracket" | grep -qE '^-?[0-9]+$'; then
+                _line_emoji_adjust=$_line_bracket
+            else
+                _line_emoji_adjust=0
+            fi
+
+            line=$(printf '%s' "$line" | sed 's/\[[^]]*\]//')
+        fi
+
+        case "$_line_emoji_adjust" in
+            ''|*[!0-9-]*)
+                _line_emoji_adjust=0
+                ;;
+        esac
+
+        _out=""
+        for word in $line; do
+
+            # #
+            #   Strip ANSI for visible width
+            # #
+        
+            _vis_out=$(printf "%s" "$_out" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g')
+            _vis_word=$(printf "%s" "$word" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g')
+            _vis_len=$(( ${#_vis_out} + ( ${#_vis_out} > 0 ? 1 : 0 ) + ${#_vis_word} - _line_emoji_adjust ))
+
+            if [ -z "$_out" ]; then
+                _out="$word"
+            elif [ $_vis_len -le $_inner_width ]; then
+                _out="$_out $word"
+            else
+
+                # #
+                #   Print and pad manually based on visible length
+                # #
+
+                _vis_len_full=$(printf "%s" "$_out" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g' | wc -c | tr -d ' ')
+                _vis_len_full=$(( _vis_len_full - _line_emoji_adjust ))
+                [ $_vis_len_full -lt 0 ] && _vis_len_full=0
+                _pad_spaces=$(( _inner_width - _vis_len_full ))
+                [ $_pad_spaces -lt 0 ] && _pad_spaces=0
+                printf "${greyd}%s│%*s%s%*s│\n" "$_indent" "$_pad" "" "$_out" "$(( _pad + _pad_spaces ))" ""
+                _out="$word"
+            fi
+        done
+
+        # #
+        #   Final flush line
+        # #
+    
+        if [ -n "$_out" ]; then
+            _vis_len_full=$(printf "%s" "$_out" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g' | wc -c | tr -d ' ')
+            _vis_len_full=$(( _vis_len_full - _line_emoji_adjust ))
+            [ $_vis_len_full -lt 0 ] && _vis_len_full=0
+            _pad_spaces=$(( _inner_width - _vis_len_full ))
+            [ $_pad_spaces -lt 0 ] && _pad_spaces=0
+            printf "${greyd}%s│%*s%s%*s│\n" "$_indent" "$_pad" "" "$_out" "$(( _pad + _pad_spaces ))" ""
+        fi
+
+        done
+    fi
+
+    printf "${greyd}%s└%s┘${end}\n" "$_indent" "$_hline"
+    print
+
+    # #
+    #   Unset
+    # #
+
+    unset   _title _title_width _text _indent _pad _padding _content_width \
+            _title_length _inner_width _box_width _emoji_adjust \
+            _hline _line _out i _display_title _vis_out _vis_word _vis_len _vis_len_full \
+            _line_bracket _line_emoji_adjust _pad_spaces _bracket
+}
+
+# #
+#   Define › Logging › Verbose
+# #
+
+log( )
+{
+    case "${argVerbose:-0}" in
+        1|true|TRUE|yes|YES)
+            verbose "$@"
+            ;;
+    esac
+}
+
+# #
+#   Define › Sudo
+# #
+
+check_sudo( )
+{
+    if [ "$(id -u)" != "0" ]; then
+        error "    ❌ Must run script with ${redl}sudo"
+        exit 1
+    fi
+}
+
+# #
+#   Define › Run Command
+#   
+#   Added when dryrun mode was added to the install.sh.
+#   Allows for a critical command to be skipped if in --dryrun mode.
+#       Throws a debug message instead of executing.
+#   
+#   argDryrun comes from global export in csf/install.sh
+#   
+#   @usage          run /sbin/chkconfig csf off
+#                   run echo "ConfigServer"
+#                   run chmod -v 700 "./${CSF_AUTO_GENERIC}"
+# #
+
+run()
+{
+    if [ "${argDryrun}" = "true" ]; then
+        debug "    Drymode (skip): $*"
+    else
+        debug "    Run: $*"
+        "$@"
+    fi
 }
 
 # #
 #   Sort Results
-#
+#   
 #   @usage          line=$(parse_spf_record "${ip}" | sort_results)
 # #
 
 sort_results()
 {
-	declare -a ipv4 ipv6
 
-	while read -r line ; do
-		if [[ ${line} =~ : ]] ; then
-			ipv6+=("${line}")
-		else
-			ipv4+=("${line}")
-		fi
-	done
+    # Temp files for IPv4 and IPv6
+    _ipv4_tmp=$(mktemp) || exit 1
+    _ipv6_tmp=$(mktemp) || exit 1
 
-	[[ -v ipv4[@] ]] && printf '%s\n' "${ipv4[@]}" | sort -g -t. -k1,1 -k 2,2 -k 3,3 -k 4,4 | uniq
-	[[ -v ipv6[@] ]] && printf '%s\n' "${ipv6[@]}" | sort -g -t: -k1,1 -k 2,2 -k 3,3 -k 4,4 -k 5,5 -k 6,6 -k 7,7 -k 8,8 | uniq
+    # Read stdin line by line
+    while IFS= read -r line; do
+        case "$line" in
+            *:*)
+                printf '%s\n' "$line" >> "$_ipv6_tmp" ;;
+            *)
+                printf '%s\n' "$line" >> "$_ipv4_tmp" ;;
+        esac
+    done
+
+    # Sort IPv4 numerically, remove duplicates
+    if [ -s "$_ipv4_tmp" ]; then
+        sort -t. -n -k1,1 -k2,2 -k3,3 -k4,4 "$_ipv4_tmp" | uniq
+    fi
+
+    # Sort IPv6 lexicographically, remove duplicates
+    if [ -s "$_ipv6_tmp" ]; then
+        sort "$_ipv6_tmp" | uniq
+    fi
+
+    # Clean up temp files
+    rm -f "$_ipv4_tmp" "$_ipv6_tmp"
+
+    # #
+    #   Unset
+    # #
+
+    unset   _ipv4_tmp _ipv6_tmp
 }
 
 # #
-#   Arguments
-#
-#   This bash script has the following arguments:
-#
-#       ARG_SAVEFILE        (str)       file to save IP addresses into
-#       { ... }             (varg)      list of URLs to download files from
+#   Count file statistics
+#       - IPv4 CIDR contributes all IPv4 addresses in the subnet
+#       - IPv6 CIDR contributes one entry (do not expand)
+#       - Single IPv4/IPv6 contributes one entry
 # #
 
-ARG_SAVEFILE=$1
+count_ip_stats( )
+{
+    _fnCountFile=$1
+    _fnSubnetIps=0
+    _fnTotalIps=0
+    _fnTotalSubnets=0
+
+    while IFS= read -r _fnLine; do
+
+        # #
+        #   IPv4 CIDR
+        # #
+
+        if [[ $_fnLine =~ $regex_ipv4_cidr ]]; then
+            _fnCidr="${BASH_REMATCH[2]}"
+            if [ "$_fnCidr" -le 32 ]; then
+                _fnSubnetIps=$(( 1 << (32 - _fnCidr) ))
+                _fnTotalIps=$(( _fnTotalIps + _fnSubnetIps ))
+                _fnTotalSubnets=$(( _fnTotalSubnets + 1 ))
+            fi
+
+        # #
+        #   IPv4 single
+        # #
+
+        elif [[ $_fnLine =~ $regex_ipv4 ]]; then
+            _fnTotalIps=$(( _fnTotalIps + 1 ))
+
+        # #
+        #   IPv6 CIDR (count as one entry, do not expand)
+        # #
+
+        elif [[ $_fnLine =~ $regex_ipv6_cidr ]]; then
+            _fnCidr="${_fnLine#*/}"
+            if [ "$_fnCidr" -le 128 ]; then
+                _fnTotalIps=$(( _fnTotalIps + 1 ))
+                _fnTotalSubnets=$(( _fnTotalSubnets + 1 ))
+            fi
+
+        # #
+        #   IPv6 single
+        # #
+
+        elif [[ $_fnLine =~ $regex_ipv6 ]] && [[ $_fnLine == *:* ]]; then
+            _fnTotalIps=$(( _fnTotalIps + 1 ))
+        fi
+
+    done < "${_fnCountFile}"
+
+    total_ips=$_fnTotalIps
+    total_subnets=$_fnTotalSubnets
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnCountFile _fnSubnetIps _fnTotalIps _fnTotalSubnets _fnLine
+}
 
 # #
-#   Arguments > Validate
-# #
-
-if [[ -z "${ARG_SAVEFILE}" ]]; then
-    echo -e
-    echo -e "  ⭕ ${YELLOW1}[${APP_THIS_FILE}]${RESET}: No target file specified"
-    echo -e
-    exit 0
-fi
-
-if test "$#" -lt 2; then
-    echo -e
-    echo -e "  ⭕  ${YELLOW1}[${APP_THIS_FILE}]${RESET}: Aborting -- did not provide URL arguments for ${YELLOW1}${ARG_SAVEFILE}${RESET}"
-    echo -e
-    exit 0
-fi
-
-# #
-#    Define > General
-# #
-
-SECONDS=0                                               # set seconds count for beginning of script
-APP_VER=("1" "0" "0" "0")                               # current script version
-APP_DEBUG=false                                         # debug mode
-APP_REPO="configserver-software/service-blocklists"     # repository
-APP_REPO_BRANCH="main"                                  # repository branch
-APP_OUT=""                                              # each ip fetched from stdin will be stored in this var
-APP_FILE_PERM="${ARG_SAVEFILE}"                         # perm file when building ipset list
-COUNT_LINES=0                                           # number of lines in doc
-COUNT_TOTAL_SUBNET=0                                    # number of IPs in all subnets combined
-COUNT_TOTAL_IP=0                                        # number of single IPs (counts each line)
-APP_AGENT="Mozilla/5.0 (Windows NT 10.0; WOW64) "\
-"AppleWebKit/537.36 (KHTML, like Gecko) "\
-"Chrome/51.0.2704.103 Safari/537.36"                    # user agent used with curl
-TEMPL_NOW=`date -u`                                     # get current date in utc format
-TEMPL_ID=$(basename -- ${APP_FILE_PERM})                # ipset id, get base filename
-TEMPL_ID="${TEMPL_ID//[^[:alnum:]]/_}"                  # ipset id, only allow alphanum and underscore, /description/* and /category/* files must match this value
-TEMPL_UUID=$(uuidgen -m -N "${TEMPL_ID}" -n @url)       # uuid associated to each release
-TEMPL_DESC=$(curl -sSL -A "${APP_AGENT}" "https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/.github/descriptions/${TEMPL_ID}.txt")
-TEMPL_CAT=$(curl -sSL -A "${APP_AGENT}" "https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/.github/categories/${TEMPL_ID}.txt")
-TEMPL_EXP=$(curl -sSL -A "${APP_AGENT}" "https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/.github/expires/${TEMPL_ID}.txt")
-templ_url_service=$(curl -sSL -A "${APP_AGENT}" "https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/.github/url-source/${TEMPL_ID}.txt")
-REGEX_URL='^(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]\.[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]$'
-REGEX_ISNUM='^[0-9]+$'
-
-# #
-#   Default Values
-# #
-
-if [[ "$TEMPL_DESC" == *"404: Not Found"* ]]; then
-    TEMPL_DESC="#   No description provided"
-fi
-
-if [[ "$TEMPL_CAT" == *"404: Not Found"* ]]; then
-    TEMPL_CAT="Uncategorized"
-fi
-
-if [[ "$TEMPL_EXP" == *"404: Not Found"* ]]; then
-    TEMPL_EXP="6 hours"
-fi
-
-if [[ "$templ_url_service" == *"404: Not Found"* ]]; then
-    templ_url_service="None"
-fi
-
-# #
-#   Output > Header
-# #
-
-echo -e
-echo -e " ──────────────────────────────────────────────────────────────────────────────────────────────"
-echo -e "  ${YELLOW1}${APP_FILE_PERM}${RESET}"
-echo -e
-echo -e "  ${GREY2}ID:          ${TEMPL_ID}${RESET}"
-echo -e "  ${GREY2}UUID:        ${TEMPL_UUID}${RESET}"
-echo -e "  ${GREY2}CATEGORY:    ${TEMPL_CAT}${RESET}"
-echo -e "  ${GREY2}ACTION:      ${APP_THIS_FILE}${RESET}"
-echo -e " ──────────────────────────────────────────────────────────────────────────────────────────────"
-
-# #
-#   output
-# #
-
-echo -e
-echo -e "  ⭐ Starting script ${GREEN1}${APP_THIS_FILE}${RESET}"
-
-# #
-#   Create or Clean file
-# #
-
-if [ -f $APP_FILE_PERM ]; then
-    echo -e "  📄 Clean ${BLUE2}${APP_FILE_PERM}${RESET}"
-    echo -e
-   > ${APP_FILE_PERM}       # clean file
-else
-    echo -e "  📁 Create ${BLUE2}${APP_FILE_PERM}${RESET}"
-    echo -e
-    mkdir -p $(dirname "${APP_FILE_PERM}")
-    touch ${APP_FILE_PERM}
-fi
-
-# #
-#   Func > Download List
+#   Func › Download List
 # #
 
 download_list()
 {
 
-    local fnUrl=$1
-    local fnFile=$2
-    local fnFileTemp="${2}.tmp"
-    local DL_COUNT_TOTAL_IP=0
-    local DL_COUNT_TOTAL_SUBNET=0
-
-    echo -e "  🌎 Downloading IP blacklist to ${ORANGE2}${fnFileTemp}${RESET}"
-
-    curl -sSL -A "${CURL_AGENT}" ${fnUrl} -o ${fnFileTemp} >/dev/null 2>&1      # download file
-    sed -i 's/\-.*//' ${fnFileTemp}                                             # remove hyphens for ip ranges
-    sed -i '/[#;]/{s/#.*//;s/;.*//;/^$/d}' ${fnFileTemp}                        # remove # and ; comments
-    sed -i 's/[[:blank:]]*$//' ${fnFileTemp}                                    # remove space / tab from EOL
-    sed -i '/^\s*$/d' ${fnFileTemp}                                             # remove empty lines
+    _fnArgUrl=$1
+    _fnArgFile=$2
+    _fnFileTemp="${2}.tmp"
+    _fnListNum=$3
+    _count_total_ips=0
+    _count_total_subnets=0
 
     # #
-    #   calculate how many IPs are in a subnet
-    #   if you want to calculate the USABLE IP addresses, subtract -2 from any subnet not ending with 31 or 32.
-    #   
-    #   for our purpose, we want to block them all in the event that the network has reconfigured their network / broadcast IPs,
-    #   so we will count every IP in the block.
+    #   Create the file if it doesn't exist
     # #
 
-    echo -e "  📊 Fetching statistics for clean file ${ORANGE2}${fnFileTemp}${RESET}"
-    for line in $(cat ${fnFileTemp}); do
-        # is ipv6
-        if [ "$line" != "${line#*:[0-9a-fA-F]}" ]; then
-            COUNT_TOTAL_IP=$(( $COUNT_TOTAL_IP + 1 ))                           # GLOBAL count subnet
-            DL_COUNT_TOTAL_IP=$(( $DL_COUNT_TOTAL_IP + 1 ))                     # LOCAL count subnet
+    prinp "📄[-1] Processing list #${_fnListNum}"
 
-        # is subnet
-        elif [[ $line =~ /[0-9]{1,2}$ ]]; then
-            ips=$(( 1 << (32 - ${line#*/}) ))
+    if [ ! -f "${_fnFileTemp}" ]; then
+        touch "${_fnFileTemp}"
 
-            if [[ $ips =~ $REGEX_ISNUM ]]; then
-                # CIDR=$(echo $line | sed 's:.*/::')
-
-                # uncomment if you want to count ONLY usable IP addresses
-                # subtract - 2 from any cidr not ending with 31 or 32
-                # if [[ $CIDR != "31" ]] && [[ $CIDR != "32" ]]; then
-                    # COUNT_TOTAL_IP=$(( $COUNT_TOTAL_IP - 2 ))
-                    # DL_COUNT_TOTAL_IP=$(( $DL_COUNT_TOTAL_IP - 2 ))
-                # fi
-
-                COUNT_TOTAL_IP=$(( $COUNT_TOTAL_IP + $ips ))                    # GLOBAL count IPs in subnet
-                COUNT_TOTAL_SUBNET=$(( $COUNT_TOTAL_SUBNET + 1 ))               # GLOBAL count subnet
-
-                DL_COUNT_TOTAL_IP=$(( $DL_COUNT_TOTAL_IP + $ips ))              # LOCAL count IPs in subnet
-                DL_COUNT_TOTAL_SUBNET=$(( $DL_COUNT_TOTAL_SUBNET + 1 ))         # LOCAL count subnet
-            fi
-
-        # is normal IP
-        elif [[ $line =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            COUNT_TOTAL_IP=$(( $COUNT_TOTAL_IP + 1 ))
-            DL_COUNT_TOTAL_IP=$(( $DL_COUNT_TOTAL_IP + 1 ))
+        if [ -f "${_fnFileTemp}" ]; then
+            ok "    📄 Created temp file ${greenl}${PWD}/${_fnFileTemp}${greym}"
+        else
+            error "    ⭕ Failed to create temp file ${bluel}${PWD}/${_fnFileTemp}${greym}"
+            exit 1
         fi
-    done
+    fi
+
+    info "    🌎 Downloading IP blacklist to ${bluel}${PWD}/${_fnFileTemp}${greym}"
 
     # #
-    #   Count lines and subnets
+    #   Download file
     # #
 
-    DL_COUNT_TOTAL_IP=$(printf "%'d" "$DL_COUNT_TOTAL_IP")                      # LOCAL add commas to thousands
-    DL_COUNT_TOTAL_SUBNET=$(printf "%'d" "$DL_COUNT_TOTAL_SUBNET")              # LOCAL add commas to thousands
+    curl -sSL -k -A "${app_agent}" "${_fnArgUrl}" -o "${_fnFileTemp}" >/dev/null 2>&1
 
     # #
-    #   Move temp file to final
+    #   Perform sed actions on downloaded file.
     # #
 
-    echo -e "  🚛 Move ${ORANGE2}${fnFileTemp}${RESET} to ${BLUE2}${fnFile}${RESET}"
-    cat ${fnFileTemp} >> ${fnFile}                                              # copy .tmp contents to real file
-    rm ${fnFileTemp}                                                            # delete temp file
+    # normalize CRLF
+    sed -i 's/\r$//' "${_fnFileTemp}"
 
-    echo -e "  ➕ Added ${FUCHSIA2}${DL_COUNT_TOTAL_IP} IPs${RESET} and ${FUCHSIA2}${DL_COUNT_TOTAL_SUBNET} subnets${RESET} to ${BLUE2}${fnFile}${RESET}"
+    # remove hyphens from IP ranges (if format is "1.2.3.4 - 1.2.3.5" take left side)
+    sed -i 's/-.*//' "${_fnFileTemp}"
+
+    # remove inline comments (strip ' # comment' or ' ; comment' from end of lines ; collapse whitespace, trim)
+    sed -i 's/[[:space:]]*[#;].*$//' "${_fnFileTemp}"
+
+    # collapse multiple whitespace into a single space
+    sed -i 's/[[:space:]]\+/ /g' "${_fnFileTemp}"
+
+    # trim leading and trailing whitespace
+    sed -i 's/^[[:space:]]*//;s/[[:space:]]*$//' "${_fnFileTemp}"
+
+    # remove empty lines (after trimming/comment removal)
+    sed -i '/^$/d' "${_fnFileTemp}"
+
+    # #
+    #   Calculate list statistics
+    #       - local only (global totals are calculated after final dedupe)
+    # #
+
+    info "    📊 Fetching statistics for clean file ${bluel}${PWD}/${_fnFileTemp}${greym}"
+    count_ip_stats "${_fnFileTemp}"
+    _count_total_ips=$total_ips
+    _count_total_subnets=$total_subnets
+
+    _count_total_ips=$(printf "%'d" "$_count_total_ips")                        # LOCAL add commas to thousands
+    _count_total_subnets=$(printf "%'d" "$_count_total_subnets")                # LOCAL add commas to thousands
+
+    info "    🚛 Move ${bluel}${_fnFileTemp}${greym} to ${bluel}${_fnArgFile}${greym}"
+
+    # #
+    #   Ensure dest file ends with newline before append
+    # #
+
+    if [ -s "${_fnArgFile}" ] && [ "$(tail -c1 "${_fnArgFile}")" != "" ]; then
+        echo >> "${_fnArgFile}"
+    fi
+
+    cat "${_fnFileTemp}" >> "${_fnArgFile}"                                      # copy .tmp to permanent file
+    rm "${_fnFileTemp}"                                                          # delete temp file
+
+    if [ ! -f "${_fnFileTemp}" ]; then
+        ok "    📄 Removed temp file ${greenl}${PWD}/${_fnFileTemp}${greym}"
+    else
+        error "    ⭕  Unable to delete temp file ${redl}${PWD}/${_fnFileTemp}${greym}"
+    fi
+
+    ok "    ➕ Added ${greenl}${_count_total_ips}${greym} IP addresses and ${greenl}${_count_total_subnets}${greym} subnets to ${greenl}${PWD}/${_fnArgFile}${greym}"
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnArgUrl _fnArgFile _fnFileTemp _fnListNum \
+            _count_total_ips _count_total_subnets
 }
 
 # #
-#   Download lists
+#   Verify › Arguments
 # #
 
-for arg in "${@:2}"; do
-    if [[ $arg =~ $REGEX_URL ]]; then
-        download_list ${arg} ${APP_FILE_PERM}
-        echo -e
+if [ -z "$argFileSaveto" ]; then
+    echo
+    echo "  ⭕ ${yellowd}[${app_file_this}]${end}: No target file specified"
+    echo
+    exit 0
+fi
+
+if test "$#" -lt 2; then
+    echo -e
+    echo -e "  ⭕  ${yellowd}[${app_file_this}]${end}: Aborting -- did not provide URL arguments for ${yellowd}${argFileSaveto}${end}"
+    echo -e
+    exit 0
+fi
+
+# #
+#   Define › App
+# #
+
+file_ipset_temp="${argFileSaveto}.tmp"                                          # temp file when building ipset list
+file_ipset_target="${argFileSaveto}"                                            # perm file when building ipset list
+
+# #
+#   Define › Template
+# #
+
+templ_now="$(date -u)"                                                          # get current date in utc format
+templ_id=$(basename -- "${file_ipset_target}")                                  # ipset id, get base filename
+templ_id="${templ_id//[^[:alnum:]]/_}"                                          # ipset id, only allow alphanum and underscore, /description/* and /category/* files must match this value
+templ_uuid="$(uuidgen -m -N "${templ_id}" -n @url)"                             # uuid associated to each release
+templ_curl_opts=(-sSL -A "$app_agent")
+
+# #
+#   Define › Template › External Sources
+# #
+
+curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/descriptions/${templ_id}.txt" > desc.txt &
+curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/categories/${templ_id}.txt" > cat.txt &
+curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/expires/${templ_id}.txt" > exp.txt &
+curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/url-source/${templ_id}.txt" > src.txt &
+wait
+templ_desc=$(<desc.txt)
+templ_cat=$(<cat.txt)
+templ_exp=$(<exp.txt)
+templ_url_service=$(<src.txt)
+rm -f desc.txt cat.txt exp.txt src.txt
+
+# #
+#   Define › Template › Default Values
+# #
+
+case "$templ_desc" in *"404: Not Found"*) templ_desc="#   No description provided";; esac
+case "$templ_cat" in *"404: Not Found"*) templ_cat="Uncategorized";; esac
+case "$templ_exp" in *"404: Not Found"*) templ_exp="6 hours";; esac
+case "$templ_url_service" in *"404: Not Found"*) templ_url_service="None";; esac
+
+# #
+#   Output › Header
+# #
+
+echo
+prin0
+print "    ${yellowl}${file_ipset_target}${end}"
+print
+print "    ${greym}ID:          ${templ_id}${end}"
+print "    ${greym}UUID:        ${templ_uuid}${end}"
+print "    ${greym}CATEGORY:    ${templ_cat}${end}"
+print "    ${greym}ACTION:      ${app_file_this}${end}"
+prin0
+
+# #
+#   Start
+# #
+
+info "    ⭐ Starting script ${bluel}${app_file_this}${greym}"
+
+# #
+#   Create or Clean file
+# #
+
+if [ -f "${file_ipset_target}" ]; then
+    info "    📄 Clean ${bluel}${PWD}/${file_ipset_target}${greym}"
+   > "${file_ipset_target}"       # clean file
+else
+    info "    📁 Create ${bluel}${PWD}/${file_ipset_target}${greym}"
+    mkdir -p "$(dirname "${file_ipset_target}")"
+
+    if [ -d "$(dirname "${file_ipset_target}")" ]; then
+        ok "    📁 Created ${greenl}$(dirname "${file_ipset_target}")${greym}"
+    else
+        error "    ⭕  Failed to create directory ${redl}$(dirname "${file_ipset_target}")${greym}; aborting${greym}"
+        exit 1
     fi
+
+    touch "${file_ipset_target}"
+    if [ -f "${file_ipset_target}" ]; then
+        ok "    📄 Created perm file ${greenl}${PWD}/${file_ipset_target}${greym}"
+    else
+        error "    ⭕ Failed to create perm file ${bluel}${PWD}/${file_ipset_target}${greym}"
+        exit 1
+    fi
+fi
+
+# #
+#   Download lists
+#   
+#   flips the args around.
+#       - url is first
+#       - file to store ips in second
+# #
+
+i=1
+for url in "$@"; do
+    case "$url" in
+        http://*|https://*)
+            # Get the Nth entry from the table
+            name=$(echo "$TABLE_LIST" | awk -v n="$i" '{print $n}')
+
+            # Call your function with 3 args
+            download_list "$url" "$file_ipset_target" "$i"
+            i=$((i + 1))
+            ;;
+    esac
 done
 
 # #
 #   Sort
-#       - sort lines numerically and create .sort file
-#       - move re-sorted text from .sort over to real file
-#       - remove .sort temp file
+#       - Remove downloaded comment/blank lines
+#       - Sort/dedupe IPv4 and IPv6 separately
+#       - Move sorted text over to permanent file
+#       - Delete temp sort file
 # #
 
-sorting=$(cat ${APP_FILE_PERM} | grep -vi "^#|^;|^$" | sort -n | awk '{if (++dup[$0] == 1) print $0;}' > ${APP_FILE_PERM}.sort)
-> ${APP_FILE_PERM}
-cat ${APP_FILE_PERM}.sort >> ${APP_FILE_PERM}
-rm ${APP_FILE_PERM}.sort
+grep -vE '^[[:space:]]*(#|;|$)' "${file_ipset_target}" | sort_results > "${file_ipset_target}.sort"
+> "${file_ipset_target}"
+cat "${file_ipset_target}.sort" >> "${file_ipset_target}"
+rm "${file_ipset_target}.sort"
 
 # #
 #   Format Counts
 # #
 
-COUNT_LINES=$(wc -l < ${APP_FILE_PERM})                                     # count ip lines
-COUNT_LINES=$(printf "%'d" "$COUNT_LINES")                                  # GLOBAL add commas to thousands
+total_lines=$(wc -l < "${file_ipset_target}")                                   # count ip lines
+
+# #
+#   Count totals from final deduped file
+# #
+
+count_ip_stats "${file_ipset_target}"
+total_ips=$total_ips
+total_subnets=$total_subnets
+total_lines=$(printf "%'d" "$total_lines")                                      # GLOBAL add commas to thousands
 
 # #
 #   Format count totals since we no longer need to add
 # #
 
-COUNT_TOTAL_IP=$(printf "%'d" "$COUNT_TOTAL_IP")                            # GLOBAL add commas to thousands
-COUNT_TOTAL_SUBNET=$(printf "%'d" "$COUNT_TOTAL_SUBNET")                    # GLOBAL add commas to thousands
+total_ips=$(printf "%'d" "$total_ips")                                          # GLOBAL add commas to thousands
+total_subnets=$(printf "%'d" "$total_subnets")                                  # GLOBAL add commas to thousands
 
 # #
 #   ed
 #       0a  top of file
 # #
 
-ed -s ${APP_FILE_PERM} <<END_ED
+ed -s ${file_ipset_target} <<END_ED
 0a
 # #
-#   🧱 Firewall Blocklist - ${APP_FILE_PERM}
+#   🧱 Firewall Blocklist - ${file_ipset_target}
 #
-#   @repo           https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/${APP_FILE_PERM}
+#   @repo           https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/${file_ipset_target}
 #   @service        ${templ_url_service}
-#   @id             ${TEMPL_ID}
-#   @uuid           ${TEMPL_UUID}
-#   @updated        ${TEMPL_NOW}
-#   @entries        ${COUNT_TOTAL_IP} ips
-#                   ${COUNT_TOTAL_SUBNET} subnets
-#                   ${COUNT_LINES} lines
-#   @expires        ${TEMPL_EXP}
-#   @category       ${TEMPL_CAT}
+#   @id             ${templ_id}
+#   @uuid           ${templ_uuid}
+#   @updated        ${templ_now}
+#   @entries        ${total_ips} ips
+#                   ${total_subnets} subnets
+#                   ${total_lines} lines
+#   @expires        ${templ_exp}
+#   @category       ${templ_cat}
 #
-${TEMPL_DESC}
+${templ_desc}
 # #
 
 .
@@ -370,22 +1014,27 @@ END_ED
 
 # #
 #   Finished
+#   
+#   Capture end time
+#   Calculate elapsed time
+#   Calculate days, hours, etc.
+#   Output to console
 # #
 
-T=$SECONDS
-D=$((T/86400))
-H=$((T/3600%24))
-M=$((T/60%60))
-S=$((T%60))
-
-echo -e "  🎌 ${GREY2}Finished! ${YELLOW2}${D} days ${H} hrs ${M} mins ${S} secs${RESET}"
+time_end=$( date +%s )
+T=$(( time_end - time_start ))
+D=$(( T / 86400 ))
+H=$(( (T % 86400) / 3600 ))
+M=$(( (T % 3600) / 60 ))
+S=$(( T % 60 ))
 
 # #
 #   Output
 # #
 
-echo -e
-echo -e " ──────────────────────────────────────────────────────────────────────────────────────────────"
-echo -e "  #️⃣ ${BLUE2}${APP_FILE_PERM}${RESET} | Added ${FUCHSIA2}${COUNT_TOTAL_IP} IPs${RESET} and ${FUCHSIA2}${COUNT_TOTAL_SUBNET} Subnets${RESET}"
-echo -e " ──────────────────────────────────────────────────────────────────────────────────────────────"
-echo -e
+prinp "${APP_NAME_SHORT:-CSF} > ${file_ipset_target}" \
+       "Blocklist has finished generating successfully \
+${greyd}\n\n${greym}ips: 	    ${greyd}...............${yellowl} ${total_ips}${greyd} \
+${greyd}\n${greym}subnets:	        ${greyd}...........${yellowl} ${total_subnets}${greyd} \
+\n\n
+🎌[2] ${greym}Finished! ${yellowd}${D} days ${H} hrs ${M} mins ${S} secs${greyd}"
