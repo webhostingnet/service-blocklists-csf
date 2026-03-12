@@ -138,7 +138,7 @@ jobs:
 
             - name: >-
                   ☑️ Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
 
@@ -289,8 +289,9 @@ jobs:
             #   Generate › Checkout
             # #
 
-            - name: '☑️ Checkout'
-              uses: actions/checkout@v4
+            - name: >-
+                  ☑️ Checkout
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
 
@@ -897,8 +898,9 @@ jobs:
             #   Commit › Checkout
             # #
 
-            - name: '☑️ Commit › Checkout'
-              uses: actions/checkout@v4
+            - name: >-
+                  ☑️ Checkout
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
 
