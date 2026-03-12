@@ -3,42 +3,55 @@
 # #
 #   @app                https://github.com/ConfigServer-Software/service-blocklists
 #   @workflow           blocklist-generate.yml
-#   @type               bash script
-#   @summary            generate ipset by fetching locally specified file in /blocks/ repo folder
-#                       copies local ipsets from .github/blocks/${ARG_BLOCKS_CAT}/*.ipset
-#   @storage            /.github/scripts/bl-block.sh
-#   @command            .github/scripts/bl-block.sh blocklists/highrisk.ipset highrisk
+#   @type               Bash script
+#   @summary            Generate ipset by reading locally specified file in /blocks folder.
+#                           Specify a source category to fetch local ipset from.
+#                           Copies local ipsets from .github/blocks/${argCategory}/*.ipset
+#                           Preserves comments in local block list.
+#   @storage            .github/scripts/bl-block.sh
+#   @terminal           .github/scripts/bl-block.sh blocklists/privacy/privacy_general.ipset privacy
+#   @workflow           chmod +x ".github/scripts/bl-block.sh"
+#                       run_privacy=".github/scripts/bl-block.sh blocklists/privacy/privacy_general.ipset privacy"
+#                       eval "./$run_privacy"
+#   @uage               bl-block.sh
+#                           <argFileSaveto>
+#                           <fromCategory>
+#                       bl-block.sh blocklists/privacy/privacy_general.ipset privacy
 # #
 
 # #
-#   Populate Paths
+#   Define › Set PATH
 # #
 
-OLDPWD=$(pwd)                                                           #  save current working directory
-cd "$(dirname "$0")" || exit 1                                          #  change to the dir where the script resides
-_app_path_bin=$(pwd)                                                    #  get absolute path
-cd "$OLDPWD" || exit 1                                                  #  restore previous working directory
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
 
 # #
-#   Define › path
+#   Define › Files
 # #
 
-app_path_runfrom="${PWD}"                                               #  path to where script called from
-app_path_bin="${_app_path_bin}"                                         #  the path where script is called from
+app_file_this=$(basename "$0")                                                  # bl-block.sh   (with ext)
+app_file_bin="${app_file_this%.*}"                                              # bl-block      (without ext)
 
 # #
-#   Define › file
+#   Define › Folders
 # #
 
-app_file_this=$(basename "$0")                                          #  bl-block.sh       (with ext)
-app_file_bin="${app_file_this%.*}"                                      #  bl-block          (without ext)
+app_dir="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"                        # path where script was last found in
+app_dir_this_dir="${PWD}"                                                       # current script directory
+app_dir_github="${app_dir_this_dir}/.github"                                    # .github folder
 
 # #
-#   Define › folders
+#   Define › Arguments
+#   
+#   This bash script has the following arguments:
+#   
+#   @param  argFileSaveto       str         File to save IP addresses into
+#           argCategory         str         Source file to fetch ipset from. Looks in `blocks` folder.
+#                                               .github/blocks/${argCategory}
 # #
 
-app_dir_this="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"           #  path where script was last found in
-app_dir_github="${app_path_runfrom}/.github"                            #  .github folder
+argFileSaveto=$1
+argCategory=$2
 
 # #
 #   Define › Colors
@@ -49,6 +62,8 @@ app_dir_github="${app_path_runfrom}/.github"                            #  .gith
 
 esc=$(printf '\033')
 end="${esc}[0m"
+bgEnd="${esc}[49m"
+fgEnd="${esc}[39m"
 bold="${esc}[1m"
 dim="${esc}[2m"
 underline="${esc}[4m"
@@ -57,77 +72,135 @@ white="${esc}[97m"
 black="${esc}[0;30m"
 redl="${esc}[0;91m"
 redd="${esc}[38;5;196m"
-magental="${esc}[0;95m"
-magentad="${esc}[0;35m"
-fuchsial="${esc}[38;5;198m"
-fuchsiad="${esc}[38;5;161m"
-bluel="${esc}[38;5;75m"
-blued="${esc}[38;5;33m"
-greenl="${esc}[38;5;76m"
-greend="${esc}[38;5;2m"
-orangel="${esc}[0;93m"
+magental="${esc}[38;5;197m"
+magentad="${esc}[38;5;161m"
+fuchsial="${esc}[38;5;206m"
+fuchsiad="${esc}[38;5;199m"
+bluel="${esc}[38;5;33m"
+blued="${esc}[38;5;27m"
+greenl="${esc}[38;5;47m"
+greend="${esc}[38;5;35m"
+orangel="${esc}[38;5;208m"
 oranged="${esc}[38;5;202m"
-yellowl="${esc}[38;5;190m"
-yellowd="${esc}[38;5;184m"
+yellowl="${esc}[38;5;226m"
+yellowd="${esc}[38;5;214m"
 greyl="${esc}[38;5;250m"
 greym="${esc}[38;5;244m"
-greyd="${esc}[0;90m"
+greyd="${esc}[38;5;240m"
 navy="${esc}[38;5;62m"
 olive="${esc}[38;5;144m"
-peach="${esc}[38;5;210m"
+peach="${esc}[38;5;204m"
 cyan="${esc}[38;5;6m"
+bgVerbose="${esc}[1;38;5;15;48;5;125m"
+bgDebug="${esc}[1;38;5;15;48;5;237m"
+bgInfo="${esc}[1;38;5;15;48;5;27m"
+bgOk="${esc}[1;38;5;15;48;5;64m"
+bgWarn="${esc}[1;38;5;16;48;5;214m"
+bgDanger="${esc}[1;38;5;15;48;5;202m"
+bgError="${esc}[1;38;5;15;48;5;160m"
+
+# #
+#   Define › App
+# #
+
+app_name="Blocklist Formatter"                                                  # name of app
+app_desc="Fetch list of IP addresses from local file in /blocks folder."        # desc
+app_ver="1.2.0.0"                                                               # current script version
+app_repo="configserver-software/service-blocklists"                             # repository
+app_repo_branch="main"                                                          # repository branch
+app_agent="Mozilla/5.0 (Windows NT 10.0; WOW64) "\
+"AppleWebKit/537.36 (KHTML, like Gecko) "\
+"Chrome/51.0.2704.103 Safari/537.36"                                            # user agent used with curl
+
+# #
+#   Define › Args
+# #
+
+argDryrun="false"                                                               # dryrun mode
+argDevMode="false"                                                              # dev mode
+argVerbose="false"                                                              # verbose mode
+
+# #
+#   Define › Time
+# #
+
+time_start=$( date +%s )                                                        # record start time of script
+SECONDS=0                                                                       # set seconds count for beginning of script
+
+# #
+#   Define › Regex
+# #
+
+regex_url='^(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]\.[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]$'
+regex_ipv4='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+regex_ipv4_cidr='^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]{1,2})$'
+regex_ipv6='^[0-9A-Fa-f:.]+$'
+regex_ipv6_cidr='^[0-9A-Fa-f:.]+/[0-9]{1,3}$'
+
+# #
+#   Define › Defaults
+# #
+
+total_lines=0                                                                   # number of lines in doc
+total_subnets=0                                                                 # number of IPs in all subnets combined
+total_ips=0                                                                     # number of single IPs (counts each line)
 
 # #
 #   Define › Logging functions
+#   
+#   verbose "This is an verbose message"
+#   debug "This is an debug message"
+#   info "This is an info message"
+#   ok "This is an ok message"
+#   warn "This is a warn message"
+#   danger "This is a danger message"
+#   error "This is an error message"
 # #
-
-error( )
-{
-    printf '%-28s %-65s\n' "   ${redl} ERROR ${end}" "${greym} $1 ${end}"
-}
-
-warn( )
-{
-    printf '%-32s %-65s\n' "   ${yellowl} WARN ${end}" "${greym} $1 ${end}"
-}
 
 info( )
 {
-    printf '%-31s %-65s\n' "   ${bluel} INFO ${end}" "${greym} $1 ${end}"
-}
-
-status( )
-{
-    printf '%-31s %-65s\n' "   ${bluel} STATUS ${end}" "${greym} $1 ${end}"
+    printf '\033[0m\r%-41s %-65s\n' "   ${bgInfo} INFO ${end}" "${greym} $1 ${end}"
 }
 
 ok( )
 {
-    printf '%-31s %-65s\n' "   ${greenl} OK ${end}" "${greym} $1 ${end}"
+    printf '\033[0m\r%-41s %-65s\n' "   ${bgOk} PASS ${end}" "${greym} $1 ${end}"
+}
+
+warn( )
+{
+    printf '\033[0m\r%-42s %-65s\n' "   ${bgWarn} WARN ${end}" "${greym} $1 ${end}"
+}
+
+danger( )
+{
+    printf '\033[0m\r%-42s %-65s\n' "   ${bgDanger} DNGR ${end}" "${greym} $1 ${end}"
+}
+
+error( )
+{
+    printf '\033[0m\r%-42s %-65s\n' "   ${bgError} FAIL ${end}" "${greym} $1 ${end}"
 }
 
 debug( )
 {
-    if [ "$argDevMode" = "true" ]; then
-        printf '%-28s %-65s\n' "   ${greyd} DEBUG ${end}" "${greym} $1 ${end}"
+    if [ "$argDevMode" = "true" ] || [ "$argDryrun" = "true" ]; then
+        printf '\033[0m\r%-42s %-65s\n' "   ${bgDebug} DBUG ${end}" "${greym} $1 ${end}"
     fi
 }
 
 verbose( )
 {
-    if [ "$VERBOSE" -eq 1 ]; then
-        printf '%-28s %-65s\n' "   ${greyd} VERBOSE ${end}" "${greym} $1 ${end}"
-    fi
+    case "${argVerbose:-0}" in
+        1|true|TRUE|yes|YES)
+            printf '\033[0m\r%-42s %-65s\n' "   ${bgVerbose} VRBO ${end}" "${greym} $1 ${end}"
+            ;;
+    esac
 }
 
 label( )
 {
-    printf '%-31s %-65s\n' "   ${navy}        ${end}" "${navy} $1 ${end}"
-}
-
-labels( )
-{
-    printf '%-31s\n' "   ${greym} $1 ${end}"
+    printf '\033[0m\r%-31s %-65s\n' "   ${greyd}        ${end}" "${greyd} $1 ${end}"
 }
 
 print( )
@@ -135,242 +208,546 @@ print( )
     echo "${greym}$1${end}"
 }
 
-debug( )
+# #
+#   Verify › Arguments
+# #
+
+if [[ -z "${argFileSaveto}" ]]; then
+    echo
+    error "    ⭕  No target file specified ${yellowd}${app_file_this}${greym}; aborting${end}"
+    echo
+    exit 0
+fi
+
+if [[ -z "${argCategory}" ]]; then
+    error "    ⭕  No static category specified ${yellowd}${app_file_this}${greym}; aborting${end}"
+    exit 0
+fi
+
+# #
+#   Print › Demo Notifications
+#   
+#   Outputs a list of example notifications
+#   
+#   @usage          demoNoti
+# #
+
+demoNoti()
 {
-    if [ "$argDevMode" = "true" ]; then
-        printf '%-28s %-65s\n' "   ${greyd} DEBUG ${end}" "${greym} $1 ${end}"
-    fi
+    verbose "This is an verbose message"
+    debug "This is an debug message"
+    info "This is an info message"
+    ok "This is an ok message"
+    warn "This is a warn message"
+    danger "This is a danger message"
+    error "This is an error message"
 }
 
-verbose( )
+# #
+#   truncate text; add ...
+#   
+#   @usage
+#       truncate "This is a long string" 10 "..."
+# #
+
+truncate()
 {
-    if [ "$VERBOSE" -eq 1 ]; then
-        printf '%-28s %-65s\n' "   ${greyd} VERBOSE ${end}" "${greym} $1 ${end}"
+    _text=$1
+    _maxlen=$2
+    _suffix=${3:-}
+
+    _len=$(printf %s "${_text}" | wc -c | tr -d '[:space:]')
+
+    if [ "${_len}" -gt "${_maxlen}" ]; then
+        printf '%s%s\n' "$(printf %s "${_text}" | cut -c1-"${_maxlen}")" "${_suffix}"
+    else
+        printf '%s\n' "${_text}"
     fi
+
+    # #
+    #   Unset
+    # #
+
+    unset   _text _maxlen _suffix _len
 }
 
 # #
 #   Print › Line
 #   
-#   Prints single line
+#   Prints single line horizontal line, no text
 #   
-#   @usage          prins
+#   @usage          prin0
 # #
 
-prins()
+prin0()
 {
-    local indent="   "
-    local box_width=90
-    local line_width=$(( box_width + 2 ))
+    _indent="  "
+    _box_width=110
+    _line_width=$(( _box_width + 2 ))
 
-    local line
-    line=$(printf '─%.0s' $(seq 1 "$line_width"))
+    _line=""
+    i=1
+    while [ "$i" -le "${_line_width}" ]; do
+        _line="${_line}─"
+        i=$(( i + 1 ))
+    done
 
-    print
-    printf "%b%s%s%b\n" "${greyd}" "$indent" "$line" "${reset}"
-    print
+    printf '\n'
+    printf "%b%s%s%b\n" "${greyd}" "${_indent}" "${_line}" "${end}"
+    printf '\n'
+
+    # #
+    #   Unset
+    # #
+
+    unset   _indent _box_width _line_width _line i
 }
 
 # #
-#   Print › Box › Single Line Text
+#   Print › Box › Single
 #   
-#   Prints single line of text with a box surrounding it.
+#   Prints single line with a box surrounding it.
 #   
 #   @usage          prinb "${APP_NAME_SHORT:-CSF} › Customize csf.config"
 # #
 
-prinb( )
+prinb()
 {
-    local title="$*"
-    local indent="   "
-    local padding=6
-    
-    local visible_title
-    visible_title=$(echo -e "$title" | sed 's/\x1b\[[0-9;]*m//g')
-    
-    local title_length=${#visible_title}
-    local inner_width=$(( title_length + padding ))
-    local box_width=90
+    _title="$*"
+    _indent="   "                                                               # Left padding
+    _padding=6                                                                  # Extra horizontal space around text
+    _title_length=${#_title}
+    _inner_width=$(( _title_length + _padding ))
+    _box_width=110
 
-    [ "$inner_width" -lt ${box_width} ] && inner_width=${box_width}
+    # #
+    #   Minimum width for aesthetics
+    # #
 
-    local line
-    line=$(printf '─%.0s' $(seq 1 "$inner_width"))
+    if [ "$_inner_width" -lt "$_box_width" ]; then
+        _inner_width=$_box_width
+    fi
 
-    local spaces_req=$(( inner_width - title_length - 3 ))
-    local spaces=$(printf ' %.0s' $(seq 1 "$spaces_req"))
+    # #
+    #   Horizontal border
+    # #
 
-    print
-    print
-    printf "%b%s┌%s┐\n" "${greym}" "$indent" "$line"
-    printf "%b%s│  %s%s │\n" "${greym}" "$indent" "$title" "$spaces"
-    printf "%b%s└%s┘%b\n" "${greym}" "$indent" "$line" "${reset}"
-    print
+    _line=""
+    i=1
+    while [ "$i" -le "$_inner_width" ]; do
+        _line="${_line}─"
+        i=$(( i + 1 ))
+    done
+
+    # #
+    #   Draw box
+    # #
+
+    printf '\n'
+    printf '\n'
+    printf "%b%s┌%s┐\n" "${greym}" "$_indent" "$_line"
+    printf "%b%s│  %-${_inner_width}s \n" "${greym}" "$_indent" "$_title"
+    printf "%b%s└%s┘%b\n" "${greym}" "$_indent" "$_line" "${end}"
+    printf '\n'
+
+    # #
+    #   Unset
+    # #
+
+    unset   _title _indent _padding \
+            _title_length _inner_width _box_width \
+            _line i
 }
 
 # #
-#   Print > Box > Paragraph
+#   Print › Box › Paragraph
 #   
-#   Prints multiple lines with a box surrounding it.
+#   Places an ASCII box around text. Supports multi-lines with \n, and also emojis.
+#   Func determines the character count if color codes are used and ensures that
+#       the box borders are aligned properly.
 #   
-#   @usage          prinp "CSF › Title" "This is a really long paragraph that will wrap multiple lines and align properly under the title. Second line of text, same alignment, with multiple words."
+#   If using emojis; adjust the spacing so that the far-right line will align
+#       with the rest. Add the number of spaces to increase the value, which is
+#       represented with a number enclosed in square brackets.
+#           [1]     add 1 space to the right.
+#           [2]     add 2 spaces to the right.
+#           [-1]    remove 1 space to the right (needed for some emojis depending on if the emoji is 1 or 2 bytes)
+#   
+#   @usage          prinp "Certificate Generation Successful" "Your new certificate and keys have been generated successfully.\n\nYou can find them in the ${greenl}${app_dir_output}${greyd} folder."
+#                   prinp "🎗️[1]  ${file_domain_base}" "The following description will show on multiple lines with a ASCII box around it."
+#                   prinp "📄[-1] File Overview" "The following list outlines the files that you have generated using this utility, and what certs/keys may be missing."
+#                   prinp "➡️[15]  ${bluel}Paths${end}"
 # #
 
 prinp()
 {
-    local title="$1"
+    _title="$1"
     shift
-    local text="$*"
-
-    local indent="   "
-    local box_width=90
-    local pad=2
-
-    local content_width=$(( box_width ))
-    local inner_width=$(( box_width - pad*2 ))
+    _text="$*"
+    _indent="  "
+    _box_width=110
+    _pad=1
+    _content_width=$(( _box_width ))
+    _inner_width=$(( _box_width - _pad*2 ))
+    _hline=$(printf '─%.0s' $(seq 1 "$_content_width"))
+    _emoji_adjust=0
 
     print
     print
-    local hline
-    hline=$(printf '─%.0s' $(seq 1 "$content_width"))
-
-    printf "${greyd}%s┌%s┐\n" "$indent" "$hline"
+    printf "${greyd}%s┌%s┐\n" "$_indent" "$_hline"
 
     # #
-    #   title
+    #   Title
+    #   
+    #   Extract optional [N] adjustment from title (signed integer), portably
     # #
 
-    local title_width=$(( content_width - pad ))
-    printf "${greym}%s│%*s${bluel}%-${title_width}s${greym}│\n" "$indent" "$pad" "" "$title"
+    _display_title="$_title"
 
-    printf "${greyd}%s│%-${content_width}s│\n" "$indent" ""
+    # #
+    #   Get content inside first [...] (if present)
+    # #
 
-    local line=""
-    set -- $text
-    for word; do
-        if [ ${#line} -eq 0 ]; then
-            line="$word"
-        elif [ $(( ${#line} + 1 + ${#word} )) -le $inner_width ]; then
-            line="$line $word"
+    if printf '%s\n' "$_title" | grep -q '\[[[:space:]]*[-0-9][-0-9[:space:]]*\]'; then
+
+        # #
+        #   Extract numeric inside brackets (allow optional leading -)
+        #       - use sed to capture first bracketed token, then strip non-digit except leading -
+        # #
+
+        _bracket=$(printf '%s' "$_title" | sed -n 's/.*\[\([-0-9][-0-9]*\)\].*/\1/p')
+
+        # #
+        #   Validate numeric and assign, otherwise fallback to 0
+        # #
+    
+        if printf '%s\n' "$_bracket" | grep -qE '^-?[0-9]+$'; then
+            _emoji_adjust=$_bracket
         else
-            printf "${greyd}%s│%*s%-*s%*s│\n" "$indent" "$pad" "" "$inner_width" "$line" "$pad" ""
-            line="$word"
+            _emoji_adjust=0
         fi
-    done
-    [ -n "$line" ] && printf "${greyd}%s│%*s%-*s%*s│\n" "$indent" "$pad" "" "$inner_width" "$line" "$pad" ""
 
-    printf "${greyd}%s└%s┘${reset}\n" "$indent" "$hline"
-    print
-}
-
-# #
-#   Print › Box › Multi-line Text (Left Line)
-#   
-#   Prints single line with a box surrounding it, excluding the right side
-#   
-#   @usage          prinb "Name › Section"
-# #
-
-prinl( )
-{
-    local title="$*"
-    local indent="   "
-    local padding=6
+        # #
+        #   Remove the first [...] token from the display_title
+        # #
     
-    local visible_title
-    visible_title=$(echo -e "$title" | sed 's/\x1b\[[0-9;]*m//g')
+        _display_title=$(printf '%s' "$_title" | sed 's/\[[^]]*\]//')
+    fi
+
+    # #
+    #   Ensure emoji_adjust is a decimal integer so math works
+    # #
+
+    case "$_emoji_adjust" in
+        ''|*[!0-9-]*)
+            _emoji_adjust=0
+            ;;
+    esac
+
+    _title_width=$(( _content_width - _pad ))
+
+    # #
+    #   Account for emoji adjustment in visible length calculation
+    # #
+  
+    _title_vis_len=$(( ${#_display_title} - _emoji_adjust ))
+    printf "${greyd}%s│%*s${bluel}%s${greyd}%*s│\n" \
+        "$_indent" "$_pad" "" "$_display_title" "$(( _title_width - _title_vis_len ))" ""
+
+    # #
+    #   Only render body text if provided
+    # #
+
+    if [ -n "$_text" ]; then
+        printf "${greyd}%s│%-${_content_width}s│\n" "$_indent" ""
+
+        # #
+        #   Convert literal \n to real newlines
+        # #
+
+        _text=$(printf "%b" "$_text")
+
+        # #
+        #   Handle each line with ANSI-aware wrapping and true padding
+        # #
+
+        printf "%s" "$_text" | while IFS= read -r line || [ -n "$line" ]; do
+
+        # #
+        #   Blank line
+        # #
     
-    local title_length=${#visible_title}
-    local inner_width=$(( title_length + padding ))
-    local box_width=90
+        if [ -z "$line" ]; then
+            printf "${greyd}%s│%-*s│\n" "$_indent" "$_content_width" ""
+            continue
+        fi
 
-    [ "$inner_width" -lt ${box_width} ] && inner_width=${box_width}
+        # #
+        #   Optional [N] spacing adjustment in body line (same thing done for title)
+        # #    
 
-    local line
-    line=$(printf '─%.0s' $(seq 1 "$inner_width"))
+        _line_emoji_adjust=0
+        if printf '%s\n' "$line" | grep -q '\[[[:space:]]*[-0-9][-0-9[:space:]]*\]'; then
+            _line_bracket=$(printf '%s' "$line" | sed -n 's/.*\[\([-0-9][-0-9]*\)\].*/\1/p')
 
-    local spaces_req=$(( inner_width - title_length - 3 ))
-    local spaces=$(printf ' %.0s' $(seq 1 "$spaces_req"))
+            if printf '%s\n' "$_line_bracket" | grep -qE '^-?[0-9]+$'; then
+                _line_emoji_adjust=$_line_bracket
+            else
+                _line_emoji_adjust=0
+            fi
 
+            line=$(printf '%s' "$line" | sed 's/\[[^]]*\]//')
+        fi
+
+        case "$_line_emoji_adjust" in
+            ''|*[!0-9-]*)
+                _line_emoji_adjust=0
+                ;;
+        esac
+
+        _out=""
+        for word in $line; do
+
+            # #
+            #   Strip ANSI for visible width
+            # #
+        
+            _vis_out=$(printf "%s" "$_out" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g')
+            _vis_word=$(printf "%s" "$word" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g')
+            _vis_len=$(( ${#_vis_out} + ( ${#_vis_out} > 0 ? 1 : 0 ) + ${#_vis_word} - _line_emoji_adjust ))
+
+            if [ -z "$_out" ]; then
+                _out="$word"
+            elif [ $_vis_len -le $_inner_width ]; then
+                _out="$_out $word"
+            else
+
+                # #
+                #   Print and pad manually based on visible length
+                # #
+
+                _vis_len_full=$(printf "%s" "$_out" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g' | wc -c | tr -d ' ')
+                _vis_len_full=$(( _vis_len_full - _line_emoji_adjust ))
+                [ $_vis_len_full -lt 0 ] && _vis_len_full=0
+                _pad_spaces=$(( _inner_width - _vis_len_full ))
+                [ $_pad_spaces -lt 0 ] && _pad_spaces=0
+                printf "${greyd}%s│%*s%s%*s│\n" "$_indent" "$_pad" "" "$_out" "$(( _pad + _pad_spaces ))" ""
+                _out="$word"
+            fi
+        done
+
+        # #
+        #   Final flush line
+        # #
+    
+        if [ -n "$_out" ]; then
+            _vis_len_full=$(printf "%s" "$_out" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g' | wc -c | tr -d ' ')
+            _vis_len_full=$(( _vis_len_full - _line_emoji_adjust ))
+            [ $_vis_len_full -lt 0 ] && _vis_len_full=0
+            _pad_spaces=$(( _inner_width - _vis_len_full ))
+            [ $_pad_spaces -lt 0 ] && _pad_spaces=0
+            printf "${greyd}%s│%*s%s%*s│\n" "$_indent" "$_pad" "" "$_out" "$(( _pad + _pad_spaces ))" ""
+        fi
+
+        done
+    fi
+
+    printf "${greyd}%s└%s┘${end}\n" "$_indent" "$_hline"
     print
-    printf "%b%s┌%s┐\n" "${greym}" "$indent" "$line"
-    printf "%b%s│  %s%s \n" "${greym}" "$indent" "$title" "$spaces"
-    printf "%b%s└%s┘%b\n" "${greym}" "$indent" "$line" "${reset}"
-    print
+
+    # #
+    #   Unset
+    # #
+
+    unset   _title _title_width _text _indent _pad _padding _content_width \
+            _title_length _inner_width _box_width _emoji_adjust \
+            _hline _line _out i _display_title _vis_out _vis_word _vis_len _vis_len_full \
+            _line_bracket _line_emoji_adjust _pad_spaces _bracket
 }
 
 # #
 #   Define › Logging › Verbose
 # #
 
-log()
+log( )
 {
-    if [ "$VERBOSE" -eq 1 ]; then
-		verbose "    $@ "
+    case "${argVerbose:-0}" in
+        1|true|TRUE|yes|YES)
+            verbose "$@"
+            ;;
+    esac
+}
+
+# #
+#   Define › Sudo
+# #
+
+check_sudo( )
+{
+    if [ "$(id -u)" != "0" ]; then
+        error "    ❌ Must run script with ${redl}sudo${end}"
+        exit 1
     fi
 }
 
 # #
-#   Define › Args
+#   Define › Run Command
+#   
+#   Added when dryrun mode was added to the install.sh.
+#   Allows for a critical command to be skipped if in --dryrun mode.
+#       Throws a debug message instead of executing.
+#   
+#   argDryrun comes from global export in csf/install.sh
+#   
+#   @usage          run /sbin/chkconfig csf off
+#                   run echo "ConfigServer"
+#                   run chmod -v 700 "./${CSF_AUTO_GENERIC}"
 # #
 
-ARG_SAVEFILE=$1
-ARG_BLOCKS_CAT=$2
-
-if [[ -z "${ARG_SAVEFILE}" ]]; then
-    echo -e
-    error "    ⭕  No target file specified ${redl}${app_file_this}${greym}; aborting${greym}"
-    echo -e
-    exit 1
-fi
-
-if [[ -z "${ARG_BLOCKS_CAT}" ]]; then
-    error "    ⭕  No static category specified ${redl}${app_file_this}${greym}; aborting${greym}"
-    exit 1
-fi
+run()
+{
+    if [ "${argDryrun}" = "true" ]; then
+        debug "    Drymode (skip): $*"
+    else
+        debug "    Run: $*"
+        "$@"
+    fi
+}
 
 # #
-#   Define › General
+#   Sort Results
+#   
+#   @usage          line=$(parse_spf_record "${ip}" | sort_results)
 # #
 
-SECONDS=0                                               # set seconds count for beginning of script
-APP_VER=("1" "0" "0" "0")                               # current script version
-APP_DEBUG=false                                         # debug mode
-APP_REPO="configserver-software/service-blocklists"     # repository
-APP_REPO_BRANCH="main"                                  # repository branch
-APP_FILE_PERM="${ARG_SAVEFILE}"                         # perm file when building ipset list
-APP_AGENT="Mozilla/5.0 (Windows NT 10.0; WOW64) "\
-"AppleWebKit/537.36 (KHTML, like Gecko) "\
-"Chrome/51.0.2704.103 Safari/537.36"                    # user agent used with curl
+sort_results()
+{
+
+    # Temp files for IPv4 and IPv6
+    _ipv4_tmp=$(mktemp) || exit 1
+    _ipv6_tmp=$(mktemp) || exit 1
+
+    # Read stdin line by line
+    while IFS= read -r line; do
+        case "$line" in
+            *:*)
+                printf '%s\n' "$line" >> "$_ipv6_tmp" ;;
+            *)
+                printf '%s\n' "$line" >> "$_ipv4_tmp" ;;
+        esac
+    done
+
+    # Sort IPv4 numerically, remove duplicates
+    if [ -s "$_ipv4_tmp" ]; then
+        sort -t. -n -k1,1 -k2,2 -k3,3 -k4,4 "$_ipv4_tmp" | uniq
+    fi
+
+    # Sort IPv6 lexicographically, remove duplicates
+    if [ -s "$_ipv6_tmp" ]; then
+        sort "$_ipv6_tmp" | uniq
+    fi
+
+    # Clean up temp files
+    rm -f "$_ipv4_tmp" "$_ipv6_tmp"
+
+    # #
+    #   Unset
+    # #
+
+    unset   _ipv4_tmp _ipv6_tmp
+}
 
 # #
-#   Define › Count Defaults
+#   Count file statistics
+#       - IPv4 CIDR contributes all IPv4 addresses in the subnet
+#       - IPv6 CIDR contributes one entry (do not expand)
+#       - Single IPv4/IPv6 contributes one entry
 # #
 
-i_cnt_lines=0                                           # number of lines in doc
-i_cnt_ip_total=0                                        # number of single IPs (counts each line)
-i_cnt_subnet_total=0                                    # number of ips in all subnets combined
-i_cnt_block_ip_total=0                                  # number of ips for one particular file
-i_cnt_block_subnet_total=0                              # number of subnets for one particular file
+count_ip_stats( )
+{
+    _fnCountFile=$1
+    _fnSubnetIps=0
+    _fnTotalIps=0
+    _fnTotalSubnets=0
+
+    while IFS= read -r _fnLine; do
+
+        # #
+        #   IPv4 CIDR
+        # #
+
+        if [[ $_fnLine =~ $regex_ipv4_cidr ]]; then
+            _fnCidr="${BASH_REMATCH[2]}"
+            if [ "$_fnCidr" -le 32 ]; then
+                _fnSubnetIps=$(( 1 << (32 - _fnCidr) ))
+                _fnTotalIps=$(( _fnTotalIps + _fnSubnetIps ))
+                _fnTotalSubnets=$(( _fnTotalSubnets + 1 ))
+            fi
+
+        # #
+        #   IPv4 single
+        # #
+
+        elif [[ $_fnLine =~ $regex_ipv4 ]]; then
+            _fnTotalIps=$(( _fnTotalIps + 1 ))
+
+        # #
+        #   IPv6 CIDR (count as one entry, do not expand)
+        # #
+
+        elif [[ $_fnLine =~ $regex_ipv6_cidr ]]; then
+            _fnCidr="${_fnLine#*/}"
+            if [ "$_fnCidr" -le 128 ]; then
+                _fnTotalIps=$(( _fnTotalIps + 1 ))
+                _fnTotalSubnets=$(( _fnTotalSubnets + 1 ))
+            fi
+
+        # #
+        #   IPv6 single
+        # #
+
+        elif [[ $_fnLine =~ $regex_ipv6 ]] && [[ $_fnLine == *:* ]]; then
+            _fnTotalIps=$(( _fnTotalIps + 1 ))
+        fi
+
+    done < "${_fnCountFile}"
+
+    total_ips=$_fnTotalIps
+    total_subnets=$_fnTotalSubnets
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnCountFile _fnSubnetIps _fnTotalIps _fnTotalSubnets _fnLine _fnCidr
+}
+
+# #
+#   Define › App
+# #
+
+file_ipset_temp="${argFileSaveto}.tmp"                                          # temp file when building ipset list
+file_ipset_target="${argFileSaveto}"                                            # perm file when building ipset list
 
 # #
 #   Define › Template
 # #
 
-templ_now="$(date -u)"
-templ_id=$(basename -- "${APP_FILE_PERM}")
-templ_id="${templ_id//[^[:alnum:]]/_}"
-templ_uuid="$(uuidgen -m -N "${templ_id}" -n @url)"
-templ_curl_opts=(-sSL -A "$APP_AGENT")
+templ_now="$(date -u)"                                                          # get current date in utc format
+templ_id=$(basename -- "${file_ipset_target}")                                  # ipset id, get base filename
+templ_id="${templ_id//[^[:alnum:]]/_}"                                          # ipset id, only allow alphanum and underscore, /description/* and /category/* files must match this value
+templ_uuid="$(uuidgen -m -N "${templ_id}" -n @url)"                             # uuid associated to each release
+templ_curl_opts=(-sSL -A "$app_agent")                                          # curl command
 
 # #
 #   Define › Template › External Sources
 # #
 
-curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/.github/descriptions/${templ_id}.txt" > desc.txt &
-curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/.github/categories/${templ_id}.txt" > cat.txt &
-curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/.github/expires/${templ_id}.txt" > exp.txt &
-curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/.github/url-source/${templ_id}.txt" > src.txt &
+curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/descriptions/${templ_id}.txt" > desc.txt &
+curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/categories/${templ_id}.txt" > cat.txt &
+curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/expires/${templ_id}.txt" > exp.txt &
+curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/url-source/${templ_id}.txt" > src.txt &
 wait
 templ_desc=$(<desc.txt)
 templ_cat=$(<cat.txt)
@@ -382,31 +759,24 @@ rm -f desc.txt cat.txt exp.txt src.txt
 #   Define › Template › Default Values
 # #
 
-if [[ "${templ_desc}" == *"404: Not Found"* ]]; then templ_desc="#   No description provided"; fi
-if [[ "${templ_cat}" == *"404: Not Found"* ]]; then templ_cat="Uncategorized"; fi
-if [[ "${templ_exp}" == *"404: Not Found"* ]]; then templ_exp="6 hours"; fi
-if [[ "${templ_url_service}" == *"404: Not Found"* ]]; then templ_url_service="None"; fi
-
-# #
-#   Define › Regex
-# #
-
-regex_url='^(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]\.[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]$'
-regex_isnum='^[0-9]+$'
+case "$templ_desc" in *"404: Not Found"*) templ_desc="#   No description provided";; esac
+case "$templ_cat" in *"404: Not Found"*) templ_cat="Uncategorized";; esac
+case "$templ_exp" in *"404: Not Found"*) templ_exp="6 hours";; esac
+case "$templ_url_service" in *"404: Not Found"*) templ_url_service="None";; esac
 
 # #
 #   Output › Header
 # #
 
 echo
-prins
-print "    ${yellowl}${APP_FILE_PERM}${end}"
+prin0
+print "    ${yellowl}${file_ipset_target}${end}"
 print
 print "    ${greym}ID:          ${templ_id}${end}"
 print "    ${greym}UUID:        ${templ_uuid}${end}"
 print "    ${greym}CATEGORY:    ${templ_cat}${end}"
 print "    ${greym}ACTION:      ${app_file_this}${end}"
-prins
+prin0
 
 # #
 #   Start
@@ -418,25 +788,25 @@ info "    ⭐ Starting script ${bluel}${app_file_this}${greym}"
 #   Create or Clean file
 # #
 
-if [ -f "${APP_FILE_PERM}" ]; then
-    info "    🗑️  Wipe existing file ${bluel}${PWD}/${APP_FILE_PERM}${greym}"
-   > "${APP_FILE_PERM}"       # clean file
+if [ -f "${file_ipset_target}" ]; then
+    info "    📄 Clean ${bluel}${PWD}/${file_ipset_target}${greym}"
+   > "${file_ipset_target}"       # clean file
 else
-    info "    📁 Create ${bluel}${PWD}/${APP_FILE_PERM}${greym}"
-    mkdir -p "$(dirname "${APP_FILE_PERM}")"
+    info "    📁 Create ${bluel}${PWD}/${file_ipset_target}${greym}"
+    mkdir -p "$(dirname "${file_ipset_target}")"
 
-    if [ -d "$(dirname "${APP_FILE_PERM}")" ]; then
-        ok "    📁 Created ${greenl}$(dirname "${APP_FILE_PERM}")${greym}"
+    if [ -d "$(dirname "${file_ipset_target}")" ]; then
+        ok "    📁 Created ${greenl}$(dirname "${file_ipset_target}")${greym}"
     else
-        error "    ⭕  Failed to create directory ${redl}$(dirname "${APP_FILE_PERM}")${greym}; aborting${greym}"
+        error "    ⭕  Failed to create directory ${redl}$(dirname "${file_ipset_target}")${greym}; aborting${greym}"
         exit 1
     fi
 
-    touch "${APP_FILE_PERM}"
-    if [ -f "${APP_FILE_PERM}" ]; then
-        ok "    📄 Created perm file ${greenl}${PWD}/${APP_FILE_PERM}${greym}"
+    touch "${file_ipset_target}"
+    if [ -f "${file_ipset_target}" ]; then
+        ok "    📄 Created perm file ${greenl}${PWD}/${file_ipset_target}${greym}"
     else
-        error "    ⭕ Failed to create perm file ${bluel}${PWD}/${APP_FILE_PERM}${greym}"
+        error "    ⭕ Failed to create perm file ${bluel}${PWD}/${file_ipset_target}${greym}"
         exit 1
     fi
 fi
@@ -449,9 +819,13 @@ fi
 #       - sort and dedupe
 # #
 
-if [ -f "${APP_FILE_PERM}" ]; then
-    info "    📄 Cleaning current list of IPs in file ${bluel}${PWD}/${APP_FILE_PERM}"
-    awk '!/^(#|;|[[:space:]]*$)/ { sub(/[[:space:]]+$/,""); if(!seen[$0]++) print }' "${APP_FILE_PERM}" | sort -V > "${APP_FILE_PERM}.tmp" && mv "${APP_FILE_PERM}.tmp" "${APP_FILE_PERM}"
+if [ -f "${file_ipset_target}" ]; then
+    info "    📄 Cleaning current list of IPs in file ${bluel}${PWD}/${file_ipset_target}"
+    grep -vE '^[[:space:]]*(#|;|$)' "${file_ipset_target}" | sort_results > "${file_ipset_target}.tmp"
+    > "${file_ipset_target}"
+    cat "${file_ipset_target}.tmp" >> "${file_ipset_target}"
+    rm "${file_ipset_target}.tmp"
+    ok "    ✅ Duplicate IPs removed from ${bluel}${PWD}/${file_ipset_target}"
 fi
 
 # #
@@ -463,13 +837,13 @@ if [ -d ".github/blocks/" ]; then
     # #
     #   Determines if the category provided is either a folder, or a file ending with `.ipset`.
     #   
-    #   if a folder is provided, all files in the folder will be looped and loaded.
-    #   if a file is provided, only that one file will be loaded.
+    #   If folder is provided:  all files in the folder will be looped and loaded.
+    #   If file is provided:    only that one file will be loaded.
     # #
 
-    APP_BLOCK_TARGET=".github/blocks/${ARG_BLOCKS_CAT}/*.ipset"
-    if [[ "${ARG_BLOCKS_CAT}" == *ipset ]]; then
-        APP_BLOCK_TARGET=".github/blocks/${ARG_BLOCKS_CAT}"
+    _block_local_target=".github/blocks/${argCategory}/*.ipset"
+    if [[ "${argCategory}" == *ipset ]]; then
+        _block_local_target=".github/blocks/${argCategory}"
     fi
 
     # #
@@ -478,117 +852,85 @@ if [ -d ".github/blocks/" ]; then
     #   @usage      .github/scripts/bl-block.sh blocklists/isp/isp_aol.ipset isp/aol
     # #
 
-    for APP_FILE_TEMP in ${APP_BLOCK_TARGET}; do
-        info "    📒 Reading static block ${bluel}${PWD}/${APP_FILE_TEMP}"
+    for block_file_temp in ${_block_local_target}; do
+        info "    📒 Reading static block ${bluel}${PWD}/${block_file_temp}"
 
         # #
-        #   calculate how many IPs are in a subnet
-        #   if you want to calculate the USABLE IP addresses, subtract -2 from any subnet not ending with 31 or 32.
-        #   
-        #   for our purpose, we want to block them all in the event that the network has reconfigured their network / broadcast IPs,
-        #   so we will count every IP in the block.
+        #   Normalize static block before counting/appending
+        #       - remove comment/blank lines
+        #       - sort/dedupe IPv4 and IPv6 lines
         # #
 
-        i_cnt_block_ip_total=0
-        i_cnt_block_subnet_total=0
+        APP_FILE_CLEAN=$(mktemp) || exit 1
+        grep -vE '^[[:space:]]*(#|;|$)' "${block_file_temp}" | sort_results > "${APP_FILE_CLEAN}"
 
-        info "    📊 Fetching statistics for ${bluel}${PWD}/${APP_FILE_TEMP}"
+        info "    📊 Fetching statistics for ${bluel}${PWD}/${block_file_temp}${greym}"
+        count_ip_stats "${APP_FILE_CLEAN}"
+        _count_total_ips=$total_ips
+        _count_total_subnets=$total_subnets
+        _count_total_ips=$(printf "%'d" "${_count_total_ips}")                  # LOCAL add commas to thousands
+        _count_total_subnets=$(printf "%'d" "${_count_total_subnets}")          # LOCAL add commas to thousands
 
-        # line-by-line read (preserves spaces + full lines)
-        while IFS= read -r line; do
-            # skip empty lines
-            [[ -z "${line}" ]] && continue
-
-            # is ipv6 (contains a colon)
-            if [[ "${line}" == *:* ]]; then
-                if [[ ${line} =~ /[0-9]{1,3}$ ]]; then
-                    i_cnt_subnet_total=$((i_cnt_subnet_total + 1))
-                    i_cnt_block_subnet_total=$((i_cnt_block_subnet_total + 1))
-                else
-                    i_cnt_ip_total=$((i_cnt_ip_total + 1))
-                    i_cnt_block_ip_total=$((i_cnt_block_ip_total + 1))
-                fi
-            # is subnet (ipv4)
-            elif [[ ${line} =~ /[0-9]{1,2}$ ]]; then
-                ips=$((1 << (32 - ${line#*/})))
-                if [[ ${ips} =~ ${regex_isnum} ]]; then
-                    i_cnt_block_ip_total=$((i_cnt_block_ip_total + ips))
-                    i_cnt_block_subnet_total=$((i_cnt_block_subnet_total + 1))
-                    i_cnt_ip_total=$((i_cnt_ip_total + ips))
-                    i_cnt_subnet_total=$((i_cnt_subnet_total + 1))
-                fi
-            # is normal IP (ipv4)
-            elif [[ ${line} =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-                i_cnt_block_ip_total=$((i_cnt_block_ip_total + 1))
-                i_cnt_ip_total=$((i_cnt_ip_total + 1))
-            fi
-        done < "${APP_FILE_TEMP}"
-
-        # #
-        #   Count lines and subnets
-        # #
-
-        i_cnt_lines=$(wc -l < "${APP_FILE_TEMP}")                                       # GLOBAL count ip lines
-        i_cnt_lines=$(printf "%'d" "${i_cnt_lines}")                                    # GLOBAL add commas to thousands
-        i_cnt_ip_total=$(printf "%'d" "${i_cnt_ip_total}")                              # GLOBAL add commas to thousands
-        i_cnt_subnet_total=$(printf "%'d" "${i_cnt_subnet_total}")                      # GLOBAL add commas to thousands
-        i_cnt_block_ip_total=$(printf "%'d" "${i_cnt_block_ip_total}")                  # LOCAL add commas to thousands
-        i_cnt_block_subnet_total=$(printf "%'d" "${i_cnt_block_subnet_total}")          # LOCAL add commas to thousands
-
-        info "    🚛 Copy static block rules from ${bluel}${PWD}/${APP_FILE_TEMP}${greym} to ${bluel}${PWD}/${APP_FILE_PERM}${greym}"
-
-        cat "${APP_FILE_TEMP}" >> "${APP_FILE_PERM}"
-        ok "    ➕ Added ${bluel}${i_cnt_block_ip_total} IPs${greym} and ${bluel}${i_cnt_block_subnet_total} subnets${greym} to ${bluel}${PWD}/${APP_FILE_PERM}"
+        info "    🚛 Copy static block rules from ${bluel}${PWD}/${block_file_temp}${greym} to ${bluel}${PWD}/${file_ipset_target}${greym}"
+        cat "${APP_FILE_CLEAN}" >> "${file_ipset_target}"
+        rm -f "${APP_FILE_CLEAN}"
+        ok "    ➕ Added ${bluel}${_count_total_ips} IPs${greym} and ${bluel}${_count_total_subnets} subnets${greym} to ${bluel}${PWD}/${file_ipset_target}${greym}"
     done
 else
     warn "    ❌ No static blocklist found at ${orangel}.github/blocks/${greym}"
 fi
 
 # #
-#   Final Cleanup › Remove Duplicate IPs (Preserve Order)
-#       - Keeps file structure intact (comments, blank lines stay in place)
-#       - Remove duplicates for valid IPv4 or IPv6 addresses (mainly from static)
+#   Sort
+#       - Remove downloaded comment/blank lines
+#       - Sort/dedupe IPv4 and IPv6 separately
+#       - Move sorted text over to permanent file
+#       - Delete temp sort file
 # #
 
-if [ -f "${APP_FILE_PERM}" ]; then
-    info "    🧹 Removing duplicate IP entries from ${bluel}${PWD}/${APP_FILE_PERM}${greym}"
+if [ -f "${file_ipset_target}" ]; then
+    info "    🧹 Sorting and removing duplicate IP entries from ${bluel}${PWD}/${file_ipset_target}${greym}"
+    grep -vE '^[[:space:]]*(#|;|$)' "${file_ipset_target}" | sort_results > "${file_ipset_target}.sort"
+    > "${file_ipset_target}"
+    cat "${file_ipset_target}.sort" >> "${file_ipset_target}"
+    rm "${file_ipset_target}.sort"
+    ok "    ✅ Duplicate IPs removed"
+fi
 
-    awk '
-        # Simple regex patterns (POSIX safe)
-        /^[[:space:]]*[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/ {
-            ip = $1
-            if (!seen[ip]++) print $0
-            next
-        }
-        /^[[:space:]]*[0-9A-Fa-f:]+$/ {
-            ip = $1
-            if (!seen[ip]++) print $0
-            next
-        }
-        # Otherwise (comment, blank, etc.)
-        { print $0 }
-    ' "${APP_FILE_PERM}" > "${APP_FILE_PERM}.tmp" && mv "${APP_FILE_PERM}.tmp" "${APP_FILE_PERM}"
+# #
+#   Final Counts (from final cleaned + deduped file)
+# #
 
-    ok "    ✅ Duplicate IPs removed (order preserved)"
+if [ -f "${file_ipset_target}" ]; then
+    count_ip_stats "${file_ipset_target}"
+    total_ips=$total_ips
+    total_subnets=$total_subnets
+
+    total_lines=$(wc -l < "${file_ipset_target}")
+    total_ips=$(printf "%'d" "${total_ips}")
+    total_subnets=$(printf "%'d" "${total_subnets}")
+    total_lines=$(printf "%'d" "${total_lines}")
 fi
 
 # #
 #   Template › Header
+#   
+#   0a      place at top of file
 # #
 
-ed -s "${APP_FILE_PERM}" <<END_ED
+ed -s "${file_ipset_target}" <<END_ED
 0a
 # #
-#   🧱 Firewall Blocklist - ${APP_FILE_PERM}
+#   🧱 Firewall Blocklist - ${file_ipset_target}
 #   
-#   @repo           https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/${APP_FILE_PERM}
+#   @repo           https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/${file_ipset_target}
 #   @service        ${templ_url_service}
 #   @id             ${templ_id}
 #   @uuid           ${templ_uuid}
 #   @updated        ${templ_now}
-#   @entries        ${i_cnt_ip_total} ips
-#                   ${i_cnt_subnet_total} subnets
-#                   ${i_cnt_lines} lines
+#   @entries        ${total_ips} ips
+#                   ${total_subnets} subnets
+#                   ${total_lines} lines
 #   @expires        ${templ_exp}
 #   @category       ${templ_cat}
 #
@@ -601,16 +943,28 @@ q
 END_ED
 
 # #
-#   Output › Stats
+#   Finished
+#   
+#   Capture end time
+#   Calculate elapsed time
+#   Calculate days, hours, etc.
+#   Output to console
 # #
 
-T=$SECONDS
-D=$((T/86400))
-H=$((T/3600%24))
-M=$((T/60%60))
-S=$((T%60))
+time_end=$( date +%s )
+T=$(( time_end - time_start ))
+D=$(( T / 86400 ))
+H=$(( (T % 86400) / 3600 ))
+M=$(( (T % 3600) / 60 ))
+S=$(( T % 60 ))
 
-print
-labels "🎌 Finished! ${yellowd}${D} days ${H} hrs ${M} mins ${S} secs"
+# #
+#   Output
+# #
 
-prinl "#️⃣  ${bluel}${APP_FILE_PERM}${end} | Added ${fuchsial}${i_cnt_ip_total} IPs${end} and ${fuchsial}${i_cnt_subnet_total} Subnets"
+prinp "${APP_NAME_SHORT:-CSF} > ${file_ipset_target}" \
+       "Blocklist has finished generating successfully \
+${greyd}\n\n${greym}ips: 	    ${greyd}...............${yellowl} ${total_ips}${greyd} \
+${greyd}\n${greym}subnets:	        ${greyd}...........${yellowl} ${total_subnets}${greyd} \
+\n\n
+🎌[2] ${greym}Finished! ${yellowd}${D} days ${H} hrs ${M} mins ${S} secs${greyd}"
