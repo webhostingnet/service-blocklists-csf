@@ -5,10 +5,10 @@
 #   @service        whois.radb.net
 #   @id             isp_charter_spectrum_timewarnercable_ipset
 #   @uuid           c39b3c64-d363-3eca-bbe7-34a59dc0c0b5
-#   @updated        Wed Mar 11 12:57:19 UTC 2026
-#   @entries        40869540 ips
-#                   4211 subnets
-#                   4211 lines
+#   @updated        Thu Mar 12 05:42:31 UTC 2026
+#   @entries        40868516 ips
+#                   4210 subnets
+#                   4210 lines
 #   @asn            AS7843, AS11351, AS12271, AS20001, AS20115
 #                   AS3456, AS63365
 #   @expires        7 days
@@ -1755,7 +1755,6 @@
 76.178.15.0/24
 76.178.32.0/19
 76.178.64.0/18
-76.178.100.0/22
 76.178.128.0/18
 76.178.192.0/18
 76.179.0.0/16
