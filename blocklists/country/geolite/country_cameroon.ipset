@@ -5,7 +5,7 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_cameroon_ipset
 #   @uuid           f7c2387c-f16f-35ec-bd8a-0f468b281189
-#   @updated        Thu Mar 12 12:58:54 UTC 2026
+#   @updated        Fri Mar 13 01:54:10 UTC 2026
 #   @entries        607266 ips
 #                   303 subnets
 #                   303 lines

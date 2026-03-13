@@ -5,7 +5,7 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_papua_new_guinea_ipset
 #   @uuid           adf2cc5e-f810-312b-b528-1065ca91538e
-#   @updated        Thu Mar 12 12:59:46 UTC 2026
+#   @updated        Fri Mar 13 01:54:56 UTC 2026
 #   @entries        76734 ips
 #                   343 subnets
 #                   343 lines
