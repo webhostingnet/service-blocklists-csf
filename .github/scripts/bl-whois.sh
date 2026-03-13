@@ -38,6 +38,11 @@
 #                           <argAsn>            vararg      required
 #                           <argServiceWhois>   str         optional
 #                           <argGrepFilter>     str         optional
+#                       
+#                       Examples:
+#                           [1]     curl -sSL https://mask-api.icloud.com/egress-ip-ranges.csv | cut -d',' -f1 | .github/scripts/bl-format.sh privacy_apple_icloud.ipset
+#                           [2]     curl -sSL https://search.developer.apple.com/applebot.json | jq -r '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty' | .github/scripts/bl-format.sh privacy_applebot.ipset
+#                           [3]     whois -h whois.radb.net -- '-i origin AS32934' | grep ^route | awk '{gsub("(route:|route6:)","");print}' | awk '{gsub(/ /,""); print}' | .github/scripts/bl-format.sh blocklists/privacy_facebook.ipset
 #   
 #   @structure          📁 .github
 #                           📁 scripts
@@ -1286,14 +1291,13 @@ case "$templ_url_service" in *"404: Not Found"*) templ_url_service="None";; esac
 # #
 
 echo
-prin0
-print "    ${yellowl}${file_ipset_target}${end}"
-print
-print "    ${greym}ID:          ${templ_id}${end}"
-print "    ${greym}UUID:        ${templ_uuid}${end}"
-print "    ${greym}CATEGORY:    ${templ_cat}${end}"
-print "    ${greym}ACTION:      ${app_file_this}${end}"
-prin0
+prinp "📄[-1] ${file_ipset_target}" \
+"${greym}File: 	    ${greyd}............${yellowl} ${file_ipset_target}${greyd} \
+${greyd}\n${greym}Id: 	    ${greyd}..............${yellowl} ${templ_id}${greyd} \
+${greyd}\n${greym}UUID:	        ${greyd}............${yellowl} ${templ_uuid}${greyd} \
+${greyd}\n${greym}Category:	        ${greyd}........${yellowl} ${templ_cat}${greyd} \
+${greyd}\n${greym}Script:	       ${greyd}..........${yellowl} ${app_file_this}${greyd} \
+${greyd}\n${greym}Service:	        ${greyd}.........${yellowl} ${templ_url_service}${greyd}"
 
 # #
 #   Start
@@ -1466,12 +1470,10 @@ M=$(( (T % 3600) / 60 ))
 S=$(( T % 60 ))
 
 # #
-#   Output
+#   Output › Footer
 # #
 
-prinp "${APP_NAME_SHORT:-CSF} > ${file_ipset_target}" \
-       "Blocklist has finished generating successfully \
-${greyd}\n\n${greym}ips: 	    ${greyd}...............${yellowl} ${total_ips}${greyd} \
-${greyd}\n${greym}subnets:	        ${greyd}...........${yellowl} ${total_subnets}${greyd} \
-\n\n
-🎌[2] ${greym}Finished! ${yellowd}${D} days ${H} hrs ${M} mins ${S} secs${greyd}"
+prinp "🎌[-1] Blocklist has finished generating successfully" \
+"${greyd}${greym}IPs: 	    ${greyd}............${yellowl} ${total_ips}${greyd} \
+${greyd}\n${greym}Subnets:	        ${greyd}........${yellowl} ${total_subnets}${greyd} \
+${greyd}\n${greym}Duration:	        ${greyd}........${yellowd}${D} days ${H} hrs ${M} mins ${S} secs${greyd}"
