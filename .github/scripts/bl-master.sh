@@ -1105,14 +1105,14 @@ fi
 #       - file to store ips in second
 # #
 
-i=1
+master_list_num=1
 for url in "$@"; do
     case "$url" in
         http://*|https://*)
 
             # <str:url> <str:ipset_dest.ipset> <int:file_progress>
-            download_list "$url" "$file_ipset_target" "$i"
-            i=$((i + 1))
+            download_list "$url" "$file_ipset_target" "$master_list_num"
+            master_list_num=$(( master_list_num + 1 ))
             ;;
     esac
 done
@@ -1131,8 +1131,8 @@ if [ -d ".github/blocks/" ]; then
 
     if [ -e "${files[0]}" ]; then
         for app_file_temp in "${files[@]}"; do
-            download_list "${app_file_temp}" "${file_ipset_target}" "${i}"
-            i=$((i + 1))
+            download_list "${app_file_temp}" "${file_ipset_target}" "${master_list_num}"
+            master_list_num=$(( master_list_num + 1 ))
         done
     else
         prinp "📄[-1]Processing Static List ${yellowl}.github/blocks/bruteforce/"
