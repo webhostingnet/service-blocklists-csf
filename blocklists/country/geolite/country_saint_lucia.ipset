@@ -5,7 +5,7 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_saint_lucia_ipset
 #   @uuid           2a5fae01-bc88-39d7-b89f-a01ed9c491f3
-#   @updated        Fri Mar 13 01:54:41 UTC 2026
+#   @updated        Fri Mar 13 19:30:36 UTC 2026
 #   @entries        39259 ips
 #                   199 subnets
 #                   199 lines

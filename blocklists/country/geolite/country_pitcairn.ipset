@@ -5,7 +5,7 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_pitcairn_ipset
 #   @uuid           e55ac757-ccae-32f3-adb2-f2ceb7b158a0
-#   @updated        Fri Mar 13 01:54:57 UTC 2026
+#   @updated        Fri Mar 13 19:30:51 UTC 2026
 #   @entries        276 ips
 #                   51 subnets
 #                   51 lines

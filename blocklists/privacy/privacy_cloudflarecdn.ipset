@@ -5,10 +5,10 @@
 #   @service        https://cloudflare.com/ips-v4 | https://cloudflare.com/ips-v6
 #   @id             privacy_cloudflarecdn_ipset
 #   @uuid           5e2f5e8d-c63b-33f3-999a-9e8c97213acf
-#   @updated        Fri Mar 13 01:50:08 UTC 2026
-#   @entries        1523712 ips
+#   @updated        Fri Mar 13 19:05:42 UTC 2026
+#   @entries        1,523,718 ips
 #                   20 subnets
-#                   20 lines
+#                   21 lines
 #   @expires        6 hours
 #   @category       Privacy
 #
@@ -24,8 +24,6 @@
 #   automatically routed to the next closest location.
 # #
 
-2a06:98c0::/29
-2c0f:f248::/32
 103.21.244.0/22
 103.22.200.0/22
 103.31.4.0/22
@@ -40,7 +38,10 @@
 190.93.240.0/20
 197.234.240.0/22
 198.41.128.0/17
+131.0.72.0/22 2400:cb00::/32
 2405:8100::/32
 2405:b500::/32
 2606:4700::/32
 2803:f800::/32
+2a06:98c0::/29
+2c0f:f248::/32

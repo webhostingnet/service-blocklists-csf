@@ -5,8 +5,8 @@
 #   @service        https://api.fastly.com/public-ip-list
 #   @id             privacy_fastly_ipset
 #   @uuid           bc39e07e-ba7f-3724-bb6a-d250b2d443ff
-#   @updated        Fri Mar 13 01:50:12 UTC 2026
-#   @entries        304128 ips
+#   @updated        Fri Mar 13 19:05:55 UTC 2026
+#   @entries        304,130 ips
 #                   21 subnets
 #                   21 lines
 #   @expires        6 hours

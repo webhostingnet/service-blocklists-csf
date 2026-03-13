@@ -5,8 +5,8 @@
 #   @service        https://rssapi.net/ips.txt
 #   @id             privacy_rssapi_ipset
 #   @uuid           25f8a230-2869-3380-b3b4-cf05e212a968
-#   @updated        Fri Mar 13 01:50:20 UTC 2026
-#   @entries        1 ips
+#   @updated        Fri Mar 13 19:06:02 UTC 2026
+#   @entries        2 ips
 #                   1 subnets
 #                   2 lines
 #   @expires        6 hours
@@ -21,5 +21,5 @@
 #   applications or services.
 # #
 
-2a01:4f8:c010:7943::/64
 168.119.254.124
+2a01:4f8:c010:7943::/64

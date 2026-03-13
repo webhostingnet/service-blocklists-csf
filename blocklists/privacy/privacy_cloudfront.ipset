@@ -5,8 +5,8 @@
 #   @service        https://d7uri8nf7uskq.cloudfront.net/tools/list-cloudfront-ips
 #   @id             privacy_cloudfront_ipset
 #   @uuid           faac2d95-4e94-303c-9cbf-74304f75f5fa
-#   @updated        Fri Mar 13 01:50:06 UTC 2026
-#   @entries        4173957 ips
+#   @updated        Fri Mar 13 19:05:40 UTC 2026
+#   @entries        4,173,957 ips
 #                   203 subnets
 #                   203 lines
 #   @expires        6 hours
