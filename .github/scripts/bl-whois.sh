@@ -161,6 +161,7 @@ argDryrun="false"                                                               
 argDevMode="false"                                                              # dev mode
 argVerbose="false"                                                              # verbose mode
 argIncludeBogon="false"                                                         # filter out BOGON IP addresses from list
+argWhoisTimeout=10                                                              # Whois timeout
 
 # #
 #   Define › Time
@@ -1022,7 +1023,7 @@ download_list()
         fi
     fi
 
-    info "    🌎 Downloading ASN ${yellowd}${_fnArgAsn}${greym} list to ${oranged}${_fnFileTemp}${greym}"
+    info "    🌎 Downloading ASN ${yellowd}${_fnArgAsn}${greym} list to ${peach}${_fnFileTemp}${greym}"
 
     _whois_err=$(mktemp)
     _whois_err_host=$(mktemp)
@@ -1057,11 +1058,14 @@ download_list()
         : > "${_whois_err_host}"
 
         if [ "${_whois_supports_ipv4_opt}" = true ]; then
-            _whois_raw=$("${binary_whois}" -4 -h "${_whois_host}" -- "-i origin ${_fnArgAsn}" 2>"${_whois_err_host}")
+            _whois_raw=$(timeout "${argWhoisTimeout}" "${binary_whois}" -4 -h "${_whois_host}" -- "-i origin ${_fnArgAsn}" 2>"${_whois_err_host}")
         else
-            _whois_raw=$("${binary_whois}" -h "${_whois_host}" -- "-i origin ${_fnArgAsn}" 2>"${_whois_err_host}")
+            _whois_raw=$(timeout "${argWhoisTimeout}" "${binary_whois}" -h "${_whois_host}" -- "-i origin ${_fnArgAsn}" 2>"${_whois_err_host}")
         fi
         _whois_rc=$?
+        if [ ${_whois_rc} -eq 124 ]; then
+            warn "    ⏱ WHOIS query to ${_whois_host} timed out after ${argWhoisTimeout}s"
+        fi
 
         if [ ${_whois_rc} -ne 0 ] || [ -z "${_whois_raw}" ]; then
             if grep -qi "network is unreachable" "${_whois_err_host}"; then
@@ -1078,8 +1082,11 @@ download_list()
                 if [ -n "${_whois_ipv4_host}" ]; then
                     info "    🌐 Retrying ${bluel}${_whois_host}${greym} using IPv4 endpoint ${bluel}${_whois_ipv4_host}${greym}"
                     : > "${_whois_err_host}"
-                    _whois_raw=$("${binary_whois}" -h "${_whois_ipv4_host}" -- "-i origin ${_fnArgAsn}" 2>"${_whois_err_host}")
+                    _whois_raw=$(timeout "${argWhoisTimeout}" "${binary_whois}" -h "${_whois_ipv4_host}" -- "-i origin ${_fnArgAsn}" 2>"${_whois_err_host}")
                     _whois_rc=$?
+                    if [ ${_whois_rc} -eq 124 ]; then
+                        warn "    ⏱ WHOIS IPv4 retry to ${_whois_ipv4_host} timed out after ${argWhoisTimeout}s"
+                    fi
                 fi
             fi
         fi
@@ -1147,7 +1154,7 @@ download_list()
 
     if [ ! -s "${_fnFileTemp}.raw" ]; then
         _whois_error_output=$(awk 'NF && !seen[$0]++ {print}' "${_whois_err}" | tail -n 8)
-        error "    WARNING: WHOIS failed for ASNs: ${redl}${_fnArgAsn}${greym}"
+        error "    ⭕ WHOIS failed for ASNs: ${redl}${_fnArgAsn}${greym}"
         if [ -n "${_whois_error_output}" ]; then
             label "    ${redl}${_whois_error_output}${end}"
         fi
@@ -1335,7 +1342,6 @@ whois.rogerstelecom.net
 whois.bgp.net.br
 whois.apnic.net
 whois.afrinic.net
-whois.nic.as
 whois.iana.org
 whois.lacnic.net
 "
