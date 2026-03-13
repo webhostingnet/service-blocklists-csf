@@ -1059,12 +1059,12 @@ case "$templ_url_service" in *"404: Not Found"*) templ_url_service="None";; esac
 
 echo
 prinp "📄[-1] ${file_ipset_target}" \
-"${greym}File: 	    ${greyd}............${yellowl} ${file_ipset_target}${greyd} \
-${greyd}\n${greym}Id: 	    ${greyd}..............${yellowl} ${templ_id}${greyd} \
-${greyd}\n${greym}UUID:	        ${greyd}............${yellowl} ${templ_uuid}${greyd} \
-${greyd}\n${greym}Category:	        ${greyd}........${yellowl} ${templ_cat}${greyd} \
-${greyd}\n${greym}Script:	       ${greyd}..........${yellowl} ${app_file_this}${greyd} \
-${greyd}\n${greym}Service:	        ${greyd}.........${yellowl} ${templ_url_service}${greyd}"
+"${greym}File: 	    ${greyd}.............${yellowl} ${file_ipset_target}${greyd} \
+${greyd}\n${greym}Id: 	    ${greyd}...............${yellowl} ${templ_id}${greyd} \
+${greyd}\n${greym}UUID:	        ${greyd}.............${yellowl} ${templ_uuid}${greyd} \
+${greyd}\n${greym}Category:	        ${greyd}.........${yellowl} ${templ_cat}${greyd} \
+${greyd}\n${greym}Script:	       ${greyd}...........${yellowl} ${app_file_this}${greyd} \
+${greyd}\n${greym}Service:	        ${greyd}..........${yellowl} ${templ_url_service}${greyd}"
 
 # #
 #   Start
@@ -1226,4 +1226,4 @@ S=$(( T % 60 ))
 prinp "🎌[-1] Blocklist has finished generating successfully" \
 "${greyd}${greym}IPs: 	    ${greyd}............${yellowl} ${total_ips}${greyd} \
 ${greyd}\n${greym}Subnets:	        ${greyd}........${yellowl} ${total_subnets}${greyd} \
-${greyd}\n${greym}Duration:	        ${greyd}........${yellowd}${D} days ${H} hrs ${M} mins ${S} secs${greyd}"
+${greyd}\n${greym}Duration:	        ${greyd}.......${yellowd} ${D} days ${H} hrs ${M} mins ${S} secs${greyd}"
