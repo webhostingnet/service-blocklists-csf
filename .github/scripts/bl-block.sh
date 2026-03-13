@@ -1,9 +1,10 @@
 #!/bin/bash
 
 # #
-#   @app                https://github.com/ConfigServer-Software/service-blocklists
+#   @script             Blocklist › Local Blocks
+#   @repo               https://github.com/ConfigServer-Software/service-blocklists
 #   @workflow           blocklist-generate.yml
-#   @type               Bash script
+#   @type               bash script
 #   @summary            Generate ipset by reading locally specified file in /blocks folder.
 #                           Specify a source category to fetch local ipset from.
 #                           Copies local ipsets from .github/blocks/${argCategory}/*.ipset
@@ -103,7 +104,7 @@ bgError="${esc}[1;38;5;15;48;5;160m"
 #   Define › App
 # #
 
-app_name="Blocklist Formatter"                                                  # name of app
+app_name="Blocklist › Blocks"                                                   # name of app
 app_desc="Fetch list of IP addresses from local file in /blocks folder."        # desc
 app_ver="1.2.0.0"                                                               # current script version
 app_repo="configserver-software/service-blocklists"                             # repository
@@ -119,6 +120,7 @@ app_agent="Mozilla/5.0 (Windows NT 10.0; WOW64) "\
 argDryrun="false"                                                               # dryrun mode
 argDevMode="false"                                                              # dev mode
 argVerbose="false"                                                              # verbose mode
+argIncludeBogon="false"                                                         # filter out BOGON IP addresses from list
 
 # #
 #   Define › Time
@@ -212,14 +214,12 @@ print( )
 #   Verify › Arguments
 # #
 
-if [[ -z "${argFileSaveto}" ]]; then
-    echo
+if [ -z "${argFileSaveto}" ]; then
     error "    ⭕  No target file specified ${yellowd}${app_file_this}${greym}; aborting${end}"
-    echo
     exit 0
 fi
 
-if [[ -z "${argCategory}" ]]; then
+if [ -z "${argCategory}" ]; then
     error "    ⭕  No static category specified ${yellowd}${app_file_this}${greym}; aborting${end}"
     exit 0
 fi
@@ -658,6 +658,24 @@ sort_results()
 }
 
 # #
+#   Developer › Test IP Sorting
+# #
+
+if [ "$argDevMode" = true ]; then
+
+sort_results <<'EOF'
+192.168.1.5
+10.0.0.1
+192.168.1.10
+fe80::1
+::1
+2001:db8::1
+10.0.0.2
+EOF
+
+fi
+
+# #
 #   Count file statistics
 #       - IPv4 CIDR contributes all IPv4 addresses in the subnet
 #       - IPv6 CIDR contributes one entry (do not expand)
@@ -724,21 +742,256 @@ count_ip_stats( )
 }
 
 # #
+#   IPSET › Filter BOGON › IPv4
+#   
+#   Check if IPv4 matches known bogon ranges
+# #
+
+is_bogon_ipv4( )
+{
+    _fnBogonIp=$1
+
+    case "${_fnBogonIp}" in
+        0.*|10.*|127.*|127.0.53.53|169.254.*|192.168.*|255.255.255.255)
+            return 0
+            ;;
+        100.6[4-9].*|100.[7-9][0-9].*|100.1[01][0-9].*|100.12[0-7].*)           # 100.64.0.0/10
+            return 0
+            ;;
+        172.1[6-9].*|172.2[0-9].*|172.3[0-1].*)                                 # 172.16.0.0/12
+            return 0
+            ;;
+        192.0.0.*|192.0.2.*|198.18.*|198.19.*|198.51.100.*|203.0.113.*)
+            return 0
+            ;;
+        22[4-9].*|23[0-9].*|24[0-9].*|25[0-5].*)                                # 224.0.0.0/4 + 240.0.0.0/4
+            return 0
+            ;;
+    esac
+
+    return 1
+}
+
+# #
+#   IPSET › Filter BOGON › IPv6
+#   
+#   Check if IPv6 matches known bogon ranges
+# #
+
+is_bogon_ipv6( )
+{
+    _fnBogonIp="${1,,}"
+    _fnBogonIp="${_fnBogonIp%%/*}"
+
+    case "${_fnBogonIp}" in
+        ::|::1|::ffff:*|::*)                                                        # ::/128 ::1/128 ::ffff:0:0/96 ::/96
+            return 0
+            ;;
+        100:*|100::*)                                                               # 100::/64
+            return 0
+            ;;
+        2001:1[0-9a-f]:*|2001:01[0-9a-f]:*|2001:001[0-9a-f]:*|2001:0001[0-9a-f]:*)  # 2001:10::/28
+            return 0
+            ;;
+        2001:db8:*|3fff:*|fc*|fd*|fe8*|fe9*|fea*|feb*|fec*|fed*|fee*|fef*|ff*)
+            return 0
+            ;;
+    esac
+
+    return 1
+}
+
+# #
+#   IPSET › Filter BOGON Addresses
+#   
+#   Some of our IPSETs will include BOGON addresses which may cause issues with
+#   users who are not expecting such IPs to be included.
+#   
+#   This functionality removes the BOGON addresses completely before the list is
+#   counted.
+#   
+#       - Runs only when argIncludeBogon=false
+#       - Run before count_ip_stats to ensure count accuracy
+# #
+
+filter_bogon_ips( )
+{
+    _fnBogonFile=$1
+    _fnBogonTemp="${1}.bogon"
+    _fnBogonLine=""
+    _fnBogonBase=""
+    _fnBogonBefore=0
+    _fnBogonAfter=0
+    _fnBogonRemoved=0
+
+    case "${argIncludeBogon:-true}" in
+        1|true|TRUE|yes|YES)
+            return 0
+            ;;
+    esac
+
+    if [ ! -f "${_fnBogonFile}" ]; then
+        warn "    ⚠️  Bogon filter skipped; file not found ${yellowl}${_fnBogonFile}${greym}"
+        return 0
+    fi
+
+    info "    🚫 Filtering bogon IP ranges from ${bluel}${PWD}/${_fnBogonFile}${greym}"
+    _fnBogonBefore=$(wc -l < "${_fnBogonFile}")
+    > "${_fnBogonTemp}"
+
+    while IFS= read -r _fnBogonLine || [ -n "${_fnBogonLine}" ]; do
+        [ -z "${_fnBogonLine}" ] && continue
+        _fnBogonBase="${_fnBogonLine%%/*}"
+
+        if [[ "${_fnBogonBase}" == *:* ]]; then
+            if is_bogon_ipv6 "${_fnBogonLine}"; then
+                continue
+            fi
+        elif [[ "${_fnBogonBase}" == *.* ]]; then
+            if is_bogon_ipv4 "${_fnBogonBase}"; then
+                continue
+            fi
+        fi
+
+        printf '%s\n' "${_fnBogonLine}" >> "${_fnBogonTemp}"
+    done < "${_fnBogonFile}"
+
+    mv "${_fnBogonTemp}" "${_fnBogonFile}"
+
+    _fnBogonAfter=$(wc -l < "${_fnBogonFile}")
+    _fnBogonRemoved=$(( _fnBogonBefore - _fnBogonAfter ))
+
+    ok "    🚫 Removed ${greenl}${_fnBogonRemoved}${greym} bogon entries from ${bluel}${PWD}/${_fnBogonFile}${greym}"
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnBogonFile _fnBogonTemp _fnBogonLine _fnBogonBase _fnBogonBefore _fnBogonAfter _fnBogonRemoved _fnBogonIp
+}
+
+# #
+#   Func › Download List
+# #
+
+download_list()
+{
+
+    _fnArgLocalFile=$1
+    _fnArgFile=$2
+    _fnFileTemp="${2}.tmp"
+    _fnListNum=$3
+    _count_total_ips=0
+    _count_total_subnets=0
+
+    # #
+    #   Create the file if it doesn't exist
+    # #
+
+    prinp "📄[-1] Processing list #${_fnListNum}"
+
+    if [ ! -f "${_fnFileTemp}" ]; then
+        touch "${_fnFileTemp}"
+
+        if [ -f "${_fnFileTemp}" ]; then
+            ok "    📄 Created temp file ${greenl}${PWD}/${_fnFileTemp}${greym}"
+        else
+            error "    ⭕ Failed to create temp file ${bluel}${PWD}/${_fnFileTemp}${greym}"
+            exit 1
+        fi
+    fi
+
+    info "    📒 Reading static block ${bluel}${PWD}/${_fnArgLocalFile}${greym}"
+    cat "${_fnArgLocalFile}" > "${_fnFileTemp}"
+
+    # #
+    #   Perform sed actions on downloaded file.
+    # #
+
+    # normalize CRLF
+    sed -i 's/\r$//' "${_fnFileTemp}"
+
+    # remove hyphens from IP ranges (if format is "1.2.3.4 - 1.2.3.5" take left side)
+    sed -i 's/-.*//' "${_fnFileTemp}"
+
+    # remove inline comments (strip ' # comment' or ' ; comment' from end of lines ; collapse whitespace, trim)
+    sed -i 's/[[:space:]]*[#;].*$//' "${_fnFileTemp}"
+
+    # collapse multiple whitespace into a single space
+    sed -i 's/[[:space:]]\+/ /g' "${_fnFileTemp}"
+
+    # trim leading and trailing whitespace
+    sed -i 's/^[[:space:]]*//;s/[[:space:]]*$//' "${_fnFileTemp}"
+
+    # remove empty lines (after trimming/comment removal)
+    sed -i '/^$/d' "${_fnFileTemp}"
+
+    # #
+    #   IPSET › Filter BOGON
+    #       - Optional
+    #       - Run before count_ip_stats for accurate totals
+    # #
+
+    filter_bogon_ips "${_fnFileTemp}"
+
+    # #
+    #   Calculate list statistics
+    #       - local only (global totals are calculated after final dedupe)
+    # #
+
+    info "    📊 Fetching statistics for clean file ${bluel}${PWD}/${_fnFileTemp}${greym}"
+    count_ip_stats "${_fnFileTemp}"
+    _count_total_ips=$total_ips
+    _count_total_subnets=$total_subnets
+
+    _count_total_ips=$(printf "%'d" "$_count_total_ips")                        # LOCAL add commas to thousands
+    _count_total_subnets=$(printf "%'d" "$_count_total_subnets")                # LOCAL add commas to thousands
+
+    info "    🚛 Move ${bluel}${_fnFileTemp}${greym} to ${bluel}${_fnArgFile}${greym}"
+
+    # #
+    #   Ensure dest file ends with newline before append
+    # #
+
+    if [ -s "${_fnArgFile}" ] && [ "$(tail -c1 "${_fnArgFile}")" != "" ]; then
+        echo >> "${_fnArgFile}"
+    fi
+
+    cat "${_fnFileTemp}" >> "${_fnArgFile}"                                     # Copy .tmp to permanent file
+    rm "${_fnFileTemp}"                                                         # Delete temp file
+
+    if [ ! -f "${_fnFileTemp}" ]; then
+        ok "    📄 Removed temp file ${greenl}${PWD}/${_fnFileTemp}${greym}"
+    else
+        error "    ⭕  Unable to delete temp file ${redl}${PWD}/${_fnFileTemp}${greym}"
+    fi
+
+    ok "    ➕ Added ${greenl}${_count_total_ips}${greym} IP addresses and ${greenl}${_count_total_subnets}${greym} subnets to ${greenl}${PWD}/${_fnArgFile}${greym}"
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnArgLocalFile _fnArgFile _fnFileTemp _fnListNum \
+            _count_total_ips _count_total_subnets
+}
+
+# #
 #   Define › App
 # #
 
-file_ipset_temp="${argFileSaveto}.tmp"                                          # temp file when building ipset list
-file_ipset_target="${argFileSaveto}"                                            # perm file when building ipset list
+file_ipset_temp="${argFileSaveto}.tmp"                                          # Temp file when building ipset list
+file_ipset_target="${argFileSaveto}"                                            # Perm file when building ipset list
 
 # #
 #   Define › Template
 # #
 
-templ_now="$(date -u)"                                                          # get current date in utc format
-templ_id=$(basename -- "${file_ipset_target}")                                  # ipset id, get base filename
-templ_id="${templ_id//[^[:alnum:]]/_}"                                          # ipset id, only allow alphanum and underscore, /description/* and /category/* files must match this value
-templ_uuid="$(uuidgen -m -N "${templ_id}" -n @url)"                             # uuid associated to each release
-templ_curl_opts=(-sSL -A "$app_agent")                                          # curl command
+templ_now="$(date -u)"                                                          # Get current date in utc format
+templ_id=$(basename -- "${file_ipset_target}")                                  # Ipset id, get base filename
+templ_id="${templ_id//[^[:alnum:]]/_}"                                          # Ipset id, only allow alphanum and underscore, /description/* and /category/* files must match this value
+templ_uuid="$(uuidgen -m -N "${templ_id}" -n @url)"                             # UUID associated to each release
+templ_curl_opts=(-sSL -A "$app_agent")                                          # cUrl command
 
 # #
 #   Define › Template › External Sources
@@ -811,22 +1064,6 @@ else
     fi
 fi
 
-# #
-#   Pre-clean generated data BEFORE appending static blocks
-#       - remove comment lines starting with # or ;
-#       - remove blank lines
-#       - remove trailing whitespace
-#       - sort and dedupe
-# #
-
-if [ -f "${file_ipset_target}" ]; then
-    info "    📄 Cleaning current list of IPs in file ${bluel}${PWD}/${file_ipset_target}"
-    grep -vE '^[[:space:]]*(#|;|$)' "${file_ipset_target}" | sort_results > "${file_ipset_target}.tmp"
-    > "${file_ipset_target}"
-    cat "${file_ipset_target}.tmp" >> "${file_ipset_target}"
-    rm "${file_ipset_target}.tmp"
-    ok "    ✅ Duplicate IPs removed from ${bluel}${PWD}/${file_ipset_target}"
-fi
 
 # #
 #   Add Static Files
@@ -841,9 +1078,9 @@ if [ -d ".github/blocks/" ]; then
     #   If file is provided:    only that one file will be loaded.
     # #
 
-    _block_local_target=".github/blocks/${argCategory}/*.ipset"
+    APP_BLOCK_TARGET=".github/blocks/${argCategory}/*.ipset"
     if [[ "${argCategory}" == *ipset ]]; then
-        _block_local_target=".github/blocks/${argCategory}"
+        APP_BLOCK_TARGET=".github/blocks/${argCategory}"
     fi
 
     # #
@@ -852,29 +1089,10 @@ if [ -d ".github/blocks/" ]; then
     #   @usage      .github/scripts/bl-block.sh blocklists/isp/isp_aol.ipset isp/aol
     # #
 
-    for block_file_temp in ${_block_local_target}; do
-        info "    📒 Reading static block ${bluel}${PWD}/${block_file_temp}"
-
-        # #
-        #   Normalize static block before counting/appending
-        #       - remove comment/blank lines
-        #       - sort/dedupe IPv4 and IPv6 lines
-        # #
-
-        APP_FILE_CLEAN=$(mktemp) || exit 1
-        grep -vE '^[[:space:]]*(#|;|$)' "${block_file_temp}" | sort_results > "${APP_FILE_CLEAN}"
-
-        info "    📊 Fetching statistics for ${bluel}${PWD}/${block_file_temp}${greym}"
-        count_ip_stats "${APP_FILE_CLEAN}"
-        _count_total_ips=$total_ips
-        _count_total_subnets=$total_subnets
-        _count_total_ips=$(printf "%'d" "${_count_total_ips}")                  # LOCAL add commas to thousands
-        _count_total_subnets=$(printf "%'d" "${_count_total_subnets}")          # LOCAL add commas to thousands
-
-        info "    🚛 Copy static block rules from ${bluel}${PWD}/${block_file_temp}${greym} to ${bluel}${PWD}/${file_ipset_target}${greym}"
-        cat "${APP_FILE_CLEAN}" >> "${file_ipset_target}"
-        rm -f "${APP_FILE_CLEAN}"
-        ok "    ➕ Added ${bluel}${_count_total_ips} IPs${greym} and ${bluel}${_count_total_subnets} subnets${greym} to ${bluel}${PWD}/${file_ipset_target}${greym}"
+    i=1
+    for APP_FILE_TEMP in ${APP_BLOCK_TARGET}; do
+        download_list "${APP_FILE_TEMP}" "${file_ipset_target}" "${i}"
+        i=$((i + 1))
     done
 else
     warn "    ❌ No static blocklist found at ${orangel}.github/blocks/${greym}"
@@ -906,10 +1124,10 @@ if [ -f "${file_ipset_target}" ]; then
     total_ips=$total_ips
     total_subnets=$total_subnets
 
-    total_lines=$(wc -l < "${file_ipset_target}")
-    total_ips=$(printf "%'d" "${total_ips}")
-    total_subnets=$(printf "%'d" "${total_subnets}")
-    total_lines=$(printf "%'d" "${total_lines}")
+    total_lines=$(wc -l < "${file_ipset_target}")                               # count ip lines
+    total_lines=$(printf "%'d" "$total_lines")                                  # GLOBAL add commas to thousands
+    total_subnets=$(printf "%'d" "$total_subnets")                              # GLOBAL add commas to thousands
+    total_ips=$(printf "%'d" "$total_ips")                                      # GLOBAL add commas to thousands
 fi
 
 # #
@@ -944,11 +1162,10 @@ END_ED
 
 # #
 #   Finished
-#   
-#   Capture end time
-#   Calculate elapsed time
-#   Calculate days, hours, etc.
-#   Output to console
+#       - Capture end time
+#       - Calculate elapsed time
+#       - Calculate days, hours, etc.
+#       - Output to console
 # #
 
 time_end=$( date +%s )
