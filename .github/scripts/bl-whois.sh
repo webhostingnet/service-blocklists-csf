@@ -884,10 +884,12 @@ filter_bogon_ips( )
 
         if [[ "${_fnBogonBase}" == *:* ]]; then
             if is_bogon_ipv6 "${_fnBogonLine}"; then
+                _fnBogonRemoved=$(( _fnBogonRemoved + 1 ))
                 continue
             fi
         elif [[ "${_fnBogonBase}" == *.* ]]; then
             if is_bogon_ipv4 "${_fnBogonBase}"; then
+                _fnBogonRemoved=$(( _fnBogonRemoved + 1 ))
                 continue
             fi
         fi
@@ -898,7 +900,6 @@ filter_bogon_ips( )
     mv "${_fnBogonTemp}" "${_fnBogonFile}"
 
     _fnBogonAfter=$(wc -l < "${_fnBogonFile}")
-    _fnBogonRemoved=$(( _fnBogonBefore - _fnBogonAfter ))
 
     ok "    🚫 Removed ${greenl}${_fnBogonRemoved}${greym} bogon entries from ${bluel}${PWD}/${_fnBogonFile}${greym}"
 
