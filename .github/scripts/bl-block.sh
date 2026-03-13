@@ -25,6 +25,7 @@
 # #
 
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
+export LC_NUMERIC=en_US.UTF-8
 
 # #
 #   Define › Files
@@ -1105,25 +1106,29 @@ fi
 #       - Delete temp sort file
 # #
 
-info "    🧹 Sorting and removing duplicate IP entries from ${bluel}${PWD}/${file_ipset_target}${greym}"
-grep -vE '^[[:space:]]*(#|;|$)' "${file_ipset_target}" | sort_results > "${file_ipset_target}.sort"
-> "${file_ipset_target}"
-cat "${file_ipset_target}.sort" >> "${file_ipset_target}"
-rm "${file_ipset_target}.sort"
-ok "    ✅ Duplicate IPs removed"
+if [ -f "${file_ipset_target}" ]; then
+    info "    🧹 Sorting and removing duplicate IP entries from ${bluel}${PWD}/${file_ipset_target}${greym}"
+    grep -vE '^[[:space:]]*(#|;|$)' "${file_ipset_target}" | sort_results > "${file_ipset_target}.sort"
+    > "${file_ipset_target}"
+    cat "${file_ipset_target}.sort" >> "${file_ipset_target}"
+    rm "${file_ipset_target}.sort"
+    ok "    ✅ Duplicate IPs removed"
+fi
 
 # #
 #   Final Counts (from final cleaned + deduped file)
 # #
 
-count_ip_stats "${file_ipset_target}"
-total_ips=$total_ips
-total_subnets=$total_subnets
+if [ -f "${file_ipset_target}" ]; then
+    count_ip_stats "${file_ipset_target}"
+    total_ips=$total_ips
+    total_subnets=$total_subnets
 
-total_lines=$(wc -l < "${file_ipset_target}")                               # count ip lines
-total_lines=$(printf "%'d" "$total_lines")                                  # GLOBAL add commas to thousands
-total_subnets=$(printf "%'d" "$total_subnets")                              # GLOBAL add commas to thousands
-total_ips=$(printf "%'d" "$total_ips")                                      # GLOBAL add commas to thousands
+    total_lines=$(wc -l < "${file_ipset_target}")                               # count ip lines
+    total_lines=$(printf "%'d" "$total_lines")                                  # GLOBAL add commas to thousands
+    total_subnets=$(printf "%'d" "$total_subnets")                              # GLOBAL add commas to thousands
+    total_ips=$(printf "%'d" "$total_ips")                                      # GLOBAL add commas to thousands
+fi
 
 # #
 #   Template › Header

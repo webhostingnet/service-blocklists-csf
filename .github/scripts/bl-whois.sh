@@ -56,6 +56,7 @@
 # #
 
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
+export LC_NUMERIC=en_US.UTF-8
 
 # #
 #   Define › Files
