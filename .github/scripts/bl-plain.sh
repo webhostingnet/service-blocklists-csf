@@ -1,31 +1,34 @@
 #!/bin/bash
 
 # #
-#   @for                https://github.com/ConfigServer-Software/service-blocklists
+#   @script             Blocklist › Plain Text Web Source
+#   @repo               https://github.com/ConfigServer-Software/service-blocklists
 #   @workflow           blocklist-generate.yml
 #   @type               Bash script
+#   
 #   @summary            Generate ipset from online plain-text url / page.
-#                           Specify a URL to fetch a plaintext file from the internet.
+#                           Specify a URL to fetch a plain-text file from the internet.
 #                           Supports VARARG for URLS parameter.
 #                           Removes any lines starting with ';' and '#'.
-#   @terminal           .github/scripts/bl-plain.sh blocklists/03_spam_spamhaus.ipset https://www.spamhaus.org/drop/drop.txt https://url2.com
+#                           Structures one-ip-per-line.
+#   
+#   @execute            Run with the following commands:
+#                           .github/scripts/bl-plain.sh blocklists/03_spam_spamhaus.ipset https://www.spamhaus.org/drop/drop.txt https://url2.com
+#   
 #   @workflow           chmod +x ".github/scripts/bl-plain.sh"
 #                       run_spamhaus=".github/scripts/bl-plain.sh 03_spam_spamhaus.ipset https://www.spamhaus.org/drop/drop.txt"
 #                       eval "./$run_spamhaus"
-#   @uage               bl-plain.sh
-#                           <argFileSaveto>
-#                           <argUrl1>
-#                           <argUrl2>
-#                           {...}
-#                       bl-plain.sh 03_spam_spamhaus.ipset argUrl1 
-#                       bl-plain.sh 03_spam_spamhaus.ipset argUrl1 argUrl2 argUrl3
 #   
-#                       📁 .github
+#   @usage              .github/scripts/bl-plain.sh
+#                           <argFileSaveto>     str         required
+#                           <argUrl>            vararg      required
+#                           {...}
+#   
+#   @structure          📁 .github
 #                           📁 scripts
 #                               📄 bl-plain.sh
 #                           📁 workflows
 #                               📄 blocklist-generate.yml
-#   
 # #
 
 # #
@@ -110,7 +113,7 @@ bgError="${esc}[1;38;5;15;48;5;160m"
 #   Define › App
 # #
 
-app_name="Blocklist Formatter"                                                  # name of app
+app_name="Blocklist › Plain Text"                                               # name of app
 app_desc="Fetch list of IP addresses from plain-text source"                    # desc
 app_ver="1.2.0.0"                                                               # current script version
 app_repo="configserver-software/service-blocklists"                             # repository
@@ -126,6 +129,7 @@ app_agent="Mozilla/5.0 (Windows NT 10.0; WOW64) "\
 argDryrun="false"                                                               # dryrun mode
 argDevMode="false"                                                              # dev mode
 argVerbose="false"                                                              # verbose mode
+argIncludeBogon="false"                                                         # filter out BOGON IP addresses from list
 
 # #
 #   Define › Time
@@ -219,10 +223,8 @@ print( )
 #   Verify › Arguments
 # #
 
-if [ -z "$argFileSaveto" ]; then
-    echo
+if [ -z "${argFileSaveto}" ]; then
     error "    ⭕  No target file specified ${yellowd}${app_file_this}${greym}; aborting${end}"
-    echo
     exit 0
 fi
 
@@ -665,6 +667,24 @@ sort_results()
 }
 
 # #
+#   Developer › Test IP Sorting
+# #
+
+if [ "$argDevMode" = true ]; then
+
+sort_results <<'EOF'
+192.168.1.5
+10.0.0.1
+192.168.1.10
+fe80::1
+::1
+2001:db8::1
+10.0.0.2
+EOF
+
+fi
+
+# #
 #   Count file statistics
 #       - IPv4 CIDR contributes all IPv4 addresses in the subnet
 #       - IPv6 CIDR contributes one entry (do not expand)
@@ -731,6 +751,135 @@ count_ip_stats( )
 }
 
 # #
+#   IPSET › Filter BOGON › IPv4
+#   
+#   Check if IPv4 matches known bogon ranges
+# #
+
+is_bogon_ipv4( )
+{
+    _fnBogonIp=$1
+
+    case "${_fnBogonIp}" in
+        0.*|10.*|127.*|127.0.53.53|169.254.*|192.168.*|255.255.255.255)
+            return 0
+            ;;
+        100.6[4-9].*|100.[7-9][0-9].*|100.1[01][0-9].*|100.12[0-7].*)           # 100.64.0.0/10
+            return 0
+            ;;
+        172.1[6-9].*|172.2[0-9].*|172.3[0-1].*)                                 # 172.16.0.0/12
+            return 0
+            ;;
+        192.0.0.*|192.0.2.*|198.18.*|198.19.*|198.51.100.*|203.0.113.*)
+            return 0
+            ;;
+        22[4-9].*|23[0-9].*|24[0-9].*|25[0-5].*)                                # 224.0.0.0/4 + 240.0.0.0/4
+            return 0
+            ;;
+    esac
+
+    return 1
+}
+
+# #
+#   IPSET › Filter BOGON › IPv6
+#   
+#   Check if IPv6 matches known bogon ranges
+# #
+
+is_bogon_ipv6( )
+{
+    _fnBogonIp="${1,,}"
+    _fnBogonIp="${_fnBogonIp%%/*}"
+
+    case "${_fnBogonIp}" in
+        ::|::1|::ffff:*|::*)                                                        # ::/128 ::1/128 ::ffff:0:0/96 ::/96
+            return 0
+            ;;
+        100:*|100::*)                                                               # 100::/64
+            return 0
+            ;;
+        2001:1[0-9a-f]:*|2001:01[0-9a-f]:*|2001:001[0-9a-f]:*|2001:0001[0-9a-f]:*)  # 2001:10::/28
+            return 0
+            ;;
+        2001:db8:*|3fff:*|fc*|fd*|fe8*|fe9*|fea*|feb*|fec*|fed*|fee*|fef*|ff*)
+            return 0
+            ;;
+    esac
+
+    return 1
+}
+
+# #
+#   IPSET › Filter BOGON Addresses
+#   
+#   Some of our IPSETs will include BOGON addresses which may cause issues with
+#   users who are not expecting such IPs to be included.
+#   
+#   This functionality removes the BOGON addresses completely before the list is
+#   counted.
+#   
+#       - Runs only when argIncludeBogon=false
+#       - Run before count_ip_stats to ensure count accuracy
+# #
+
+filter_bogon_ips( )
+{
+    _fnBogonFile=$1
+    _fnBogonTemp="${1}.bogon"
+    _fnBogonLine=""
+    _fnBogonBase=""
+    _fnBogonBefore=0
+    _fnBogonAfter=0
+    _fnBogonRemoved=0
+
+    case "${argIncludeBogon:-true}" in
+        1|true|TRUE|yes|YES)
+            return 0
+            ;;
+    esac
+
+    if [ ! -f "${_fnBogonFile}" ]; then
+        warn "    ⚠️  Bogon filter skipped; file not found ${yellowl}${_fnBogonFile}${greym}"
+        return 0
+    fi
+
+    info "    🚫 Filtering bogon IP ranges from ${bluel}${PWD}/${_fnBogonFile}${greym}"
+    _fnBogonBefore=$(wc -l < "${_fnBogonFile}")
+    > "${_fnBogonTemp}"
+
+    while IFS= read -r _fnBogonLine || [ -n "${_fnBogonLine}" ]; do
+        [ -z "${_fnBogonLine}" ] && continue
+        _fnBogonBase="${_fnBogonLine%%/*}"
+
+        if [[ "${_fnBogonBase}" == *:* ]]; then
+            if is_bogon_ipv6 "${_fnBogonLine}"; then
+                continue
+            fi
+        elif [[ "${_fnBogonBase}" == *.* ]]; then
+            if is_bogon_ipv4 "${_fnBogonBase}"; then
+                continue
+            fi
+        fi
+
+        printf '%s\n' "${_fnBogonLine}" >> "${_fnBogonTemp}"
+    done < "${_fnBogonFile}"
+
+    mv "${_fnBogonTemp}" "${_fnBogonFile}"
+
+    _fnBogonAfter=$(wc -l < "${_fnBogonFile}")
+    _fnBogonRemoved=$(( _fnBogonBefore - _fnBogonAfter ))
+
+    ok "    🚫 Removed ${greenl}${_fnBogonRemoved}${greym} bogon entries from ${bluel}${PWD}/${_fnBogonFile}${greym}"
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnBogonFile _fnBogonTemp _fnBogonLine _fnBogonBase _fnBogonBefore _fnBogonAfter _fnBogonRemoved _fnBogonIp
+}
+
+# #
 #   Func › Download List
 # #
 
@@ -792,6 +941,14 @@ download_list()
     sed -i '/^$/d' "${_fnFileTemp}"
 
     # #
+    #   IPSET › Filter BOGON
+    #       - Optional
+    #       - Run before count_ip_stats for accurate totals
+    # #
+
+    filter_bogon_ips "${_fnFileTemp}"
+
+    # #
     #   Calculate list statistics
     #       - local only (global totals are calculated after final dedupe)
     # #
@@ -814,8 +971,8 @@ download_list()
         echo >> "${_fnArgFile}"
     fi
 
-    cat "${_fnFileTemp}" >> "${_fnArgFile}"                                      # copy .tmp to permanent file
-    rm "${_fnFileTemp}"                                                          # delete temp file
+    cat "${_fnFileTemp}" >> "${_fnArgFile}"                                     # Copy .tmp to permanent file
+    rm "${_fnFileTemp}"                                                         # Delete temp file
 
     if [ ! -f "${_fnFileTemp}" ]; then
         ok "    📄 Removed temp file ${greenl}${PWD}/${_fnFileTemp}${greym}"
@@ -837,18 +994,18 @@ download_list()
 #   Define › App
 # #
 
-file_ipset_temp="${argFileSaveto}.tmp"                                          # temp file when building ipset list
-file_ipset_target="${argFileSaveto}"                                            # perm file when building ipset list
+file_ipset_temp="${argFileSaveto}.tmp"                                          # Temp file when building ipset list
+file_ipset_target="${argFileSaveto}"                                            # Perm file when building ipset list
 
 # #
 #   Define › Template
 # #
 
-templ_now="$(date -u)"                                                          # get current date in utc format
-templ_id=$(basename -- "${file_ipset_target}")                                  # ipset id, get base filename
-templ_id="${templ_id//[^[:alnum:]]/_}"                                          # ipset id, only allow alphanum and underscore, /description/* and /category/* files must match this value
-templ_uuid="$(uuidgen -m -N "${templ_id}" -n @url)"                             # uuid associated to each release
-templ_curl_opts=(-sSL -A "$app_agent")                                          # curl command
+templ_now="$(date -u)"                                                          # Get current date in utc format
+templ_id=$(basename -- "${file_ipset_target}")                                  # Ipset id, get base filename
+templ_id="${templ_id//[^[:alnum:]]/_}"                                          # Ipset id, only allow alphanum and underscore, /description/* and /category/* files must match this value
+templ_uuid="$(uuidgen -m -N "${templ_id}" -n @url)"                             # UUID associated to each release
+templ_curl_opts=(-sSL -A "$app_agent")                                          # cUrl command
 
 # #
 #   Define › Template › External Sources
@@ -936,7 +1093,7 @@ for url in "$@"; do
             # Get the Nth entry from the table
             name=$(echo "$TABLE_LIST" | awk -v n="$i" '{print $n}')
 
-            # Call your function with 3 args
+            # <str:url> <str:ipset_dest.ipset> <int:file_progress>
             download_list "$url" "$file_ipset_target" "$i"
             i=$((i + 1))
             ;;
@@ -981,7 +1138,7 @@ fi
 #   0a      place at top of file
 # #
 
-ed -s ${file_ipset_target} <<END_ED
+ed -s "${file_ipset_target}" <<END_ED
 0a
 # #
 #   🧱 Firewall Blocklist - ${file_ipset_target}
@@ -1007,11 +1164,10 @@ END_ED
 
 # #
 #   Finished
-#   
-#   Capture end time
-#   Calculate elapsed time
-#   Calculate days, hours, etc.
-#   Output to console
+#       - Capture end time
+#       - Calculate elapsed time
+#       - Calculate days, hours, etc.
+#       - Output to console
 # #
 
 time_end=$( date +%s )
