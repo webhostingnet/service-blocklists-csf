@@ -479,11 +479,20 @@ jobs:
             #   Generate › Master
             # #
 
-            - name: "🧱 Generate › Master"
+            - name: "🧱 Generate › Main"
               id: task_blocklist_generate_master
               run: |
+  
+                  # #
+                  #   Main › Master
+                  # #
+
                   run_master=".github/scripts/bl-master.sh blocklists/master.ipset ${{ secrets.API_01_FILE_01 }} ${{ secrets.API_01_FILE_02 }} ${{ secrets.API_01_FILE_03 }} ${{ secrets.API_01_FILE_04 }} ${{ secrets.API_01_FILE_05 }} ${{ secrets.API_01_FILE_06 }} ${{ secrets.API_01_FILE_07 }} ${{ secrets.API_01_FILE_08 }} ${{ secrets.API_01_FILE_09 }}"
                   eval "./$run_master"
+
+                  # #
+                  #   Main › Highrisk
+                  # #
 
                   run_highrisk=".github/scripts/bl-block.sh blocklists/highrisk.ipset highrisk"
                   eval "./$run_highrisk"
@@ -496,148 +505,259 @@ jobs:
               id: task_blocklist_generate_privacy
               run: |
 
-                  # @list       Privacy › General
+                  # #
+                  #   Privacy › General
+                  # #
+  
                   run_general=".github/scripts/bl-block.sh blocklists/privacy/privacy_general.ipset privacy"
                   eval "./$run_general"
 
-                  # @list       Privacy › Activision
+                  # #
+                  #   Privacy › Activision
+                  # #
+
                   run_activision=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_activision.ipset http://list.iblocklist.com/?list=gfnxlhxsijzrcuxwzebb"
                   eval "./$run_activision"
 
-                  # @list       Privacy › Ahrefs
+                  # #
+                  #   Privacy › Ahrefs
+                  # #
+
                   curl -sSL -A "${{ env.USERAGENT }}" https://api.ahrefs.com/v3/public/crawler-ips | jq -r '.ips[].ip_address | select( . != null )' | $GITHUB_WORKSPACE/.github/scripts/bl-format.sh blocklists/privacy/privacy_ahrefs.ipset
 
-                  # @list       Privacy › Amazon AWS
+                  # #
+                  #   Privacy › Amazon AWS
+                  # #
+
                   run_amz_aws=".github/scripts/bl-json.sh blocklists/privacy/privacy_amazon_aws.ipset https://ip-ranges.amazonaws.com/ip-ranges.json '.prefixes[] | select(.service==\"AMAZON\") | .ip_prefix'"
                   eval "./$run_amz_aws"
 
-                  # @list       Privacy › Amazon EC2
+                  # #
+                  #   Privacy › Amazon EC2
+                  # #
+
                   run_amz_ec2=".github/scripts/bl-json.sh blocklists/privacy/privacy_amazon_ec2.ipset https://ip-ranges.amazonaws.com/ip-ranges.json '.prefixes[] | select(.service==\"EC2\") | .ip_prefix'"
                   eval "./$run_amz_ec2"
 
-                  # @list       Privacy › Apple Bot
+                  # #
+                  #   Privacy › Apple Bot
+                  # #
+
                   curl -sSL -A "${{ env.USERAGENT }}" https://search.developer.apple.com/applebot.json | jq -r '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty' | $GITHUB_WORKSPACE/.github/scripts/bl-format.sh blocklists/privacy/privacy_apple_bot.ipset
 
-                  # @list       Privacy › Apple Proxy
-                  # @ref:       https://developer.apple.com/icloud/prepare-your-network-for-icloud-private-relay/
+                  # #
+                  #   Privacy › Apple Proxy
+                  #   https://developer.apple.com/icloud/prepare-your-network-for-icloud-private-relay/
+                  # #
+
                   curl -sSL -A "${{ env.USERAGENT }}" https://mask-api.icloud.com/egress-ip-ranges.csv | cut -d',' -f1 | $GITHUB_WORKSPACE/.github/scripts/bl-format.sh blocklists/privacy/privacy_apple_icloud.ipset
 
-                  # @list       Privacy › Bing
+                  # #
+                  #   Privacy › Bing
+                  # #
+
                   run_bing=".github/scripts/bl-json.sh blocklists/privacy/privacy_bing.ipset https://bing.com/toolbox/bingbot.json '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty'"
                   eval "./$run_bing"
 
-                  # @list       Privacy › Blizzard
+                  # #
+                  #   Privacy › Blizzard
+                  # #
+
                   run_blizzard=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_blizzard.ipset http://list.iblocklist.com/?list=ercbntshuthyykfkmhxc 'at&t'"
                   eval "./$run_blizzard"
 
-                  # @list       Privacy › Bunny CDN
+                  # #
+                  #   Privacy › Bunny CDN
+                  # #
+
                   BUNNYCDN_IPv4=$(curl -sSL -A "${{ env.USERAGENT }}" https://api.bunny.net/system/edgeserverlist/plain)
                   BUNNYCDN_IPv6=$(curl -sSL -A "${{ env.USERAGENT }}" https://api.bunny.net/system/edgeserverlist/ipv6 | jq -r '.[] | select( . != null )')
                   BUNNYCDN_LIST="${BUNNYCDN_IPv4} ${BUNNYCDN_IPv6}"
                   echo "$BUNNYCDN_LIST" | $GITHUB_WORKSPACE/.github/scripts/bl-format.sh blocklists/privacy/privacy_bunnycdn.ipset
 
-                  # @list       Privacy › Cloudfront
+                  # #
+                  #   Privacy › Cloudfront
+                  # #
+
                   run_cloudfront=".github/scripts/bl-json.sh blocklists/privacy/privacy_cloudfront.ipset https://d7uri8nf7uskq.cloudfront.net/tools/list-cloudfront-ips 'map(.[]) | sort | .[]'"
                   eval "./$run_cloudfront"
 
-                  # @list       Privacy › Cloudflare CDN
+                  # #
+                  #   Privacy › Cloudflare CDN
+                  # #
+
                   CLOUDFLARE_IPv4=$(curl -sSL -A "${{ env.USERAGENT }}" https://www.cloudflare.com/ips-v4)
                   CLOUDFLARE_IPv6=$(curl -sSL -A "${{ env.USERAGENT }}" https://www.cloudflare.com/ips-v6)
                   CLOUDFLARE_LIST="${CLOUDFLARE_IPv4} ${CLOUDFLARE_IPv6}"
                   echo "$CLOUDFLARE_LIST" | $GITHUB_WORKSPACE/.github/scripts/bl-format.sh blocklists/privacy/privacy_cloudflarecdn.ipset
 
-                  # @list       Privacy › Digital Ocean
-                  # @ref:       https://developer.apple.com/icloud/prepare-your-network-for-icloud-private-relay/
+                  # #
+                  #   Privacy › Digital Ocean
+                  #   https://developer.apple.com/icloud/prepare-your-network-for-icloud-private-relay/
+                  # #
+
                   curl -sSL -A "${{ env.USERAGENT }}" https://www.digitalocean.com/geo/google.csv | cut -d, -f1 | $GITHUB_WORKSPACE/.github/scripts/bl-format.sh blocklists/privacy/privacy_digitalocean.ipset
 
-                  # @list       Privacy › DuckDuckGo
+                  # #
+                  #   Privacy › DuckDuckGo
+                  # #
+
                   curl -sSL -A "${{ env.USERAGENT }}" https://raw.githubusercontent.com/duckduckgo/duckduckgo-help-pages/master/_docs/results/duckduckbot.md | grep "^\- " | awk '{gsub("-",""); print}' | awk '{gsub(/ /,""); print}' | $GITHUB_WORKSPACE/.github/scripts/bl-format.sh blocklists/privacy/privacy_duckduckgo.ipset
 
-                  # @list       Privacy › Electronic Arts & IGN
+                  # #
+                  #   Privacy › Electronic Arts & IGN
+                  # #
+
                   run_ea_ign=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_electronicarts_ign.ipset http://list.iblocklist.com/?list=ejqebpcdmffinaetsvxj"
                   eval "./$run_ea_ign"
 
-                  # @list       Privacy › Facebook
-                  # @ref        https://github.com/SecOps-Institute/FacebookIPLists/blob/master/facebook_asn_list.lst
-                  # @ref        https://bgp.he.net/search?search%5Bsearch%5D=facebook&commit=Search
+                  # #
+                  #   Privacy › Facebook
+                  #   https://github.com/SecOps-Institute/FacebookIPLists/blob/master/facebook_asn_list.lst
+                  #   https://bgp.he.net/search?search%5Bsearch%5D=facebook&commit=Search
+                  # #
+
                   run_facebook=".github/scripts/bl-whois.sh blocklists/privacy/privacy_facebook.ipset AS32934 AS54115 AS63293"
                   eval "./$run_facebook"
 
-                  # Privacy › Fastly
+                  # #
+                  #   Privacy › Fastly
+                  # #
+
                   run_fastly=".github/scripts/bl-json.sh blocklists/privacy/privacy_fastly.ipset https://api.fastly.com/public-ip-list 'map(.[]) | .[]'"
                   eval "./$run_fastly"
 
-                  # @list       Privacy › Github
+                  # #
+                  #   Privacy › Github
+                  # #
+
                   curl -sSL -A "${{ env.USERAGENT }}" https://api.github.com/meta | jq 'del(.["ssh_keys", "verifiable_password_authentication", "ssh_key_fingerprints", "domains"]) | .[] | .[]' -r | $GITHUB_WORKSPACE/.github/scripts/bl-format.sh blocklists/privacy/privacy_github.ipset
 
-                  # Privacy › Google
+                  # #
+                  #   Privacy › Google
+                  # #
+
                   run_google=".github/scripts/bl-json.sh blocklists/privacy/privacy_google.ipset https://developers.google.com/search/apis/ipranges/googlebot.json '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty'"
                   eval "./$run_google"
 
-                  # Privacy › Nintendo
+                  # #
+                  #   Privacy › Nintendo
+                  # #
+
                   run_nintendo=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_nintendo.ipset http://list.iblocklist.com/?list=pevkykuhgaegqyayzbnr"
                   eval "./$run_nintendo"
 
-                  # Privacy › Pandora
+                  # #
+                  #   Privacy › Pandora
+                  # #
+
                   run_pandora=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_pandora.ipset http://list.iblocklist.com/?list=aevzidimyvwybzkletsg"
                   eval "./$run_pandora"
 
-                  # Privacy › Pingdom
+                  # #
+                  #   Privacy › Pingdom
+                  # #
+
                   PINGDOM_IPv4=$(curl -sSL -A "${{ env.USERAGENT }}" https://my.pingdom.com/probes/ipv4)
                   PINGDOM_IPv6=$(curl -sSL -A "${{ env.USERAGENT }}" https://my.pingdom.com/probes/ipv6)
                   PINGDOM_LIST="${PINGDOM_IPv4} ${PINGDOM_IPv6}"
                   echo "$PINGDOM_LIST" | $GITHUB_WORKSPACE/.github/scripts/bl-format.sh blocklists/privacy/privacy_pingdom.ipset
 
-                  # Privacy › Pirate Bay
+                  # #
+                  #   Privacy › Pirate Bay
+                  # #
+
                   run_piratebay=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_piratebay.ipset http://list.iblocklist.com/?list=nzldzlpkgrcncdomnttb"
                   eval "./$run_piratebay"
 
-                  # Privacy › Punkbuster
+                  # #
+                  #   Privacy › Punkbuster
+                  # #
+
                   run_punkbuster=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_punkbuster.ipset http://list.iblocklist.com/?list=zvwwndvzulqcltsicwdg"
                   eval "./$run_punkbuster"
 
-                  # Privacy › Riot Games
+                  # #
+                  #   Privacy › Riot Games
+                  # #
+
                   run_riot_games=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_riot_games.ipset http://list.iblocklist.com/?list=sdlvfabdjvrdttfjotcy"
                   eval "./$run_riot_games"
 
-                  # Privacy › RSS API
+                  # #
+                  #   Privacy › RSS API
+                  # #
+
                   curl -sSL -A "${{ env.USERAGENT }}" https://rssapi.net/ips.txt | $GITHUB_WORKSPACE/.github/scripts/bl-format.sh blocklists/privacy/privacy_rssapi.ipset
 
-                  # Privacy › Shadow Server
+                  # #
+                  #   Privacy › Shadow Server
+                  # #
+
                   run_facebook=".github/scripts/bl-whois.sh blocklists/privacy/privacy_shadowserver.ipset AS22168"
                   eval "./$run_facebook"
 
-                  # Privacy › Steam
+                  # #
+                  #   Privacy › Steam
+                  # #
+
                   run_steam=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_steam.ipset http://list.iblocklist.com/?list=cnxkgiklecdaihzukrud"
                   eval "./$run_steam"
 
-                  # Privacy › Stripe › API
+                  # #
+                  #   Privacy › Stripe › API
+                  # #
+
                   curl -sSL -A "${{ env.USERAGENT }}" https://stripe.com/files/ips/ips_api.txt | $GITHUB_WORKSPACE/.github/scripts/bl-format.sh blocklists/privacy/privacy_stripe_api.ipset
 
-                  # Privacy › Stripe › Webhooks
+                  # #
+                  #   Privacy › Stripe › Webhooks
+                  # #
+
                   curl -sSL -A "${{ env.USERAGENT }}" https://stripe.com/files/ips/ips_webhooks.txt | $GITHUB_WORKSPACE/.github/scripts/bl-format.sh blocklists/privacy/privacy_stripe_webhooks.ipset
 
-                  # Privacy › Stripe › Armada Gator
+                  # #
+                  #   Privacy › Stripe › Armada Gator
+                  # #
+
                   curl -sSL -A "${{ env.USERAGENT }}" https://stripe.com/files/ips/ips_armada_gator.txt | $GITHUB_WORKSPACE/.github/scripts/bl-format.sh blocklists/privacy/privacy_stripe_armada_gator.ipset
 
-                  # Privacy › Sony Entertainment
+                  # #
+                  #   Privacy › Sony Entertainment
+                  # #
+
                   run_sony=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_sony.ipset http://list.iblocklist.com/?list=tukpvrvlubsputmkmiwg"
                   eval "./$run_sony"
 
-                  # Privacy › Telegram
+                  # #
+                  #   Privacy › Telegram
+                  # #
+
                   curl -sSL -A "${{ env.USERAGENT }}" https://core.telegram.org/resources/cidr.txt | $GITHUB_WORKSPACE/.github/scripts/bl-format.sh blocklists/privacy/privacy_telegram.ipset
 
-                  # Privacy › Unisoft
+                  # #
+                  #   Privacy › Unisoft
+                  # #
+
                   run_ubisoft=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_ubisoft.ipset http://list.iblocklist.com/?list=etmcrglomupyxtaebzht"
                   eval "./$run_ubisoft"
 
-                  # Privacy › Uptime Robot
+                  # #
+                  #   Privacy › Uptime Robot
+                  # #
+
                   curl -sSL -A "${{ env.USERAGENT }}" https://uptimerobot.com/inc/files/ips/IPv4andIPv6.txt | $GITHUB_WORKSPACE/.github/scripts/bl-format.sh blocklists/privacy/privacy_uptimerobot.ipset
 
-                  # Privacy › WebPageTest
+                  # #
+                  #   Privacy › WebPageTest
+                  # #
+
                   curl -sSLk -A "${{ env.USERAGENT }}" "${{ secrets.PROXY_WEB_URL_HTTPS }}/json?url=https%3A%2F%2Fwebpagetest.org%2Faddresses.php%3Ff%3Djson" | jq -r '.data[].addresses[] | select( . != null )' | $GITHUB_WORKSPACE/.github/scripts/bl-format.sh blocklists/privacy/privacy_webpagetest.ipset
 
-                  # Privacy › Xfire
+                  # #
+                  #   Privacy › Xfire
+                  # #
+
                   run_xfire=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_xfire.ipset http://list.iblocklist.com/?list=ppqqnyihmcrryraaqsjo"
                   eval "./$run_xfire"
 
@@ -653,7 +773,7 @@ jobs:
 
             # #
             #   Generate › Spam › Forums
-            #
+            #   
             #   only updated once per day (at 1am UTC)
             # #
 
@@ -672,7 +792,7 @@ jobs:
 
             # #
             #   Generate › Internet Service Provider
-            #
+            #   
             #   @resources      https://ftp.arin.net/info/asn.txt
             #                   https://networksdb.io
             #                   https://rapidapi.com
@@ -690,55 +810,98 @@ jobs:
             - name: '🧱 Generate › ISP'
               id: task_blocklist_generate_isp
               run: |
-                  # ISP › AOL
+
+                  # #
+                  #   ISP › AOL
+                  # #
+              
                   run_isp_aol=".github/scripts/bl-block.sh blocklists/isp/isp_aol.ipset isp/aol.ipset"
                   eval "./$run_isp_aol"
 
-                  # ISP › ATT
+                  # #
+                  #   ISP › ATT
+                  # #
+
                   run_isp_att=".github/scripts/bl-whois.sh blocklists/isp/isp_att.ipset AS7018"
                   eval "./$run_isp_att"
 
-                  # ISP › Cablevision | Later merged with Suddenlink
+                  # #
+                  #   ISP › Cablevision | Later merged with Suddenlink
+                  # #
+
                   run_isp_cablevision=".github/scripts/bl-whois.sh blocklists/isp/isp_cablevision.ipset AS6128 AS13490 AS19720"
                   eval "./$run_isp_cablevision"
 
-                  # ISP › Suddenlink / Altice / Optiumum
+                  # #
+                  #   ISP › Suddenlink / Altice / Optiumum
+                  # #
+
                   run_isp_suddenlink_optimum=".github/scripts/bl-json.sh blocklists/isp/isp_suddenlink_altice_optimum.ipset https://ip.guide/AS19108 '.routes | .v4//empty,.v6//empty | .[]'"
                   eval "./$run_isp_suddenlink_optimum"
 
-                  # ISP › Frontier Communications | https://networksdb.io/ip-addresses-of/cox-communications-inc
+                  # #
+                  #   ISP › Frontier Communications
+                  #   https://networksdb.io/ip-addresses-of/cox-communications-inc
+                  # #
+
                   run_isp_frontier=".github/scripts/bl-whois.sh blocklists/isp/isp_frontier_communications.ipset AS3593 AS5650 AS7011 AS26127 AS30064 AS32587"
                   eval "./$run_isp_frontier"
 
-                  # ISP › Charter & Spectrum (Previously Time Warner Cable)
+                  # #
+                  #   ISP › Charter & Spectrum (Previously Time Warner Cable)
+                  # #
+
                   run_isp_charter_spectrum=".github/scripts/bl-whois.sh blocklists/isp/isp_charter_spectrum_timewarnercable.ipset AS7843 AS11351 AS12271 AS20001 AS20115 AS3456 AS63365"
                   eval "./$run_isp_charter_spectrum"
 
-                  # ISP › Comcast
+                  # #
+                  #   ISP › Comcast
+                  # #
+
                   run_isp_comcast=".github/scripts/bl-whois.sh blocklists/isp/isp_comcast.ipset AS7922 AS7015 AS36732 AS36196 AS33651 AS33650 AS33542 AS33491 AS33490 AS33489 AS33351 AS33287 AS23266 AS23253 AS22909 AS22258 AS21508 AS20214 AS16748 AS14668 AS14042 AS13385 AS13367 AS11025"
                   eval "./$run_isp_comcast"
 
-                  # ISP › Embarq
+                  # #
+                  #   ISP › Embarq
+                  # #
+
                   run_isp_embarq=".github/scripts/bl-whois.sh blocklists/isp/isp_embarq.ipset AS22186 AS32855 AS2379 AS3447 AS4212 AS5778 AS6222 AS6367 AS11398 AS11530 AS13787 AS14905 AS14910 AS14921 AS16718 AS17402 AS18494 AS22186 AS32855"
                   eval "./$run_isp_embarq"
 
-                  # ISP › Qwest
+                  # #
+                  #   ISP › Qwest
+                  # #
+
                   run_isp_qwest=".github/scripts/bl-whois.sh blocklists/isp/isp_qwest.ipset AS3908 AS3909 AS3910 AS3951 AS4015 AS4911 AS6225 AS6226 AS6227 AS394190"
                   eval "./$run_isp_qwest"
 
-                  # ISP › Sprint
+                  # #
+                  #   ISP › Sprint
+                  # #
+
                   run_isp_sprint=".github/scripts/bl-whois.sh blocklists/isp/isp_sprint.ipset AS1239 AS150389 AS1789 AS1790 AS1791 AS1792 AS1793 AS1794 AS1795 AS197226 AS2014 AS2050 AS2053 AS206963 AS21288 AS2938 AS2942 AS2959 AS2981 AS3647 AS3648 AS3649 AS3650 AS3651 AS3652"
                   eval "./$run_isp_sprint"
 
-                  # ISP › Verizon | https://networksdb.io/search/org/verizon
+                  # #
+                  #   ISP › Verizon
+                  #   https://networksdb.io/search/org/verizon
+                  # #
+
                   run_isp_verizon=".github/scripts/bl-whois.sh blocklists/isp/isp_verizon.ipset AS701 AS702 AS1321 AS2125 AS7021 AS8385 AS6066 AS6167 AS9055 AS12367 AS22521"
                   eval "./$run_isp_verizon"
 
-                  # ISP › Cox Communications | https://networksdb.io/ip-addresses-of/cox-communications-inc
+                  # #
+                  #   ISP › Cox Communications
+                  #   https://networksdb.io/ip-addresses-of/cox-communications-inc
+                  # #
+
                   run_isp_cox=".github/scripts/bl-whois.sh blocklists/isp/isp_cox_communications.ipset AS31771 AS22773 AS13432 AS6298 AS12064 AS13493 AS15218 AS22318 AS25904 AS26204"
                   eval "./$run_isp_cox"
 
-                  # ISP › SpaceX Starlink
+                  # #
+                  #   ISP › SpaceX Starlink
+                  # #
+
                   run_isp_starlink=".github/scripts/bl-whois.sh blocklists/isp/isp_spacex_starlink.ipset AS14593 AS397763 AS27277 AS142475"
                   eval "./$run_isp_starlink"
 
