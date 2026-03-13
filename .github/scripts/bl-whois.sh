@@ -150,7 +150,8 @@ app_repo="configserver-software/service-blocklists"                             
 app_repo_branch="main"                                                          # repository branch
 app_agent="Mozilla/5.0 (Windows NT 10.0; WOW64) "\
 "AppleWebKit/537.36 (KHTML, like Gecko) "\
-"Chrome/51.0.2704.103 Safari/537.36"                                            # user agent used with curl
+"Chrome/51.0.2704.103 Safari/537.36 "\
+"ConfigServer Security (hello@configserver.dev)"                                # user agent used with curl
 
 # #
 #   Define › Args
@@ -1036,6 +1037,7 @@ download_list()
     #       - User specified host: use only that host
     #       - No host specified: use default fallback host list
     # #
+
     if [ "${argServiceWhoisSpecified}" = true ] && [ -n "${argServiceWhois}" ]; then
         _whois_hosts+=("${argServiceWhois}")
     else
@@ -1106,7 +1108,7 @@ download_list()
 
         if command -v jq >/dev/null 2>&1; then
             info "    🌐 WHOIS returned no prefixes, trying HTTPS fallback (RIPE Stat)"
-            _api_routes=$(curl -fsSL "https://stat.ripe.net/data/announced-prefixes/data.json?resource=${_fnArgAsn}" 2>>"${_whois_err}" \
+            _api_routes=$(curl -fsSL -A "${app_agent}" "https://stat.ripe.net/data/announced-prefixes/data.json?resource=${_fnArgAsn}" 2>>"${_whois_err}" \
                 | jq -r '.data.prefixes[]?.prefix // empty' 2>>"${_whois_err}")
 
             if [ -n "${_api_routes}" ]; then
@@ -1114,10 +1116,21 @@ download_list()
             fi
 
             if [ ! -s "${_fnFileTemp}.raw" ] && [ -n "${_asn_numeric}" ]; then
-                info "    🌐 RIPE Stat returned no prefixes, trying HTTPS fallback (BGPView)"
-                _api_routes=$(curl -fsSL "https://api.bgpview.io/asn/${_asn_numeric}/prefixes" 2>>"${_whois_err}" \
-                    | jq -r '.data.ipv4_prefixes[]?.prefix, .data.ipv6_prefixes[]?.prefix' 2>>"${_whois_err}" \
+                info "    🌐 RIPE Stat returned no prefixes, trying HTTPS fallback (HackerTarget)"
+
+                #   https://hackertarget.com/as-ip-lookup/
+                _api_routes=$(curl -fsSL -A "${app_agent}" "https://api.hackertarget.com/aslookup/?q=${_asn_numeric}&output=json" 2>>"${_whois_err}" \
+                    | jq -r '.prefixes[]' 2>>"${_whois_err}" \
                     | sed '/^$/d')
+
+                # #
+                #   Shut down in 2026
+                #   
+                #   https://bgpview.docs.apiary.io/#reference/0/asn/view-asn-details
+                #   _api_routes=$(curl -fsSL -A "${app_agent}" "https://api.bgpview.io/asn/${_asn_numeric}/prefixes" 2>>"${_whois_err}" \
+                #     | jq -r '.data.ipv4_prefixes[]?.prefix, .data.ipv6_prefixes[]?.prefix' 2>>"${_whois_err}" \
+                #     | sed '/^$/d')
+                # #
 
                 if [ -n "${_api_routes}" ]; then
                     printf "%s\n" "${_api_routes}" >> "${_fnFileTemp}.raw"
@@ -1320,6 +1333,11 @@ whois.radb.net
 rr.ntt.net
 whois.rogerstelecom.net
 whois.bgp.net.br
+whois.apnic.net
+whois.afrinic.net
+whois.nic.as
+whois.iana.org
+whois.lacnic.net
 "
 
 # #
