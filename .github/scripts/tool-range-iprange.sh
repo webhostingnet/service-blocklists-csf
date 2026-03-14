@@ -681,7 +681,8 @@ download_list( )
     case "${_fnArgSource}" in
         http://*|https://*|ftp://*|file://*)
             info "    🌎 Downloading source ${bluel}${_fnFileRaw}${greym} ranges to ${bluel}${_fnFileRaw}${greym}"
-            curl -sSL -k -A "${app_agent}" "${_fnArgSource}" -o "${_fnFileRaw}"
+            wget -q "${_fnArgSource}" -O "${_fnFileRaw}.gz"
+            _fnFileRaw=${_fnFileRaw}.gz
             ;;
         *)
             info "    📒 Reading local source ${bluel}${_fnArgSource}${greym}"
