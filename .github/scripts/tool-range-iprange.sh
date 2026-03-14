@@ -40,6 +40,12 @@ app_dir_github="${app_dir_this_dir}/.github"                                    
 
 # #
 #   Define › Arguments
+#   
+#   This bash script has the following arguments:
+#   
+#   @param  argFileSaveto       str         File to save IP addresses into
+#           argSourceFile       str         url or local filename to extract ranges from
+#           argGrepFilter       str         grep filter
 # #
 
 argFileSaveto=$1
@@ -48,6 +54,9 @@ argGrepFilter=${3:-'^#|^;|^$'}
 
 # #
 #   Define › Colors
+#   
+#   Use the color table at:
+#       - https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
 # #
 
 esc=$(printf '\033')
@@ -93,30 +102,30 @@ bgError="${esc}[1;38;5;15;48;5;160m"
 #   Define › App
 # #
 
-app_name="Blocklist › Range Source"
-app_desc="Fetch list of IPv4 ranges and convert to CIDR using iprange"
-app_ver="1.2.0.0"
-app_repo="configserver-software/service-blocklists"
-app_repo_branch="main"
+app_name="Blocklist › Range Source"                                             # name of app
+app_desc="Fetch list of IPv4 ranges and convert to CIDR using iprange"          # desc
+app_ver="1.2.0.0"                                                               # current script version
+app_repo="configserver-software/service-blocklists"                             # repository
+app_repo_branch="main"                                                          # repository branch
 app_agent="Mozilla/5.0 (Windows NT 10.0; WOW64) "\
 "AppleWebKit/537.36 (KHTML, like Gecko) "\
-"Chrome/51.0.2704.103 Safari/537.36"
+"Chrome/51.0.2704.103 Safari/537.36"                                            # user agent used with curl
 
 # #
 #   Define › Args
 # #
 
-argDryrun="false"
-argDevMode="false"
-argVerbose="false"
-argIncludeBogon="false"
+argDryrun="false"                                                               # dryrun mode
+argDevMode="false"                                                              # dev mode
+argVerbose="false"                                                              # verbose mode
+argIncludeBogon="false"                                                         # filter out BOGON IP addresses from list
 
 # #
 #   Define › Time
 # #
 
-time_start=$( date +%s )
-SECONDS=0
+time_start=$( date +%s )                                                        # record start time of script
+SECONDS=0                                                                       # set seconds count for beginning of script
 
 # #
 #   Define › Regex
@@ -133,12 +142,20 @@ regex_ipv4_range='([0-9]{1,3}\.){3}[0-9]{1,3}[[:space:]]*-[[:space:]]*([0-9]{1,3
 #   Define › Defaults
 # #
 
-total_lines=0
-total_subnets=0
-total_ips=0
+total_lines=0                                                                   # number of lines in doc
+total_subnets=0                                                                 # number of IPs in all subnets combined
+total_ips=0                                                                     # number of single IPs (counts each line)
 
 # #
 #   Define › Logging functions
+#   
+#   verbose "This is an verbose message"
+#   debug "This is an debug message"
+#   info "This is an info message"
+#   ok "This is an ok message"
+#   warn "This is a warn message"
+#   danger "This is a danger message"
+#   error "This is an error message"
 # #
 
 info( )
@@ -221,6 +238,141 @@ if ! command -v iprange >/dev/null 2>&1; then
     error "    ⭕  Required binary ${yellowd}iprange${greym} not found in PATH; aborting${end}"
     exit 0
 fi
+
+# #
+#   Print › Demo Notifications
+#   
+#   Outputs a list of example notifications
+#   
+#   @usage          demoNoti
+# #
+
+demoNoti()
+{
+    verbose "This is an verbose message"
+    debug "This is an debug message"
+    info "This is an info message"
+    ok "This is an ok message"
+    warn "This is a warn message"
+    danger "This is a danger message"
+    error "This is an error message"
+}
+
+# #
+#   truncate text; add ...
+#   
+#   @usage
+#       truncate "This is a long string" 10 "..."
+# #
+
+truncate()
+{
+    _text=$1
+    _maxlen=$2
+    _suffix=${3:-}
+
+    _len=$(printf %s "${_text}" | wc -c | tr -d '[:space:]')
+
+    if [ "${_len}" -gt "${_maxlen}" ]; then
+        printf '%s%s\n' "$(printf %s "${_text}" | cut -c1-"${_maxlen}")" "${_suffix}"
+    else
+        printf '%s\n' "${_text}"
+    fi
+
+    # #
+    #   Unset
+    # #
+
+    unset   _text _maxlen _suffix _len
+}
+
+# #
+#   Print › Line
+#   
+#   Prints single line horizontal line, no text
+#   
+#   @usage          prin0
+# #
+
+prin0()
+{
+    _indent="  "
+    _box_width=110
+    _line_width=$(( _box_width + 2 ))
+
+    _line=""
+    _i=1
+    while [ "$_i" -le "${_line_width}" ]; do
+        _line="${_line}─"
+        _i=$(( _i + 1 ))
+    done
+
+    printf '\n'
+    printf "%b%s%s%b\n" "${greyd}" "${_indent}" "${_line}" "${end}"
+    printf '\n'
+
+    # #
+    #   Unset
+    # #
+
+    unset   _indent _box_width _line_width _line _i
+}
+
+# #
+#   Print › Box › Single
+#   
+#   Prints single line with a box surrounding it.
+#   
+#   @usage          prinb "${APP_NAME_SHORT:-CSF} › Customize csf.config"
+# #
+
+prinb()
+{
+    _title="$*"
+    _indent="   "                                                               # Left padding
+    _padding=6                                                                  # Extra horizontal space around text
+    _title_length=${#_title}
+    _inner_width=$(( _title_length + _padding ))
+    _box_width=110
+
+    # #
+    #   Minimum width for aesthetics
+    # #
+
+    if [ "$_inner_width" -lt "$_box_width" ]; then
+        _inner_width=$_box_width
+    fi
+
+    # #
+    #   Horizontal border
+    # #
+
+    _line=""
+    _i=1
+    while [ "$_i" -le "$_inner_width" ]; do
+        _line="${_line}─"
+        _i=$(( _i + 1 ))
+    done
+
+    # #
+    #   Draw box
+    # #
+
+    printf '\n'
+    printf '\n'
+    printf "%b%s┌%s┐\n" "${greym}" "$_indent" "$_line"
+    printf "%b%s│  %-${_inner_width}s \n" "${greym}" "$_indent" "$_title"
+    printf "%b%s└%s┘%b\n" "${greym}" "$_indent" "$_line" "${end}"
+    printf '\n'
+
+    # #
+    #   Unset
+    # #
+
+    unset   _title _indent _padding \
+            _title_length _inner_width _box_width \
+            _line _i
+}
 
 # #
 #   Print › Box › Paragraph
@@ -452,10 +604,45 @@ prinp()
 }
 
 # #
-#   Define › Run Command
+#   Define › Logging › Verbose
 # #
 
-run( )
+log( )
+{
+    case "${argVerbose:-0}" in
+        1|true|TRUE|yes|YES)
+            verbose "$@"
+            ;;
+    esac
+}
+
+# #
+#   Define › Sudo
+# #
+
+check_sudo( )
+{
+    if [ "$(id -u)" != "0" ]; then
+        error "    ❌ Must run script with ${redl}sudo${end}"
+        exit 1
+    fi
+}
+
+# #
+#   Define › Run Command
+#   
+#   Added when dryrun mode was added to the install.sh.
+#   Allows for a critical command to be skipped if in --dryrun mode.
+#       Throws a debug message instead of executing.
+#   
+#   argDryrun comes from global export in csf/install.sh
+#   
+#   @usage          run /sbin/chkconfig csf off
+#                   run echo "ConfigServer"
+#                   run chmod -v 700 "./${CSF_AUTO_GENERIC}"
+# #
+
+run()
 {
     if [ "${argDryrun}" = "true" ]; then
         debug "    Drymode (skip): $*"
@@ -467,31 +654,64 @@ run( )
 
 # #
 #   Sort Results
+#   
+#   @usage          line=$(parse_spf_record "${ip}" | sort_results)
 # #
 
-sort_results( )
+sort_results()
 {
+
+    # Temp files for IPv4 and IPv6
     _ipv4_tmp=$(mktemp) || exit 1
     _ipv6_tmp=$(mktemp) || exit 1
 
+    # Read stdin line by line
     while IFS= read -r line; do
         case "$line" in
-            *:*) printf '%s\n' "$line" >> "$_ipv6_tmp" ;;
-            *)   printf '%s\n' "$line" >> "$_ipv4_tmp" ;;
+            *:*)
+                printf '%s\n' "$line" >> "$_ipv6_tmp" ;;
+            *)
+                printf '%s\n' "$line" >> "$_ipv4_tmp" ;;
         esac
     done
 
+    # Sort IPv4 numerically, remove duplicates
     if [ -s "$_ipv4_tmp" ]; then
         sort -t. -n -k1,1 -k2,2 -k3,3 -k4,4 "$_ipv4_tmp" | uniq
     fi
 
+    # Sort IPv6 lexicographically, remove duplicates
     if [ -s "$_ipv6_tmp" ]; then
         sort "$_ipv6_tmp" | uniq
     fi
 
+    # Clean up temp files
     rm -f "$_ipv4_tmp" "$_ipv6_tmp"
-    unset _ipv4_tmp _ipv6_tmp
+
+    # #
+    #   Unset
+    # #
+
+    unset   _ipv4_tmp _ipv6_tmp
 }
+
+# #
+#   Developer › Test IP Sorting
+# #
+
+if [ "$argDevMode" = true ]; then
+
+sort_results <<'EOF'
+192.168.1.5
+10.0.0.1
+192.168.1.10
+fe80::1
+::1
+2001:db8::1
+10.0.0.2
+EOF
+
+fi
 
 # #
 #   Count file statistics
@@ -524,12 +744,14 @@ count_ip_stats( )
         # #
         #   IPv4 single
         # #
+
         elif [[ $_fnLine =~ $regex_ipv4 ]]; then
             _fnTotalIps=$(( _fnTotalIps + 1 ))
 
         # #
         #   IPv6 CIDR (count as one entry, do not expand)
         # #
+
         elif [[ $_fnLine =~ $regex_ipv6_cidr ]]; then
             _fnCidr="${_fnLine#*/}"
             if [ "$_fnCidr" -le 128 ]; then
@@ -540,19 +762,27 @@ count_ip_stats( )
         # #
         #   IPv6 single
         # #
+
         elif [[ $_fnLine =~ $regex_ipv6 ]] && [[ $_fnLine == *:* ]]; then
             _fnTotalIps=$(( _fnTotalIps + 1 ))
         fi
+
     done < "${_fnCountFile}"
 
     total_ips=$_fnTotalIps
     total_subnets=$_fnTotalSubnets
 
-    unset _fnCountFile _fnSubnetIps _fnTotalIps _fnTotalSubnets _fnLine _fnCidr
+    # #
+    #   Unset
+    # #
+
+    unset   _fnCountFile _fnSubnetIps _fnTotalIps _fnTotalSubnets _fnLine _fnCidr
 }
 
 # #
 #   IPSET › Filter BOGON › IPv4
+#   
+#   Check if IPv4 matches known bogon ranges
 # #
 
 is_bogon_ipv4( )
@@ -560,11 +790,21 @@ is_bogon_ipv4( )
     _fnBogonIp=$1
 
     case "${_fnBogonIp}" in
-        0.*|10.*|127.*|127.0.53.53|169.254.*|192.168.*|255.255.255.255) return 0 ;;
-        100.6[4-9].*|100.[7-9][0-9].*|100.1[01][0-9].*|100.12[0-7].*)   return 0 ;;
-        172.1[6-9].*|172.2[0-9].*|172.3[0-1].*)                           return 0 ;;
-        192.0.0.*|192.0.2.*|198.18.*|198.19.*|198.51.100.*|203.0.113.*)  return 0 ;;
-        22[4-9].*|23[0-9].*|24[0-9].*|25[0-5].*)                          return 0 ;;
+        0.*|10.*|127.*|127.0.53.53|169.254.*|192.168.*|255.255.255.255)
+            return 0
+            ;;
+        100.6[4-9].*|100.[7-9][0-9].*|100.1[01][0-9].*|100.12[0-7].*)           # 100.64.0.0/10
+            return 0
+            ;;
+        172.1[6-9].*|172.2[0-9].*|172.3[0-1].*)                                 # 172.16.0.0/12
+            return 0
+            ;;
+        192.0.0.*|192.0.2.*|198.18.*|198.19.*|198.51.100.*|203.0.113.*)
+            return 0
+            ;;
+        22[4-9].*|23[0-9].*|24[0-9].*|25[0-5].*)                                # 224.0.0.0/4 + 240.0.0.0/4
+            return 0
+            ;;
     esac
 
     return 1
@@ -572,6 +812,8 @@ is_bogon_ipv4( )
 
 # #
 #   IPSET › Filter BOGON › IPv6
+#   
+#   Check if IPv6 matches known bogon ranges
 # #
 
 is_bogon_ipv6( )
@@ -580,10 +822,18 @@ is_bogon_ipv6( )
     _fnBogonIp="${_fnBogonIp%%/*}"
 
     case "${_fnBogonIp}" in
-        ::|::1|::ffff:*|::*)                                                         return 0 ;;
-        100:*|100::*)                                                                return 0 ;;
-        2001:1[0-9a-f]:*|2001:01[0-9a-f]:*|2001:001[0-9a-f]:*|2001:0001[0-9a-f]:*) return 0 ;;
-        2001:db8:*|3fff:*|fc*|fd*|fe8*|fe9*|fea*|feb*|fec*|fed*|fee*|fef*|ff*)     return 0 ;;
+        ::|::1|::ffff:*|::*)                                                        # ::/128 ::1/128 ::ffff:0:0/96 ::/96
+            return 0
+            ;;
+        100:*|100::*)                                                               # 100::/64
+            return 0
+            ;;
+        2001:1[0-9a-f]:*|2001:01[0-9a-f]:*|2001:001[0-9a-f]:*|2001:0001[0-9a-f]:*)  # 2001:10::/28
+            return 0
+            ;;
+        2001:db8:*|3fff:*|fc*|fd*|fe8*|fe9*|fea*|feb*|fec*|fed*|fee*|fef*|ff*)
+            return 0
+            ;;
     esac
 
     return 1
@@ -591,6 +841,15 @@ is_bogon_ipv6( )
 
 # #
 #   IPSET › Filter BOGON Addresses
+#   
+#   Some of our IPSETs will include BOGON addresses which may cause issues with
+#   users who are not expecting such IPs to be included.
+#   
+#   This functionality removes the BOGON addresses completely before the list is
+#   counted.
+#   
+#       - Runs only when argIncludeBogon=false
+#       - Run before count_ip_stats to ensure count accuracy
 # #
 
 filter_bogon_ips( )
@@ -604,7 +863,9 @@ filter_bogon_ips( )
     _fnBogonRemoved=0
 
     case "${argIncludeBogon:-true}" in
-        1|true|TRUE|yes|YES) return 0 ;;
+        1|true|TRUE|yes|YES)
+            return 0
+            ;;
     esac
 
     if [ ! -f "${_fnBogonFile}" ]; then
@@ -636,17 +897,23 @@ filter_bogon_ips( )
     done < "${_fnBogonFile}"
 
     mv "${_fnBogonTemp}" "${_fnBogonFile}"
+
     _fnBogonAfter=$(wc -l < "${_fnBogonFile}")
+
     ok "    🚫 Removed ${greenl}${_fnBogonRemoved}${greym} bogon entries from ${bluel}${PWD}/${_fnBogonFile}${greym}"
 
-    unset _fnBogonFile _fnBogonTemp _fnBogonLine _fnBogonBase _fnBogonBefore _fnBogonAfter _fnBogonRemoved _fnBogonIp
+    # #
+    #   Unset
+    # #
+
+    unset   _fnBogonFile _fnBogonTemp _fnBogonLine _fnBogonBase _fnBogonBefore _fnBogonAfter _fnBogonRemoved _fnBogonIp
 }
 
 # #
 #   Func › Download List
 # #
 
-download_list( )
+download_list()
 {
     _fnArgSource=$1
     _fnArgFile=$2
@@ -658,10 +925,15 @@ download_list( )
     _count_total_ips=0
     _count_total_subnets=0
 
+    # #
+    #   Create the file if it doesn't exist
+    # #
+
     prinp "📄[-1] Processing list #${_fnListNum}"
 
     if [ ! -f "${_fnFileTemp}" ]; then
         touch "${_fnFileTemp}"
+
         if [ -f "${_fnFileTemp}" ]; then
             ok "    📄 Created temp file ${greenl}${PWD}/${_fnFileTemp}${greym}"
         else
@@ -675,6 +947,9 @@ download_list( )
     #       - Direct URL to gzip file
     #           If specifying a web url to a gz file; must enclose the URL in quotes.
     #           In bash, the char & makes the previous command run in the background.
+    #   
+    #           Must use wget to download gz files; otherwise you will be blocked
+    #           by captcha.
     #       - Local gzip file
     # #
 
@@ -682,7 +957,7 @@ download_list( )
         http://*|https://*|ftp://*|file://*)
             info "    🌎 Downloading source ${bluel}${_fnFileRaw}${greym} ranges to ${bluel}${_fnFileRaw}${greym}"
             wget -q "${_fnArgSource}" -O "${_fnFileRaw}.gz"
-            _fnFileRaw=${_fnFileRaw}.gz
+            _fnFileRaw="${_fnFileRaw}.gz"
             ;;
         *)
             info "    📒 Reading local source ${bluel}${_fnArgSource}${greym}"
@@ -726,35 +1001,91 @@ download_list( )
         | sed 's/[[:space:]]*-[[:space:]]*/-/g' \
         | iprange > "${_fnFileTemp}" 2>/dev/null
 
+    # #
+    #   Perform sed actions on downloaded file.
+    # #
+
+    # normalize CRLF
     sed -i 's/\r$//' "${_fnFileTemp}"
+
+    # remove hyphens from IP ranges (if format is "1.2.3.4 - 1.2.3.5" take left side)
     sed -i 's/-.*//' "${_fnFileTemp}"
+
+    # remove inline comments (strip ' # comment' or ' ; comment' from end of lines ; collapse whitespace, trim)
     sed -i 's/[[:space:]]*[#;].*$//' "${_fnFileTemp}"
+
+    # collapse multiple whitespace into a single space
     sed -i 's/[[:space:]]\+/ /g' "${_fnFileTemp}"
+
+    # trim leading and trailing whitespace
     sed -i 's/^[[:space:]]*//;s/[[:space:]]*$//' "${_fnFileTemp}"
+
+    # remove empty lines (after trimming/comment removal)
     sed -i '/^$/d' "${_fnFileTemp}"
 
+    # #
+    #   Dedupe, Sort: Move from .tmp to .sort
+    # #
+
+    info "    🔃 Sorting and deduplicating results"
+    grep -vE '^[[:space:]]*(#|;|$)' "${_fnFileTemp}" | sort_results > "${_fnFileTemp}.sort"
+
+    # #
+    #   Move from .sort to .tmp
+    # #
+
+    mv "${_fnFileTemp}.sort" "${_fnFileTemp}"
+
+    # #
+    #   IPSET › Filter BOGON
+    #       - Optional
+    #       - Run before count_ip_stats for accurate totals
+    # #
+
     filter_bogon_ips "${_fnFileTemp}"
+
+    # #
+    #   Calculate list statistics
+    #       - local only (global totals are calculated after final dedupe)
+    # #
 
     info "    📊 Fetching statistics for clean file ${bluel}${PWD}/${_fnFileTemp}${greym}"
 
     count_ip_stats "${_fnFileTemp}"
-
     _count_total_ips=$total_ips
-    _count_total_ips=$(printf "%'d" "$_count_total_ips")
-
     _count_total_subnets=$total_subnets
-    _count_total_subnets=$(printf "%'d" "$_count_total_subnets")
+
+    _count_total_ips=$(printf "%'d" "$_count_total_ips")                        # LOCAL add commas to thousands
+    _count_total_subnets=$(printf "%'d" "$_count_total_subnets")                # LOCAL add commas to thousands
+
+    # #
+    #   Move to target
+    # #
 
     info "    🚛 Move ${bluel}${_fnFileTemp}${greym} to ${bluel}${_fnArgFile}${greym}"
+
+    # #
+    #   Ensure dest file ends with newline before append
+    # #
 
     if [ -s "${_fnArgFile}" ] && [ "$(tail -c1 "${_fnArgFile}")" != "" ]; then
         echo >> "${_fnArgFile}"
     fi
 
-    cat "${_fnFileTemp}" >> "${_fnArgFile}"
-    rm -f "${_fnFileTemp}" "${_fnFileRaw}" "${_fnFileSrc}" "${_fnFileSrc}.grep"
+    cat "${_fnFileTemp}" >> "${_fnArgFile}"                                     # Copy .tmp to permanent file
+    rm -f "${_fnFileTemp}" "${_fnFileRaw}" "${_fnFileSrc}" "${_fnFileSrc}.grep" # Delete temp file
+
+    if [ ! -f "${_fnFileTemp}" ]; then
+        ok "    📄 Removed temp file ${greenl}${PWD}/${_fnFileTemp}${greym}"
+    else
+        error "    ⭕  Unable to delete temp file ${redl}${PWD}/${_fnFileTemp}${greym}"
+    fi
 
     ok "    ➕ Added ${greenl}${_count_total_ips}${greym} IP addresses and ${greenl}${_count_total_subnets}${greym} subnets to ${greenl}${PWD}/${_fnArgFile}${greym}"
+
+    # #
+    #   Unset
+    # #
 
     unset _fnArgSource _fnArgFile _fnArgFilter _fnListNum _fnFileTemp _fnFileRaw _fnFileSrc \
           _count_total_ips _count_total_subnets
@@ -764,18 +1095,18 @@ download_list( )
 #   Define › App
 # #
 
-file_ipset_temp="${argFileSaveto}.tmp"
-file_ipset_target="${argFileSaveto}"
+file_ipset_temp="${argFileSaveto}.tmp"                                          # Temp file when building ipset list
+file_ipset_target="${argFileSaveto}"                                            # Perm file when building ipset list
 
 # #
 #   Define › Template
 # #
 
-templ_now="$(date -u)"
-templ_id=$(basename -- "${file_ipset_target}")
-templ_id="${templ_id//[^[:alnum:]]/_}"
-templ_uuid="$(uuidgen -m -N "${templ_id}" -n @url)"
-templ_curl_opts=(-sSL -A "$app_agent")
+templ_now="$(date -u)"                                                          # Get current date in utc format
+templ_id=$(basename -- "${file_ipset_target}")                                  # Ipset id, get base filename
+templ_id="${templ_id//[^[:alnum:]]/_}"                                          # Ipset id, only allow alphanum and underscore, /description/* and /category/* files must match this value
+templ_uuid="$(uuidgen -m -N "${templ_id}" -n @url)"                             # UUID associated to each release
+templ_curl_opts=(-sSL -A "$app_agent")                                          # cUrl command
 
 # #
 #   Define › Template › External Sources
@@ -807,12 +1138,12 @@ case "$templ_url_service" in *"404: Not Found"*) templ_url_service="None";; esac
 
 echo
 prinp "📄[-1] ${file_ipset_target}" \
-"${greym}File: \t    ${greyd}.............${yellowl} ${file_ipset_target}${greyd} \
-${greyd}\n${greym}Id: \t    ${greyd}...............${yellowl} ${templ_id}${greyd} \
-${greyd}\n${greym}UUID:\t        ${greyd}.............${yellowl} ${templ_uuid}${greyd} \
-${greyd}\n${greym}Category:\t        ${greyd}.........${yellowl} ${templ_cat}${greyd} \
-${greyd}\n${greym}Script:\t       ${greyd}...........${yellowl} ${app_file_this}${greyd} \
-${greyd}\n${greym}Service:\t        ${greyd}..........${yellowl} ${templ_url_service}${greyd}"
+"${greym}File: 	    ${greyd}.............${yellowl} ${file_ipset_target}${greyd} \
+${greyd}\n${greym}Id: 	    ${greyd}...............${yellowl} ${templ_id}${greyd} \
+${greyd}\n${greym}UUID:	        ${greyd}.............${yellowl} ${templ_uuid}${greyd} \
+${greyd}\n${greym}Category:	        ${greyd}.........${yellowl} ${templ_cat}${greyd} \
+${greyd}\n${greym}Script:	       ${greyd}...........${yellowl} ${app_file_this}${greyd} \
+${greyd}\n${greym}Service:	        ${greyd}..........${yellowl} ${templ_url_service}${greyd}"
 
 # #
 #   Start
@@ -826,7 +1157,7 @@ info "    ⭐ Starting script ${bluel}${app_file_this}${greym}"
 
 if [ -f "${file_ipset_target}" ]; then
     info "    📄 Clean ${bluel}${PWD}/${file_ipset_target}${greym}"
-   > "${file_ipset_target}"
+   > "${file_ipset_target}"       # clean file
 else
     info "    📁 Create ${bluel}${PWD}/${file_ipset_target}${greym}"
     mkdir -p "$(dirname "${file_ipset_target}")"
@@ -848,7 +1179,7 @@ else
 fi
 
 # #
-#   Download list
+#   Download lists
 # #
 
 i=1
@@ -858,6 +1189,8 @@ download_list "${argSourceFile}" "${file_ipset_target}" "${argGrepFilter}" "${i}
 #   Sort
 #       - Remove downloaded comment/blank lines
 #       - Sort/dedupe IPv4 and IPv6 separately
+#       - Move sorted text over to permanent file
+#       - Delete temp sort file
 # #
 
 if [ -f "${file_ipset_target}" ]; then
@@ -878,14 +1211,16 @@ if [ -f "${file_ipset_target}" ]; then
     total_ips=$total_ips
     total_subnets=$total_subnets
 
-    total_lines=$(wc -l < "${file_ipset_target}")
-    total_lines=$(printf "%'d" "$total_lines")
-    total_subnets=$(printf "%'d" "$total_subnets")
-    total_ips=$(printf "%'d" "$total_ips")
+    total_lines=$(wc -l < "${file_ipset_target}")                               # count ip lines
+    total_lines=$(printf "%'d" "$total_lines")                                  # GLOBAL add commas to thousands
+    total_subnets=$(printf "%'d" "$total_subnets")                              # GLOBAL add commas to thousands
+    total_ips=$(printf "%'d" "$total_ips")                                      # GLOBAL add commas to thousands
 fi
 
 # #
 #   Template › Header
+#   
+#   0a      place at top of file
 # #
 
 ed -s "${file_ipset_target}" <<END_ED
@@ -914,6 +1249,10 @@ END_ED
 
 # #
 #   Finished
+#       - Capture end time
+#       - Calculate elapsed time
+#       - Calculate days, hours, etc.
+#       - Output to console
 # #
 
 time_end=$( date +%s )
