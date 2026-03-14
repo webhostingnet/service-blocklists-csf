@@ -857,16 +857,32 @@ prinb()
 #           [2]     add 2 spaces to the right.
 #           [-1]    remove 1 space to the right (needed for some emojis depending on if the emoji is 1 or 2 bytes)
 #   
+#   You can also hide the last verticle scrollbar by appending the bool "false" as the latest argument.
+#       prinp "🎌[41] Finished!" false
+#   
 #   @usage          prinp "Certificate Generation Successful" "Your new certificate and keys have been generated successfully.\n\nYou can find them in the ${greenl}${app_dir_output}${greyd} folder."
 #                   prinp "🎗️[1]  ${file_domain_base}" "The following description will show on multiple lines with a ASCII box around it."
 #                   prinp "📄[-1] File Overview" "The following list outlines the files that you have generated using this utility, and what certs/keys may be missing."
 #                   prinp "➡️[15]  ${bluel}Paths${end}"
+#   
+#   @arg    title   Text to show in box.
+#           false   (optional) hide right-side │ on title line
+#                   prinp "Title" false
+#                   prinp "Title" false "Body text"
 # #
 
 prinp()
 {
     _title="$1"
-    shift
+    _show_right_border=true
+
+    if [ "$2" = "false" ]; then
+        _show_right_border=false
+        shift 2
+    else
+        shift
+    fi
+
     _text="$*"
     _indent="  "
     _box_width=110
@@ -876,7 +892,6 @@ prinp()
     _hline=$(printf '─%.0s' $(seq 1 "$_content_width"))
     _emoji_adjust=0
 
-    print
     print
     printf "${greyd}%s┌%s┐\n" "$_indent" "$_hline"
 
@@ -932,11 +947,18 @@ prinp()
 
     # #
     #   Account for emoji adjustment in visible length calculation
+    #   Inner line containing content and trailing |
     # #
   
     _title_vis_len=$(( ${#_display_title} - _emoji_adjust ))
-    printf "${greyd}%s│%*s${bluel}%s${greyd}%*s│\n" \
-        "$_indent" "$_pad" "" "$_display_title" "$(( _title_width - _title_vis_len ))" ""
+
+    if [ "$_show_right_border" = "true" ]; then
+        printf "${greyd}%s│%*s${bluel}%s${greyd}%*s│\n" \
+            "$_indent" "$_pad" "" "$_display_title" "$(( _title_width - _title_vis_len ))" ""
+    else
+        printf "${greyd}%s│%*s${bluel}%s\n" \
+            "$_indent" "$_pad" "" "$_display_title"
+    fi
 
     # #
     #   Only render body text if provided
@@ -1046,7 +1068,8 @@ prinp()
     unset   _title _title_width _text _indent _pad _padding _content_width \
             _title_length _inner_width _box_width _emoji_adjust \
             _hline _line _out i _display_title _vis_out _vis_word _vis_len _vis_len_full \
-            _line_bracket _line_emoji_adjust _pad_spaces _bracket
+            _line_bracket _line_emoji_adjust _pad_spaces _bracket \
+            _show_right_border
 }
 
 # #

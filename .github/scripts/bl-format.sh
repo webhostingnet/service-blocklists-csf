@@ -440,7 +440,6 @@ prinp()
     _emoji_adjust=0
 
     print
-    print
     printf "${greyd}%s┌%s┐\n" "$_indent" "$_hline"
 
     # #
