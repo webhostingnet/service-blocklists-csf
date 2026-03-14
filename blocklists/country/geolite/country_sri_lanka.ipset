@@ -5,10 +5,10 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_sri_lanka_ipset
 #   @uuid           d86dc453-d004-3659-a503-cdaca8cfb8ce
-#   @updated        Fri Mar 13 19:30:36 UTC 2026
+#   @updated        Sat Mar 14 02:06:48 UTC 2026
 #   @entries        588448 ips
-#                   439 subnets
-#                   439 lines
+#                   440 subnets
+#                   440 lines
 #   @country        Sri Lanka (LK)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -443,11 +443,11 @@
 2a09:bac5:4860::/45
 2a09:bac6:4858::/45
 2a09:bac6:4860::/45
+2a09:bac6:db00::/45
 2a0a:6044:f2f8::/45
 2a0a:6044:f300::/46
 2a0a:6044:f304::/47
 2a0a:6044:f306::/48
-2a0c:9a40:95bd::/52
 2a0e:4205:9000::/47
 2a0e:4205:9002::/48
 2a0f:1cc5:1fb6::/48
@@ -458,4 +458,5 @@
 2a13:a5c7:2582::/48
 2a13:a5c7:25ff:8100::/56
 2a14:67c1:118c::/48
+2a14:67c2:864::/48
 2a14:c380:7b2::/48
