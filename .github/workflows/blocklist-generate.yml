@@ -452,19 +452,21 @@ jobs:
               id: task_blocklist_generate_perms
               run: |
                   #   Set Permissions
-                  chmod +x ".github/scripts/bl-master.sh"
-                  chmod +x ".github/scripts/bl-format.sh"
-                  chmod +x ".github/scripts/bl-htmlip.sh"
-                  chmod +x ".github/scripts/bl-html.sh"
-                  chmod +x ".github/scripts/bl-block.sh"
-                  chmod +x ".github/scripts/bl-json.sh"
-                  chmod +x ".github/scripts/bl-plain.sh"
-                  chmod +x ".github/scripts/bl-spf.sh"
-                  chmod +x ".github/scripts/bl-whois.sh"
-                  chmod +x ".github/scripts/bt-transmission.sh"
-                  chmod +x ".github/scripts/update-readme.sh"
-                  chmod +x ".github/scripts/tool-range-iprange.sh"
-                  chmod +x ".github/scripts/bogon.sh"
+                  echo "🔧 Setting executable permissions for scripts"
+
+                  for f in .github/scripts/*.sh; do
+                      echo "Setting executable permission on ${f}"
+                      chmod 755 "${f}"
+            
+                      if [ ! -x "${f}" ]; then
+                          echo "::error file=${f},line=1,title=Permission Failed::Failed to set executable bit"
+                          exit 1
+                      else
+                          echo "✅ ${f} is executable"
+                      fi
+                  done
+            
+                  echo "🎉 All script permissions verified"
 
             # #
             #   Generate › Set Env Variables
