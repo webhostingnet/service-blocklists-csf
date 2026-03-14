@@ -469,22 +469,34 @@ jobs:
             - name: "☑️ Set Permissions"
               id: task_blocklist_generate_perms
               run: |
-                  #   Set Permissions
                   echo "🔧 Setting executable permissions for scripts"
+
+                  num_success=0
+                  num_failure=0
 
                   for f in .github/scripts/*.sh; do
                       echo "Setting executable permission on ${f}"
                       chmod 755 "${f}"
-            
-                      if [ ! -x "${f}" ]; then
-                          echo "::error file=${f},line=1,title=Permission Failed::Failed to set executable bit"
-                          exit 1
-                      else
+
+                      if [ -x "${f}" ]; then
                           echo "   ✅ ${f} is executable"
+                          num_success=$((num_success + 1))
+                      else
+                          echo "::error file=${f},line=1,title=Permission Failed::Failed to set executable bit"
+                          num_failure=$((num_failure + 1))
                       fi
                       echo ""
                   done
-            
+
+                  echo "―――――――――――――――――――――――――――――――――――――――――――――――――――――"
+                  echo "✅ ${num_success} successfully verified"
+                  echo "❌ ${num_failure} failed"
+                  echo "―――――――――――――――――――――――――――――――――――――――――――――――――――――"
+
+                  if [ "${num_failure}" -gt 0 ]; then
+                      exit 1
+                  fi
+
                   echo "🎉 All script permissions verified"
 
             # #

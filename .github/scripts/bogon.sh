@@ -201,12 +201,44 @@ fi
 
 # #
 #   Print › Box › Paragraph
+#   
+#   Places an ASCII box around text. Supports multi-lines with \n, and also emojis.
+#   Func determines the character count if color codes are used and ensures that
+#       the box borders are aligned properly.
+#   
+#   If using emojis; adjust the spacing so that the far-right line will align
+#       with the rest. Add the number of spaces to increase the value, which is
+#       represented with a number enclosed in square brackets.
+#           [1]     add 1 space to the right.
+#           [2]     add 2 spaces to the right.
+#           [-1]    remove 1 space to the right (needed for some emojis depending on if the emoji is 1 or 2 bytes)
+#   
+#   You can also hide the last verticle scrollbar by appending the bool "false" as the latest argument.
+#       prinp "🎌[41] Finished!" false
+#   
+#   @usage          prinp "Certificate Generation Successful" "Your new certificate and keys have been generated successfully.\n\nYou can find them in the ${greenl}${app_dir_output}${greyd} folder."
+#                   prinp "🎗️[1]  ${file_domain_base}" "The following description will show on multiple lines with a ASCII box around it."
+#                   prinp "📄[-1] File Overview" "The following list outlines the files that you have generated using this utility, and what certs/keys may be missing."
+#                   prinp "➡️[15]  ${bluel}Paths${end}"
+#   
+#   @arg    title   Text to show in box.
+#           false   (optional) hide right-side │ on title line
+#                   prinp "Title" false
+#                   prinp "Title" false "Body text"
 # #
 
-prinp( )
+prinp()
 {
     _title="$1"
-    shift
+    _show_right_border=true
+
+    if [ "$2" = "false" ]; then
+        _show_right_border=false
+        shift 2
+    else
+        shift
+    fi
+
     _text="$*"
     _indent="  "
     _box_width=110
@@ -220,69 +252,181 @@ prinp( )
     print
     printf "${greyd}%s┌%s┐\n" "$_indent" "$_hline"
 
+    # #
+    #   Title
+    #   
+    #   Extract optional [N] adjustment from title (signed integer), portably
+    # #
+
     _display_title="$_title"
+
+    # #
+    #   Get content inside first [...] (if present)
+    # #
+
     if printf '%s\n' "$_title" | grep -q '\[[[:space:]]*[-0-9][-0-9[:space:]]*\]'; then
+
+        # #
+        #   Extract numeric inside brackets (allow optional leading -)
+        #       - use sed to capture first bracketed token, then strip non-digit except leading -
+        # #
+
         _bracket=$(printf '%s' "$_title" | sed -n 's/.*\[\([-0-9][-0-9]*\)\].*/\1/p')
+
+        # #
+        #   Validate numeric and assign, otherwise fallback to 0
+        # #
+    
         if printf '%s\n' "$_bracket" | grep -qE '^-?[0-9]+$'; then
             _emoji_adjust=$_bracket
         else
             _emoji_adjust=0
         fi
+
+        # #
+        #   Remove the first [...] token from the display_title
+        # #
+    
         _display_title=$(printf '%s' "$_title" | sed 's/\[[^]]*\]//')
     fi
 
+    # #
+    #   Ensure emoji_adjust is a decimal integer so math works
+    # #
+
     case "$_emoji_adjust" in
-        ''|*[!0-9-]*) _emoji_adjust=0 ;;
+        ''|*[!0-9-]*)
+            _emoji_adjust=0
+            ;;
     esac
 
     _title_width=$(( _content_width - _pad ))
+
+    # #
+    #   Account for emoji adjustment in visible length calculation
+    #   Inner line containing content and trailing |
+    # #
+  
     _title_vis_len=$(( ${#_display_title} - _emoji_adjust ))
-    printf "${greyd}%s│%*s${bluel}%s${greyd}%*s│\n" \
-        "$_indent" "$_pad" "" "$_display_title" "$(( _title_width - _title_vis_len ))" ""
+
+    if [ "$_show_right_border" = "true" ]; then
+        printf "${greyd}%s│%*s${bluel}%s${greyd}%*s│\n" \
+            "$_indent" "$_pad" "" "$_display_title" "$(( _title_width - _title_vis_len ))" ""
+    else
+        printf "${greyd}%s│%*s${bluel}%s\n" \
+            "$_indent" "$_pad" "" "$_display_title"
+    fi
+
+    # #
+    #   Only render body text if provided
+    # #
 
     if [ -n "$_text" ]; then
         printf "${greyd}%s│%-${_content_width}s│\n" "$_indent" ""
+
+        # #
+        #   Convert literal \n to real newlines
+        # #
+
         _text=$(printf "%b" "$_text")
+
+        # #
+        #   Handle each line with ANSI-aware wrapping and true padding
+        # #
+
         printf "%s" "$_text" | while IFS= read -r line || [ -n "$line" ]; do
-            if [ -z "$line" ]; then
-                printf "${greyd}%s│%-*s│\n" "$_indent" "$_content_width" ""
-                continue
+
+        # #
+        #   Blank line
+        # #
+    
+        if [ -z "$line" ]; then
+            printf "${greyd}%s│%-*s│\n" "$_indent" "$_content_width" ""
+            continue
+        fi
+
+        # #
+        #   Optional [N] spacing adjustment in body line (same thing done for title)
+        # #    
+
+        _line_emoji_adjust=0
+        if printf '%s\n' "$line" | grep -q '\[[[:space:]]*[-0-9][-0-9[:space:]]*\]'; then
+            _line_bracket=$(printf '%s' "$line" | sed -n 's/.*\[\([-0-9][-0-9]*\)\].*/\1/p')
+
+            if printf '%s\n' "$_line_bracket" | grep -qE '^-?[0-9]+$'; then
+                _line_emoji_adjust=$_line_bracket
+            else
+                _line_emoji_adjust=0
             fi
 
-            _out=""
-            for word in $line; do
-                _vis_out=$(printf "%s" "$_out" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g')
-                _vis_word=$(printf "%s" "$word" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g')
-                _vis_len=$(( ${#_vis_out} + ( ${#_vis_out} > 0 ? 1 : 0 ) + ${#_vis_word} ))
+            line=$(printf '%s' "$line" | sed 's/\[[^]]*\]//')
+        fi
 
-                if [ -z "$_out" ]; then
-                    _out="$word"
-                elif [ $_vis_len -le $_inner_width ]; then
-                    _out="$_out $word"
-                else
-                    _vis_len_full=$(printf "%s" "$_out" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g' | wc -c | tr -d ' ')
-                    _pad_spaces=$(( _inner_width - _vis_len_full ))
-                    [ $_pad_spaces -lt 0 ] && _pad_spaces=0
-                    printf "${greyd}%s│%*s%s%*s│\n" "$_indent" "$_pad" "" "$_out" "$(( _pad + _pad_spaces ))" ""
-                    _out="$word"
-                fi
-            done
+        case "$_line_emoji_adjust" in
+            ''|*[!0-9-]*)
+                _line_emoji_adjust=0
+                ;;
+        esac
 
-            if [ -n "$_out" ]; then
+        _out=""
+        for word in $line; do
+
+            # #
+            #   Strip ANSI for visible width
+            # #
+        
+            _vis_out=$(printf "%s" "$_out" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g')
+            _vis_word=$(printf "%s" "$word" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g')
+            _vis_len=$(( ${#_vis_out} + ( ${#_vis_out} > 0 ? 1 : 0 ) + ${#_vis_word} - _line_emoji_adjust ))
+
+            if [ -z "$_out" ]; then
+                _out="$word"
+            elif [ $_vis_len -le $_inner_width ]; then
+                _out="$_out $word"
+            else
+
+                # #
+                #   Print and pad manually based on visible length
+                # #
+
                 _vis_len_full=$(printf "%s" "$_out" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g' | wc -c | tr -d ' ')
+                _vis_len_full=$(( _vis_len_full - _line_emoji_adjust ))
+                [ $_vis_len_full -lt 0 ] && _vis_len_full=0
                 _pad_spaces=$(( _inner_width - _vis_len_full ))
                 [ $_pad_spaces -lt 0 ] && _pad_spaces=0
                 printf "${greyd}%s│%*s%s%*s│\n" "$_indent" "$_pad" "" "$_out" "$(( _pad + _pad_spaces ))" ""
+                _out="$word"
             fi
+        done
+
+        # #
+        #   Final flush line
+        # #
+    
+        if [ -n "$_out" ]; then
+            _vis_len_full=$(printf "%s" "$_out" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g' | wc -c | tr -d ' ')
+            _vis_len_full=$(( _vis_len_full - _line_emoji_adjust ))
+            [ $_vis_len_full -lt 0 ] && _vis_len_full=0
+            _pad_spaces=$(( _inner_width - _vis_len_full ))
+            [ $_pad_spaces -lt 0 ] && _pad_spaces=0
+            printf "${greyd}%s│%*s%s%*s│\n" "$_indent" "$_pad" "" "$_out" "$(( _pad + _pad_spaces ))" ""
+        fi
+
         done
     fi
 
     printf "${greyd}%s└%s┘${end}\n" "$_indent" "$_hline"
     print
 
-    unset _title _text _indent _box_width _pad _content_width _inner_width _hline \
-          _emoji_adjust _display_title _bracket _title_width _title_vis_len \
-          _out _vis_out _vis_word _vis_len _vis_len_full _pad_spaces
+    # #
+    #   Unset
+    # #
+
+    unset   _title _title_width _text _indent _pad _padding _content_width \
+            _title_length _inner_width _box_width _emoji_adjust \
+            _hline _line _out i _display_title _vis_out _vis_word _vis_len _vis_len_full \
+            _line_bracket _line_emoji_adjust _pad_spaces _bracket \
+            _show_right_border
 }
 
 # #
@@ -668,7 +812,4 @@ S=$(( T % 60 ))
 #   Output › Footer
 # #
 
-prinp "🎌[-1] Blocklist has finished generating successfully" \
-"${greyd}${greym}IPs: \t    ${greyd}............${yellowl} ${total_ips}${greyd} \
-${greyd}\n${greym}Subnets:\t        ${greyd}........${yellowl} ${total_subnets}${greyd} \
-${greyd}\n${greym}Duration:\t        ${greyd}.......${yellowd} ${D} days ${H} hrs ${M} mins ${S} secs${greyd}"
+prinp "🎌[41] Finished!   ${fuchsiad}IPs: ${yellowl}${total_ips}${fuchsiad}   Subnets: ${yellowl}${total_subnets}${greyd}${fuchsiad}   Duration: ${yellowl}${D} days ${H} hrs ${M} mins ${S} secs${greyd}" false
