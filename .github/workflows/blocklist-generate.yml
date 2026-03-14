@@ -445,6 +445,24 @@ jobs:
                   sudo make && make install
 
             # #
+            #   Release › Dockerhub › Install Dependencies
+            # #
+
+            - name: '📦 Install Dependencies'
+              run:
+                  sudo apt-get install -qq dos2unix
+
+            # #
+            #   Release › Dockerhub › Execute dos2unix
+            # #
+
+            - name: '🔐 Apply dos2unix'
+              run: |
+                  echo "⚠️⚠️⚠️ Running DOS2UNIX ⚠️⚠️⚠️"
+                  find .github/scripts -type f -name "*.sh" -print0 | xargs -0 dos2unix --
+                  echo "✅✅✅ Completed DOS2UNIX ✅✅✅"
+
+            # #
             #   Generate › Set Template Permissions
             # #
 
@@ -462,8 +480,9 @@ jobs:
                           echo "::error file=${f},line=1,title=Permission Failed::Failed to set executable bit"
                           exit 1
                       else
-                          echo "✅ ${f} is executable"
+                          echo "   ✅ ${f} is executable"
                       fi
+                      echo ""
                   done
             
                   echo "🎉 All script permissions verified"
