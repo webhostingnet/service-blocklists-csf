@@ -464,6 +464,7 @@ jobs:
                   chmod +x ".github/scripts/bt-transmission.sh"
                   chmod +x ".github/scripts/update-readme.sh"
                   chmod +x ".github/scripts/tool-range-iprange.sh"
+                  chmod +x ".github/scripts/bogon.sh"
 
             # #
             #   Generate › Set Env Variables
