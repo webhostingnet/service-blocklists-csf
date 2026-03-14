@@ -5,7 +5,7 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_democratic_republic_congo_ipset
 #   @uuid           47405ec7-9e3e-317a-bccc-12f6a4cefe3f
-#   @updated        Sat Mar 14 02:06:12 UTC 2026
+#   @updated        Sat Mar 14 12:59:01 UTC 2026
 #   @entries        226987 ips
 #                   386 subnets
 #                   386 lines

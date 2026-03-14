@@ -5,7 +5,7 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             continent_antartica_ipset
 #   @uuid           4664790b-caa6-3b99-b0ab-15f30c9016d1
-#   @updated        Sat Mar 14 02:05:19 UTC 2026
+#   @updated        Sat Mar 14 12:58:10 UTC 2026
 #   @entries        1225 ips
 #                   1118 subnets
 #                   1118 lines
