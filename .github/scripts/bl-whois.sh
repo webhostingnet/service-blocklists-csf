@@ -161,7 +161,7 @@ argDryrun="false"                                                               
 argDevMode="false"                                                              # dev mode
 argVerbose="false"                                                              # verbose mode
 argIncludeBogon="false"                                                         # filter out BOGON IP addresses from list
-argWhoisTimeout=10                                                              # Whois timeout
+argWhoisTimeout=5                                                               # Whois timeout
 
 # #
 #   Define › Time
