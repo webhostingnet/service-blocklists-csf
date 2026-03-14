@@ -5,8 +5,8 @@
 #   @service        None
 #   @id             privacy_ubisoft_ipset
 #   @uuid           4bae542d-2c29-3dff-9e3c-a130b273c35a
-#   @updated        Sat Mar 14 01:47:04 UTC 2026
-#   @entries        5308 ips
+#   @updated        Sat Mar 14 10:36:35 UTC 2026
+#   @entries        5,308 ips
 #                   10 subnets
 #                   10 lines
 #   @expires        6 hours
@@ -20,8 +20,8 @@
 80.231.18.0/24
 84.14.118.0/25
 193.138.66.0/24
-194.169.249.0/24
 194.2.155.0/24
+194.169.249.0/24
 211.157.127.0/28
 213.208.241.192/27
 216.98.48.0/20

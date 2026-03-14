@@ -5,8 +5,8 @@
 #   @service        None
 #   @id             privacy_sony_ipset
 #   @uuid           ca40930d-3c47-3340-8286-70a1e3ad32a4
-#   @updated        Sat Mar 14 01:47:03 UTC 2026
-#   @entries        24616 ips
+#   @updated        Sat Mar 14 10:36:34 UTC 2026
+#   @entries        24,616 ips
 #                   7 subnets
 #                   7 lines
 #   @expires        6 hours
