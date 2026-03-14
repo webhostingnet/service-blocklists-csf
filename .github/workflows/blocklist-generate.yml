@@ -768,7 +768,7 @@ jobs:
             - name: '🧱 Generate › Spam'
               id: task_blocklist_generate_spam
               run: |
-                  run_spamhaus=".github/scripts/bl-plain.sh blocklists/spam/spam_spamhaus.ipset ${{ secrets.API_03_SPAM_SPAMHAUS_URL }}"
+                  run_spamhaus=".github/scripts/bl-plain.sh blocklists/spam/spam_spamhaus.ipset ${{ vars.BL_SPAM_SPAMHAUS_URL }}"
                   eval "./$run_spamhaus"
 
             # #
@@ -784,7 +784,7 @@ jobs:
                   hour=$(date +'%H')
                   if [ "$hour" = "00" ]; then
                       chmod +x ".github/scripts/bl-plain.sh"
-                      run_forums=".github/scripts/bl-plain.sh blocklists/spam/spam_forums.ipset https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/stopforumspam_7d.ipset"
+                      run_forums=".github/scripts/bl-plain.sh blocklists/spam/spam_forums.ipset ${{ vars.BL_SPAM_FORUMS_URL }}"
                       eval "./$run_forums"
                   else
                       echo "Skipping daily-only task; not midnight"
