@@ -1,0 +1,674 @@
+#!/bin/bash
+
+# #
+#   @script             Blocklist › BOGON IP List
+#   @repo               https://github.com/ConfigServer-Software/service-blocklists
+#   @workflow           blocklist-generate.yml
+#   @type               Bash script
+#   
+#   @summary            Generates a list of BOGON IP addresses.
+#                           A bogon IP is an address which should not appear on
+#                           the public internet. It includes unallocated ranges
+#                           not yet assigned by RIRs and reserved/private
+#                           address spaces (e.g., RFC1918). These are filtered
+#                           to prevent spoofed, misconfigured, or malicious traffic.
+#   
+#   @usage              .github/scripts/bogon.sh
+#                           <argFileSaveto>     str         required
+# #
+
+# #
+#   Define › Set PATH
+# #
+
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
+export LC_NUMERIC=en_US.UTF-8
+
+# #
+#   Define › Files
+# #
+
+app_file_this=$(basename "$0")                                                  # bogon.sh  (with ext)
+app_file_bin="${app_file_this%.*}"                                              # bogon     (without ext)
+
+# #
+#   Define › Folders
+# #
+
+app_dir="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"                        # path where script was last found in
+app_dir_this_dir="${PWD}"                                                       # current script directory
+app_dir_github="${app_dir_this_dir}/.github"                                    # .github folder
+
+# #
+#   Define › Arguments
+# #
+
+argFileSaveto=$1
+
+# #
+#   Define › Colors
+# #
+
+esc=$(printf '\033')
+end="${esc}[0m"
+bgEnd="${esc}[49m"
+fgEnd="${esc}[39m"
+bold="${esc}[1m"
+dim="${esc}[2m"
+underline="${esc}[4m"
+blink="${esc}[5m"
+white="${esc}[97m"
+black="${esc}[0;30m"
+redl="${esc}[0;91m"
+redd="${esc}[38;5;196m"
+magental="${esc}[38;5;197m"
+magentad="${esc}[38;5;161m"
+fuchsial="${esc}[38;5;206m"
+fuchsiad="${esc}[38;5;199m"
+bluel="${esc}[38;5;33m"
+blued="${esc}[38;5;27m"
+greenl="${esc}[38;5;47m"
+greend="${esc}[38;5;35m"
+orangel="${esc}[38;5;208m"
+oranged="${esc}[38;5;202m"
+yellowl="${esc}[38;5;226m"
+yellowd="${esc}[38;5;214m"
+greyl="${esc}[38;5;250m"
+greym="${esc}[38;5;244m"
+greyd="${esc}[38;5;240m"
+navy="${esc}[38;5;62m"
+olive="${esc}[38;5;144m"
+peach="${esc}[38;5;204m"
+cyan="${esc}[38;5;6m"
+bgVerbose="${esc}[1;38;5;15;48;5;125m"
+bgDebug="${esc}[1;38;5;15;48;5;237m"
+bgInfo="${esc}[1;38;5;15;48;5;27m"
+bgOk="${esc}[1;38;5;15;48;5;64m"
+bgWarn="${esc}[1;38;5;16;48;5;214m"
+bgDanger="${esc}[1;38;5;15;48;5;202m"
+bgError="${esc}[1;38;5;15;48;5;160m"
+
+# #
+#   Define › App
+# #
+
+app_name="Blocklist › BOGON List"
+app_desc="Fetch list of BOGON IP subnets for IPv4 and IPv6"
+app_ver="1.2.0.0"
+app_repo="configserver-software/service-blocklists"
+app_repo_branch="main"
+app_agent="Mozilla/5.0 (Windows NT 10.0; WOW64) "\
+"AppleWebKit/537.36 (KHTML, like Gecko) "\
+"Chrome/51.0.2704.103 Safari/537.36"
+
+# #
+#   Define › Args
+# #
+
+argDryrun="false"
+argDevMode="false"
+argVerbose="false"
+
+# #
+#   Define › Time
+# #
+
+time_start=$( date +%s )
+SECONDS=0
+
+# #
+#   Define › Regex
+# #
+
+regex_url='^(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]\.[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]$'
+regex_ipv4='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+regex_ipv4_cidr='^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]{1,2})$'
+regex_ipv6='^[0-9A-Fa-f:.]+$'
+regex_ipv6_cidr='^[0-9A-Fa-f:.]+/[0-9]{1,3}$'
+regex_ipv4_range='([0-9]{1,3}\.){3}[0-9]{1,3}[[:space:]]*-[[:space:]]*([0-9]{1,3}\.){3}[0-9]{1,3}'
+
+# #
+#   Define › Defaults
+# #
+
+total_lines=0
+total_subnets=0
+total_ips=0
+
+# #
+#   Define › Logging functions
+# #
+
+info( )
+{
+    printf '\033[0m%-41s %-65s\n' "   ${bgInfo} INFO ${end}" "${greym} $1 ${end}"
+}
+
+ok( )
+{
+    printf '\033[0m%-41s %-65s\n' "   ${bgOk} PASS ${end}" "${greym} $1 ${end}"
+}
+
+warn( )
+{
+    printf '\033[0m%-42s %-65s\n' "   ${bgWarn} WARN ${end}" "${greym} $1 ${end}"
+}
+
+danger( )
+{
+    printf '\033[0m%-42s %-65s\n' "   ${bgDanger} DNGR ${end}" "${greym} $1 ${end}"
+}
+
+error( )
+{
+    printf '\033[0m%-42s %-65s\n' "   ${bgError} FAIL ${end}" "${greym} $1 ${end}"
+}
+
+debug( )
+{
+    if [ "$argDevMode" = "true" ] || [ "$argDryrun" = "true" ]; then
+        printf '\033[0m%-42s %-65s\n' "   ${bgDebug} DBUG ${end}" "${greym} $1 ${end}"
+    fi
+}
+
+verbose( )
+{
+    case "${argVerbose:-0}" in
+        1|true|TRUE|yes|YES)
+            printf '\033[0m%-42s %-65s\n' "   ${bgVerbose} VRBO ${end}" "${greym} $1 ${end}"
+            ;;
+    esac
+}
+
+label( )
+{
+    printf '\033[0m%-31s %-65s\n' "   ${greyd}        ${end}" "${greyd} $1 ${end}"
+}
+
+print( )
+{
+    echo "${greym}$1${end}"
+}
+
+# #
+#   Verify › Arguments
+# #
+
+if [ -z "${argFileSaveto}" ]; then
+    error "    ⭕  No target file specified ${yellowd}${app_file_this}${greym}; aborting${end}"
+    exit 0
+fi
+
+# #
+#   Print › Box › Paragraph
+# #
+
+prinp( )
+{
+    _title="$1"
+    shift
+    _text="$*"
+    _indent="  "
+    _box_width=110
+    _pad=1
+    _content_width=$(( _box_width ))
+    _inner_width=$(( _box_width - _pad*2 ))
+    _hline=$(printf '─%.0s' $(seq 1 "$_content_width"))
+    _emoji_adjust=0
+
+    print
+    print
+    printf "${greyd}%s┌%s┐\n" "$_indent" "$_hline"
+
+    _display_title="$_title"
+    if printf '%s\n' "$_title" | grep -q '\[[[:space:]]*[-0-9][-0-9[:space:]]*\]'; then
+        _bracket=$(printf '%s' "$_title" | sed -n 's/.*\[\([-0-9][-0-9]*\)\].*/\1/p')
+        if printf '%s\n' "$_bracket" | grep -qE '^-?[0-9]+$'; then
+            _emoji_adjust=$_bracket
+        else
+            _emoji_adjust=0
+        fi
+        _display_title=$(printf '%s' "$_title" | sed 's/\[[^]]*\]//')
+    fi
+
+    case "$_emoji_adjust" in
+        ''|*[!0-9-]*) _emoji_adjust=0 ;;
+    esac
+
+    _title_width=$(( _content_width - _pad ))
+    _title_vis_len=$(( ${#_display_title} - _emoji_adjust ))
+    printf "${greyd}%s│%*s${bluel}%s${greyd}%*s│\n" \
+        "$_indent" "$_pad" "" "$_display_title" "$(( _title_width - _title_vis_len ))" ""
+
+    if [ -n "$_text" ]; then
+        printf "${greyd}%s│%-${_content_width}s│\n" "$_indent" ""
+        _text=$(printf "%b" "$_text")
+        printf "%s" "$_text" | while IFS= read -r line || [ -n "$line" ]; do
+            if [ -z "$line" ]; then
+                printf "${greyd}%s│%-*s│\n" "$_indent" "$_content_width" ""
+                continue
+            fi
+
+            _out=""
+            for word in $line; do
+                _vis_out=$(printf "%s" "$_out" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g')
+                _vis_word=$(printf "%s" "$word" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g')
+                _vis_len=$(( ${#_vis_out} + ( ${#_vis_out} > 0 ? 1 : 0 ) + ${#_vis_word} ))
+
+                if [ -z "$_out" ]; then
+                    _out="$word"
+                elif [ $_vis_len -le $_inner_width ]; then
+                    _out="$_out $word"
+                else
+                    _vis_len_full=$(printf "%s" "$_out" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g' | wc -c | tr -d ' ')
+                    _pad_spaces=$(( _inner_width - _vis_len_full ))
+                    [ $_pad_spaces -lt 0 ] && _pad_spaces=0
+                    printf "${greyd}%s│%*s%s%*s│\n" "$_indent" "$_pad" "" "$_out" "$(( _pad + _pad_spaces ))" ""
+                    _out="$word"
+                fi
+            done
+
+            if [ -n "$_out" ]; then
+                _vis_len_full=$(printf "%s" "$_out" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g' | wc -c | tr -d ' ')
+                _pad_spaces=$(( _inner_width - _vis_len_full ))
+                [ $_pad_spaces -lt 0 ] && _pad_spaces=0
+                printf "${greyd}%s│%*s%s%*s│\n" "$_indent" "$_pad" "" "$_out" "$(( _pad + _pad_spaces ))" ""
+            fi
+        done
+    fi
+
+    printf "${greyd}%s└%s┘${end}\n" "$_indent" "$_hline"
+    print
+
+    unset _title _text _indent _box_width _pad _content_width _inner_width _hline \
+          _emoji_adjust _display_title _bracket _title_width _title_vis_len \
+          _out _vis_out _vis_word _vis_len _vis_len_full _pad_spaces
+}
+
+# #
+#   Define › Run Command
+# #
+
+run( )
+{
+    if [ "${argDryrun}" = "true" ]; then
+        debug "    Drymode (skip): $*"
+    else
+        debug "    Run: $*"
+        "$@"
+    fi
+}
+
+# #
+#   Sort Results
+# #
+
+sort_results( )
+{
+    _ipv4_tmp=$(mktemp) || exit 1
+    _ipv6_tmp=$(mktemp) || exit 1
+
+    while IFS= read -r line; do
+        case "$line" in
+            *:*) printf '%s\n' "$line" >> "$_ipv6_tmp" ;;
+            *)   printf '%s\n' "$line" >> "$_ipv4_tmp" ;;
+        esac
+    done
+
+    if [ -s "$_ipv4_tmp" ]; then
+        sort -t. -n -k1,1 -k2,2 -k3,3 -k4,4 "$_ipv4_tmp" | uniq
+    fi
+
+    if [ -s "$_ipv6_tmp" ]; then
+        sort "$_ipv6_tmp" | uniq
+    fi
+
+    rm -f "$_ipv4_tmp" "$_ipv6_tmp"
+    unset _ipv4_tmp _ipv6_tmp
+}
+
+# #
+#   Count file statistics
+#       - IPv4 CIDR contributes all IPv4 addresses in the subnet
+#       - IPv6 CIDR contributes one entry (do not expand)
+#       - Single IPv4/IPv6 contributes one entry
+# #
+
+count_ip_stats( )
+{
+    _fnCountFile=$1
+    _fnSubnetIps=0
+    _fnTotalIps=0
+    _fnTotalSubnets=0
+
+    while IFS= read -r _fnLine; do
+
+        # #
+        #   IPv4 CIDR
+        # #
+
+        if [[ $_fnLine =~ $regex_ipv4_cidr ]]; then
+            _fnCidr="${BASH_REMATCH[2]}"
+            if [ "$_fnCidr" -le 32 ]; then
+                _fnSubnetIps=$(( 1 << (32 - _fnCidr) ))
+                _fnTotalIps=$(( _fnTotalIps + _fnSubnetIps ))
+                _fnTotalSubnets=$(( _fnTotalSubnets + 1 ))
+            fi
+
+        # #
+        #   IPv4 single
+        # #
+        elif [[ $_fnLine =~ $regex_ipv4 ]]; then
+            _fnTotalIps=$(( _fnTotalIps + 1 ))
+
+        # #
+        #   IPv6 CIDR (count as one entry, do not expand)
+        # #
+        elif [[ $_fnLine =~ $regex_ipv6_cidr ]]; then
+            _fnCidr="${_fnLine#*/}"
+            if [ "$_fnCidr" -le 128 ]; then
+                _fnTotalIps=$(( _fnTotalIps + 1 ))
+                _fnTotalSubnets=$(( _fnTotalSubnets + 1 ))
+            fi
+
+        # #
+        #   IPv6 single
+        # #
+        elif [[ $_fnLine =~ $regex_ipv6 ]] && [[ $_fnLine == *:* ]]; then
+            _fnTotalIps=$(( _fnTotalIps + 1 ))
+        fi
+    done < "${_fnCountFile}"
+
+    total_ips=$_fnTotalIps
+    total_subnets=$_fnTotalSubnets
+
+    unset _fnCountFile _fnSubnetIps _fnTotalIps _fnTotalSubnets _fnLine _fnCidr
+}
+
+# #
+#   Func › Download List
+# #
+
+download_list( )
+{
+    _fnArgTarget=$1
+    _fnFileTemp="${_fnArgTarget}.tmp"
+    _count_total_ips=0
+    _count_total_subnets=0
+
+    prinp "📄[-1] Generating bogon IP list"
+
+    if [ ! -f "${_fnFileTemp}" ]; then
+        touch "${_fnFileTemp}"
+        if [ -f "${_fnFileTemp}" ]; then
+            ok "    📄 Created temp file ${greenl}${PWD}/${_fnFileTemp}${greym}"
+        else
+            error "    ⭕ Failed to create temp file ${bluel}${PWD}/${_fnFileTemp}${greym}"
+            exit 1
+        fi
+    fi
+
+    # #
+    #   Generate › IPv4 bogon addresses
+    # #
+
+    info "    🌐 Generating IPv4 bogon addresses"
+
+    cat >> "${_fnFileTemp}" <<'EOF'
+0.0.0.0/8               # "This" network
+10.0.0.0/8              # Private-use networks
+100.64.0.0/10           # Carrier-grade NAT
+127.0.0.0/8             # Loopback
+127.0.53.53             # Name collision occurrence
+169.254.0.0/16          # Link local
+172.16.0.0/12           # Private-use networks
+192.0.0.0/24            # IETF protocol assignments
+192.0.2.0/24            # TEST-NET-1
+192.168.0.0/16          # Private-use networks
+198.18.0.0/15           # Network interconnect device benchmark testing
+198.51.100.0/24         # TEST-NET-2
+203.0.113.0/24          # TEST-NET-3
+224.0.0.0/4             # Multicast
+240.0.0.0/4             # Reserved for future use
+EOF
+
+    # #
+    #   Generate › IPv6 bogon addresses
+    # #
+
+    info "    🌐 Generating IPv6 bogon addresses"
+
+    cat >> "${_fnFileTemp}" <<'EOF'
+::/128
+::1/128
+::ffff:0:0/96
+::/96
+100::/64
+2001:2::/48
+2001:db8::/32
+2001:10::/28
+fc00::/7
+fe80::/10
+ff00::/8
+EOF
+
+    # #
+    #   Clean
+    # #
+
+    sed -i 's/\r$//' "${_fnFileTemp}"
+    sed -i 's/[[:space:]]*[#;].*$//' "${_fnFileTemp}"
+    sed -i 's/^[[:space:]]*//;s/[[:space:]]*$//' "${_fnFileTemp}"
+    sed -i '/^$/d' "${_fnFileTemp}"
+
+    # #
+    #   Sort + deduplicate
+    # #
+
+    info "    🔃 Sorting and deduplicating results"
+
+    sort_results < "${_fnFileTemp}" > "${_fnFileTemp}.sorted"
+    mv "${_fnFileTemp}.sorted" "${_fnFileTemp}"
+
+    # #
+    #   Statistics
+    # #
+
+    info "    📊 Fetching statistics for clean file ${bluel}${PWD}/${_fnFileTemp}${greym}"
+
+    count_ip_stats "${_fnFileTemp}"
+
+    _count_total_ips=$total_ips
+    _count_total_ips=$(printf "%'d" "$_count_total_ips")
+
+    _count_total_subnets=$total_subnets
+    _count_total_subnets=$(printf "%'d" "$_count_total_subnets")
+
+    # #
+    #   Move to target
+    # #
+
+    info "    🚛 Move ${bluel}${_fnFileTemp}${greym} to ${bluel}${_fnArgTarget}${greym}"
+
+    if [ -s "${_fnArgTarget}" ] && [ "$(tail -c1 "${_fnArgTarget}")" != "" ]; then
+        echo >> "${_fnArgTarget}"
+    fi
+
+    cat "${_fnFileTemp}" >> "${_fnArgTarget}"
+    rm -f "${_fnFileTemp}"
+
+    ok "    ➕ Added ${greenl}${_count_total_ips}${greym} IP addresses and ${greenl}${_count_total_subnets}${greym} subnets to ${greenl}${PWD}/${_fnArgTarget}${greym}"
+
+    unset _fnArgTarget _fnFileTemp _count_total_ips _count_total_subnets
+}
+
+# #
+#   Define › App
+# #
+
+file_ipset_temp="${argFileSaveto}.tmp"
+file_ipset_target="${argFileSaveto}"
+
+# #
+#   Define › Template
+# #
+
+templ_now="$(date -u)"
+templ_id=$(basename -- "${file_ipset_target}")
+templ_id="${templ_id//[^[:alnum:]]/_}"
+templ_uuid="$(uuidgen -m -N "${templ_id}" -n @url)"
+templ_curl_opts=(-sSL -A "$app_agent")
+
+# #
+#   Define › Template › External Sources
+# #
+
+curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/descriptions/${templ_id}.txt" > desc.txt &
+curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/categories/${templ_id}.txt" > cat.txt &
+curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/expires/${templ_id}.txt" > exp.txt &
+curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/url-source/${templ_id}.txt" > src.txt &
+wait
+templ_desc=$(<desc.txt)
+templ_cat=$(<cat.txt)
+templ_exp=$(<exp.txt)
+templ_url_service=$(<src.txt)
+rm -f desc.txt cat.txt exp.txt src.txt
+
+# #
+#   Define › Template › Default Values
+# #
+
+case "$templ_desc" in *"404: Not Found"*) templ_desc="#   No description provided";; esac
+case "$templ_cat" in *"404: Not Found"*) templ_cat="Uncategorized";; esac
+case "$templ_exp" in *"404: Not Found"*) templ_exp="6 hours";; esac
+case "$templ_url_service" in *"404: Not Found"*) templ_url_service="None";; esac
+
+# #
+#   Output › Header
+# #
+
+echo
+prinp "📄[-1] ${file_ipset_target}" \
+"${greym}File: \t    ${greyd}.............${yellowl} ${file_ipset_target}${greyd} \
+${greyd}\n${greym}Id: \t    ${greyd}...............${yellowl} ${templ_id}${greyd} \
+${greyd}\n${greym}UUID:\t        ${greyd}.............${yellowl} ${templ_uuid}${greyd} \
+${greyd}\n${greym}Category:\t        ${greyd}.........${yellowl} ${templ_cat}${greyd} \
+${greyd}\n${greym}Script:\t       ${greyd}...........${yellowl} ${app_file_this}${greyd} \
+${greyd}\n${greym}Service:\t        ${greyd}..........${yellowl} ${templ_url_service}${greyd}"
+
+# #
+#   Start
+# #
+
+info "    ⭐ Starting script ${bluel}${app_file_this}${greym}"
+
+# #
+#   Create or Clean file
+# #
+
+if [ -f "${file_ipset_target}" ]; then
+    info "    📄 Clean ${bluel}${PWD}/${file_ipset_target}${greym}"
+   > "${file_ipset_target}"
+else
+    info "    📁 Create ${bluel}${PWD}/${file_ipset_target}${greym}"
+    mkdir -p "$(dirname "${file_ipset_target}")"
+
+    if [ -d "$(dirname "${file_ipset_target}")" ]; then
+        ok "    📁 Created ${greenl}$(dirname "${file_ipset_target}")${greym}"
+    else
+        error "    ⭕  Failed to create directory ${redl}$(dirname "${file_ipset_target}")${greym}; aborting${greym}"
+        exit 1
+    fi
+
+    touch "${file_ipset_target}"
+    if [ -f "${file_ipset_target}" ]; then
+        ok "    📄 Created perm file ${greenl}${PWD}/${file_ipset_target}${greym}"
+    else
+        error "    ⭕ Failed to create perm file ${bluel}${PWD}/${file_ipset_target}${greym}"
+        exit 1
+    fi
+fi
+
+# #
+#   Download list
+# #
+
+download_list "${file_ipset_target}"
+
+# #
+#   Sort
+#       - Remove downloaded comment/blank lines
+#       - Sort/dedupe IPv4 and IPv6 separately
+# #
+
+if [ -f "${file_ipset_target}" ]; then
+    info "    🧹 Sorting and removing duplicate IP entries from ${bluel}${PWD}/${file_ipset_target}${greym}"
+    grep -vE '^[[:space:]]*(#|;|$)' "${file_ipset_target}" | sort_results > "${file_ipset_target}.sort"
+    > "${file_ipset_target}"
+    cat "${file_ipset_target}.sort" >> "${file_ipset_target}"
+    rm "${file_ipset_target}.sort"
+    ok "    ✅ Duplicate IPs removed"
+fi
+
+# #
+#   Final Counts (from final cleaned + deduped file)
+# #
+
+if [ -f "${file_ipset_target}" ]; then
+    count_ip_stats "${file_ipset_target}"
+    total_ips=$total_ips
+    total_subnets=$total_subnets
+
+    total_lines=$(wc -l < "${file_ipset_target}")
+    total_lines=$(printf "%'d" "$total_lines")
+    total_subnets=$(printf "%'d" "$total_subnets")
+    total_ips=$(printf "%'d" "$total_ips")
+fi
+
+# #
+#   Template › Header
+# #
+
+ed -s "${file_ipset_target}" <<END_ED
+0a
+# #
+#   🧱 Firewall Blocklist - ${file_ipset_target}
+#
+#   @repo           https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/${file_ipset_target}
+#   @service        ${templ_url_service}
+#   @id             ${templ_id}
+#   @uuid           ${templ_uuid}
+#   @updated        ${templ_now}
+#   @entries        ${total_ips} ips
+#                   ${total_subnets} subnets
+#                   ${total_lines} lines
+#   @expires        ${templ_exp}
+#   @category       ${templ_cat}
+#
+${templ_desc}
+# #
+
+.
+w
+q
+END_ED
+
+# #
+#   Finished
+# #
+
+time_end=$( date +%s )
+T=$(( time_end - time_start ))
+D=$(( T / 86400 ))
+H=$(( (T % 86400) / 3600 ))
+M=$(( (T % 3600) / 60 ))
+S=$(( T % 60 ))
+
+# #
+#   Output › Footer
+# #
+
+prinp "🎌[-1] Blocklist has finished generating successfully" \
+"${greyd}${greym}IPs: \t    ${greyd}............${yellowl} ${total_ips}${greyd} \
+${greyd}\n${greym}Subnets:\t        ${greyd}........${yellowl} ${total_subnets}${greyd} \
+${greyd}\n${greym}Duration:\t        ${greyd}.......${yellowd} ${D} days ${H} hrs ${M} mins ${S} secs${greyd}"
