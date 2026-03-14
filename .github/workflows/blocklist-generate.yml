@@ -497,6 +497,14 @@ jobs:
                   run_highrisk=".github/scripts/bl-block.sh blocklists/highrisk.ipset highrisk"
                   eval "./$run_highrisk"
 
+
+                  # #
+                  #   Main › BOGON
+                  # #
+
+                  run_bogon=".github/scripts/bogon.sh blocklists/bogon.ipset"
+                  eval "./$run_bogon"
+
             # #
             #   Generate › Privacy
             # #
