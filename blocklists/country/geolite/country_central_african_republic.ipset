@@ -5,7 +5,7 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_central_african_republic_ipset
 #   @uuid           c8562bfd-a736-3a1b-91fa-35c7720d0568
-#   @updated        Sat Mar 14 12:59:02 UTC 2026
+#   @updated        Sun Mar 15 02:20:10 UTC 2026
 #   @entries        8833 ips
 #                   129 subnets
 #                   129 lines

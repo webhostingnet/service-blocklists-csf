@@ -5,7 +5,7 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             country_norway_ipset
 #   @uuid           dc638025-2999-3e63-9d3c-a2786942dbfd
-#   @updated        Sat Mar 14 12:59:42 UTC 2026
+#   @updated        Sun Mar 15 02:21:02 UTC 2026
 #   @entries        16228943 ips
 #                   4345 subnets
 #                   4345 lines
