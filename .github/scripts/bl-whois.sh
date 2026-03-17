@@ -44,6 +44,8 @@
 #                           [2]     curl -sSL https://search.developer.apple.com/applebot.json | jq -r '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty' | .github/scripts/bl-format.sh privacy_applebot.ipset
 #                           [3]     whois -h whois.radb.net -- '-i origin AS32934' | grep ^route | awk '{gsub("(route:|route6:)","");print}' | awk '{gsub(/ /,""); print}' | .github/scripts/bl-format.sh blocklists/privacy_facebook.ipset
 #   
+#   @demo               .github/scripts/bl-whois.sh blocklists/isp/isp_comcast.ipset AS7922 AS7015 AS36732 AS36196 AS33651
+#   
 #   @structure          📁 .github
 #                           📁 scripts
 #                               📄 bl-whois.sh
@@ -179,6 +181,7 @@ regex_ipv4='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
 regex_ipv4_cidr='^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]{1,2})$'
 regex_ipv6='^[0-9A-Fa-f:.]+$'
 regex_ipv6_cidr='^[0-9A-Fa-f:.]+/[0-9]{1,3}$'
+regex_ipv4_range='([0-9]{1,3}\.){3}[0-9]{1,3}[[:space:]]*-[[:space:]]*([0-9]{1,3}\.){3}[0-9]{1,3}'
 
 # #
 #   Define › Defaults
@@ -187,6 +190,25 @@ regex_ipv6_cidr='^[0-9A-Fa-f:.]+/[0-9]{1,3}$'
 total_lines=0                                                                   # number of lines in doc
 total_subnets=0                                                                 # number of IPs in all subnets combined
 total_ips=0                                                                     # number of single IPs (counts each line)
+
+# #
+#   WHOIS › Servers
+#   
+#   List of all WHOIS servers to check an ASN for.
+#   @ref                https://irr.net/registry/
+# #
+
+SERVERS_WHOIS="
+riswhois.ripe.net
+whois.radb.net
+rr.ntt.net
+whois.rogerstelecom.net
+whois.bgp.net.br
+whois.apnic.net
+whois.afrinic.net
+whois.iana.org
+whois.lacnic.net
+"
 
 # #
 #   Define › Logging functions
@@ -327,10 +349,10 @@ prin0()
     _line_width=$(( _box_width + 2 ))
 
     _line=""
-    i=1
-    while [ "$i" -le "${_line_width}" ]; do
+    _i=1
+    while [ "$_i" -le "${_line_width}" ]; do
         _line="${_line}─"
-        i=$(( i + 1 ))
+        _i=$(( _i + 1 ))
     done
 
     printf '\n'
@@ -341,7 +363,7 @@ prin0()
     #   Unset
     # #
 
-    unset   _indent _box_width _line_width _line i
+    unset   _indent _box_width _line_width _line _i
 }
 
 # #
@@ -374,10 +396,10 @@ prinb()
     # #
 
     _line=""
-    i=1
-    while [ "$i" -le "$_inner_width" ]; do
+    _i=1
+    while [ "$_i" -le "$_inner_width" ]; do
         _line="${_line}─"
-        i=$(( i + 1 ))
+        _i=$(( _i + 1 ))
     done
 
     # #
@@ -397,7 +419,7 @@ prinb()
 
     unset   _title _indent _padding \
             _title_length _inner_width _box_width \
-            _line i
+            _line _i
 }
 
 # #
@@ -624,7 +646,7 @@ prinp()
 
     unset   _title _title_width _text _indent _pad _padding _content_width \
             _title_length _inner_width _box_width _emoji_adjust \
-            _hline _line _out i _display_title _vis_out _vis_word _vis_len _vis_len_full \
+            _hline _line _out _i _display_title _vis_out _vis_word _vis_len _vis_len_full \
             _line_bracket _line_emoji_adjust _pad_spaces _bracket \
             _show_right_border
 }
@@ -1018,11 +1040,10 @@ done
 
 download_list()
 {
-
     _fnArgAsn=$1
     _fnArgFile=$2
     _fnListNum=$3
-    _fnFileTemp="${2}.tmp"
+    _fnFileTemp="${_fnArgFile}.tmp"
     _count_total_ips=0
     _count_total_subnets=0
     _whois_supports_ipv4_opt=false
@@ -1220,6 +1241,19 @@ download_list()
     fi
 
     # #
+    #   Dedupe, Sort: Move from .tmp to .sort
+    # #
+
+    info "    🔃 Sorting and deduplicating results"
+    grep -vE '^[[:space:]]*(#|;|$)' "${_fnFileTemp}" | sort_results > "${_fnFileTemp}.sort"
+
+    # #
+    #   Move from .sort to .tmp
+    # #
+
+    mv "${_fnFileTemp}.sort" "${_fnFileTemp}"
+
+    # #
     #   IPSET › Filter BOGON
     #       - Optional
     #       - Run before count_ip_stats for accurate totals
@@ -1233,12 +1267,17 @@ download_list()
     # #
 
     info "    📊 Fetching statistics for clean file ${bluel}${PWD}/${_fnFileTemp}${greym}"
+
     count_ip_stats "${_fnFileTemp}"
     _count_total_ips=$total_ips
     _count_total_subnets=$total_subnets
 
     _count_total_ips=$(printf "%'d" "$_count_total_ips")                        # LOCAL add commas to thousands
     _count_total_subnets=$(printf "%'d" "$_count_total_subnets")                # LOCAL add commas to thousands
+
+    # #
+    #   Move to target
+    # #
 
     info "    🚛 Move ${bluel}${_fnFileTemp}${greym} to ${bluel}${_fnArgFile}${greym}"
 
@@ -1251,7 +1290,7 @@ download_list()
     fi
 
     cat "${_fnFileTemp}" >> "${_fnArgFile}"                                     # Copy .tmp to permanent file
-    rm "${_fnFileTemp}"                                                         # Delete temp file
+    rm -f "${_fnFileTemp}"                                                      # Delete temp file
 
     if [ ! -f "${_fnFileTemp}" ]; then
         ok "    📄 Removed temp file ${greenl}${PWD}/${_fnFileTemp}${greym}"
@@ -1349,25 +1388,6 @@ ${greyd}\n${greym}Service:	        ${greyd}..........${yellowl} ${templ_url_serv
 # #
 
 info "    ⭐ Starting script ${bluel}${app_file_this}${greym}"
-
-# #
-#   WHOIS › Servers
-#   
-#   List of all WHOIS servers to check an ASN for.
-#   @ref                https://irr.net/registry/
-# #
-
-SERVERS_WHOIS="
-riswhois.ripe.net
-whois.radb.net
-rr.ntt.net
-whois.rogerstelecom.net
-whois.bgp.net.br
-whois.apnic.net
-whois.afrinic.net
-whois.iana.org
-whois.lacnic.net
-"
 
 # #
 #   Create or Clean file

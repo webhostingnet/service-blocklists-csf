@@ -19,261 +19,361 @@
 # #
 
 # #
-#   LICENSE KEY / DOWNLOAD MODE
-#       .github/scripts/bl-geolite2.sh -l <LICENSE_KEY>
-#       .github/scripts/bl-geolite2.sh --license <LICENSE_KEY>
-#
-#   If you are not running LOCAL MODE (see below), you will need to download the GeoLite2 database .csv files when the script starts.
-#   You must specify a license key from the MaxMind website. Ensure you set up a Github workflow secret if running this script on Github.
-#
-#   To specify a license key, you can:
-#       - Create `aetherx.conf` and add the license key within the file
-#           Add LICENSE_KEY=YOUR_LICENSE_KEY
-#
-#       - Provide the license key as a parameter when running the script
-#           bl-geolite2.sh --license ABCDEF123456789
-#           bl-geolite2.sh -l ABCDEF123456789
+#   DOWNLOAD MODE
+#   
+#   If you do not want to provide the GeoIP country .zip and md5, you can download
+#   new versions of these files from MaxMind. Run the following command:
+#           .github/scripts/bl-geolite2.sh --license XXXXXXXXXXXXX --dev
+#   
+#   You can also specify a license key in the file `geolite2.conf`; add:
+#           LICENSE_KEY=YOUR_LICENSE_KEY
+#   Then run the script:
+#       .github/scripts/bl-geolite2.sh
+#   
+#   The GeoIP country .zip and .zip.md5 will be downloaded, extracted, and the
+#   blocklist will be generated.
 # #
 
 # #
 #   LOCAL MODE
-#       .github/scripts/bl-geolite2.sh -o
-#       .github/scripts/bl-geolite2.sh --local
-#
-#   PLACE FILES IN
-#       `.github/local`
-#
-#   Local mode allows you to use GeoLite2 database from a local copy on your server, instead of downloading a fresh zip.
-#
-#   Local files must be placed in the `.github/local` folder. This method supports either the zipped files, OR each CSV.
-#
-#   If providing the ZIP, you must have the following files:
-#       .github/local/GeoLite2-Country-CSV.zip
-#       .github/local/GeoLite2-Country-CSV.zip.md5
-#
-#   OR
-#
-#   If providing each CSV file, you must have the files:
-#       .github/local/GeoLite2-Country-Locations-en.csv
-#       .github/local/GeoLite2-Country-Blocks-IPv4.csv
-#       .github/local/GeoLite2-Country-Blocks-IPv6.csv
-#
-#   If you are providing the ZIP files, you can get the zip and the md5 hash files from
-#       - CSV URL: https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=LICENSE_KEY&suffix=zip
-#       - MD5 URL: https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=LICENSE_KEY&suffix=zip.md5
-#
-#   The files MUST be named:
-#       - GeoLite2-Country-CSV.zip
-#       - GeoLite2-Country-CSV.zip.md5
-# #
-
-# #
-#   DRY-RUN MODE
-#       .github/scripts/bl-geolite2.sh -d
-#       .github/scripts/bl-geolite2.sh --dry
-#
-#   PLACE FILES IN
-#       `.github/local`
 #   
-#   This parameter runs the script as if it were downloading the files from the MaxMind official website, except the CURL calls are skipped.
-#   the .ZIP and .ZIP.MD5 files are required to be in the .temp folder.
-#
-#   The files MUST be named:
-#       - GeoLite2-Country-CSV.zip
-#       - GeoLite2-Country-CSV.zip.md5
-#
-#   Download the .zip and .zip.md5 from:
-#           - CSV URL: https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=LICENSE_KEY&suffix=zip
-#           - MD5 URL: https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=LICENSE_KEY&suffix=zip.md5
+#   Running local mode requires you to download the .zip and .md5. You must have
+#   the following files in the zip:
+#           .github/local/GeoLite2-Country-CSV.zip
+#               .github/local/GeoLite2-Country-Locations-en.csv
+#               .github/local/GeoLite2-Country-Blocks-IPv4.csv
+#                .github/local/GeoLite2-Country-Blocks-IPv6.csv
+#           .github/local/GeoLite2-Country-CSV.zip.md5
+#   
+#   1.  Download geocountry database files
+#           https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=LICENSE_KEY&suffix=zip
+#           https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=LICENSE_KEY&suffix=zip.md5
+#       
+#   2.  Place .zip and .md5 inside:
+#           blocklistsv2/.github/local/geo-country/
+#   
+#   3.  Run script from 
+#           .github/scripts/bl-geolite2.sh --local
 # #
 
-APP_THIS_FILE=$(basename "$0")                          # current script file
-APP_THIS_DIR="${PWD}"                                   # current script directory
-APP_GITHUB_DIR="${APP_THIS_DIR}/.github"                # .github folder
+# #
+#   TEST MODE
+#   
+#   You can limit the number of results extracted from the .zip by specifying the
+#           `-L 15`.
+#   
+#   Use this example to build the geoip blocklist with the first 15 entries:
+#           .github/scripts/bl-geolite2.sh --local --dev -L 15
+# #
 
 # #
-#   vars > colors
-#
+#   Define › Set PATH
+# #
+
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
+export LC_NUMERIC=en_US.UTF-8
+
+# #
+#   Define › Files
+# #
+
+app_file_this=$(basename "$0")                                                  # bl-geolite2_asn.sh    (with ext)
+app_file_bin="${app_file_this%.*}"                                              # bl-geolite2_asn       (without ext)
+
+# #
+#   Define › Folders
+# #
+
+app_dir="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"                        # path where script was last found in
+app_dir_this_dir="${PWD}"                                                       # current script directory
+app_dir_github="${app_dir_this_dir}/.github"                                    # .github folder
+
+# #
+#   Define › Colors
+#   
 #   Use the color table at:
 #       - https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
 # #
 
-RESET=$'\e[0m'
-WHITE=$'\e[97m'
-BOLD=$'\e[1m'
-DIM=$'\e[2m'
-UNDERLINE=$'\e[4m'
-BLINK=$'\e[5m'
-INVERTED=$'\e[7m'
-HIDDEN=$'\e[8m'
-BLACK=$'\e[38;5;0m'
-FUCHSIA1=$'\e[38;5;125m'
-FUCHSIA2=$'\e[38;5;198m'
-RED1=$'\e[38;5;160m'
-RED2=$'\e[38;5;196m'
-RED3=$'\e[38;5;166m'
-ORANGE1=$'\e[38;5;202m'
-ORANGE2=$'\e[38;5;208m'
-MAGENTA=$'\e[38;5;5m'
-BLUE1=$'\e[38;5;033m'
-BLUE2=$'\e[38;5;39m'
-CYAN=$'\e[38;5;6m'
-GREEN1=$'\e[38;5;2m'
-GREEN2=$'\e[38;5;76m'
-YELLOW1=$'\e[38;5;184m'
-YELLOW2=$'\e[38;5;190m'
-YELLOW3=$'\e[38;5;193m'
-GREY1=$'\e[38;5;240m'
-GREY2=$'\e[38;5;244m'
-GREY3=$'\e[38;5;250m'
+esc=$(printf '\033')
+end="${esc}[0m"
+bgEnd="${esc}[49m"
+fgEnd="${esc}[39m"
+bold="${esc}[1m"
+dim="${esc}[2m"
+underline="${esc}[4m"
+blink="${esc}[5m"
+white="${esc}[97m"
+black="${esc}[0;30m"
+redl="${esc}[0;91m"
+redd="${esc}[38;5;196m"
+magental="${esc}[38;5;197m"
+magentad="${esc}[38;5;161m"
+fuchsial="${esc}[38;5;206m"
+fuchsiad="${esc}[38;5;199m"
+bluel="${esc}[38;5;33m"
+blued="${esc}[38;5;27m"
+greenl="${esc}[38;5;47m"
+greend="${esc}[38;5;35m"
+orangel="${esc}[38;5;208m"
+oranged="${esc}[38;5;202m"
+yellowl="${esc}[38;5;226m"
+yellowd="${esc}[38;5;214m"
+greyl="${esc}[38;5;250m"
+greym="${esc}[38;5;244m"
+greyd="${esc}[38;5;240m"
+navy="${esc}[38;5;62m"
+olive="${esc}[38;5;144m"
+peach="${esc}[38;5;204m"
+cyan="${esc}[38;5;6m"
+bgVerbose="${esc}[1;38;5;15;48;5;125m"
+bgDebug="${esc}[1;38;5;15;48;5;237m"
+bgInfo="${esc}[1;38;5;15;48;5;27m"
+bgOk="${esc}[1;38;5;15;48;5;64m"
+bgWarn="${esc}[1;38;5;16;48;5;214m"
+bgDanger="${esc}[1;38;5;15;48;5;202m"
+bgError="${esc}[1;38;5;15;48;5;160m"
 
 # #
-#   print an error and exit with failure
-#   $1: error message
+#   Define › App
 # #
 
-function error()
+app_name="Blocklist › Geolite2"                                                 # name of app
+app_desc="Uses the MaxMind geo database to generate ipsets for specified ASNs." # desc
+app_ver="1.2.0.0"                                                               # current script version
+app_repo="configserver-software/service-blocklists"                             # repository
+app_repo_branch="main"                                                          # repository branch
+app_repo_curl_storage="https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github"
+app_agent="Mozilla/5.0 (Windows NT 10.0; WOW64) "\
+"AppleWebKit/537.36 (KHTML, like Gecko) "\
+"Chrome/51.0.2704.103 Safari/537.36 "\
+"ConfigServer Security (hello@configserver.dev)"                                # user agent used with curl
+
+# #
+#   Define › Args
+# #
+
+argDryrun="false"                                                               # dryrun mode
+argDevMode="false"                                                              # dev mode
+argVerbose="false"                                                              # verbose mode
+argUseLocalDB="false"                                                           # Process local database instead of download
+argMMLicense=""                                                                 # MaxMind license key
+argLimitEntries=0                                                               # Number of entries to process; set to 0 or unset for full run
+
+# #
+#   Define › Time
+# #
+
+time_start=$( date +%s )                                                        # record start time of script
+SECONDS=0                                                                       # set seconds count for beginning of script
+
+# #
+#   Define › Regex
+# #
+
+regex_url='^(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]\.[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]$'
+regex_ipv4='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+regex_ipv4_cidr='^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]{1,2})$'
+regex_ipv6='^[0-9A-Fa-f:.]+$'
+regex_ipv6_cidr='^[0-9A-Fa-f:.]+/[0-9]{1,3}$'
+regex_ipv4_range='([0-9]{1,3}\.){3}[0-9]{1,3}[[:space:]]*-[[:space:]]*([0-9]{1,3}\.){3}[0-9]{1,3}'
+
+# #
+#   Define › Logging functions
+#   
+#   verbose "This is an verbose message"
+#   debug "This is an debug message"
+#   info "This is an info message"
+#   ok "This is an ok message"
+#   warn "This is a warn message"
+#   danger "This is a danger message"
+#   error "This is an error message"
+# #
+
+info( )
 {
-    echo -e "  ⭕ ${GREY2}${APP_THIS_FILE}${RESET}: \n     ${BOLD}${RED1}Error${RESET}: ${RESET}$1"
-    echo -e
-    exit 0
+    printf '\033[0m%-41s %-65s\n' "   ${bgInfo} INFO ${end}" "${greym} $1 ${end}"
+}
+
+ok( )
+{
+    printf '\033[0m%-41s %-65s\n' "   ${bgOk} PASS ${end}" "${greym} $1 ${end}"
+}
+
+warn( )
+{
+    printf '\033[0m%-42s %-65s\n' "   ${bgWarn} WARN ${end}" "${greym} $1 ${end}"
+}
+
+danger( )
+{
+    printf '\033[0m%-42s %-65s\n' "   ${bgDanger} DNGR ${end}" "${greym} $1 ${end}"
+}
+
+error( )
+{
+    printf '\033[0m%-42s %-65s\n' "   ${bgError} FAIL ${end}" "${greym} $1 ${end}"
+}
+
+debug( )
+{
+    if [ "$argDevMode" = "true" ] || [ "$argDryrun" = "true" ]; then
+        printf '\033[0m%-42s %-65s\n' "   ${bgDebug} DBUG ${end}" "${greym} $1 ${end}"
+    fi
+}
+
+verbose( )
+{
+    case "${argVerbose:-0}" in
+        1|true|TRUE|yes|YES)
+            printf '\033[0m%-42s %-65s\n' "   ${bgVerbose} VRBO ${end}" "${greym} $1 ${end}"
+            ;;
+    esac
+}
+
+label( )
+{
+    printf '\033[0m%-31s %-65s\n' "   ${greyd}        ${end}" "${greyd} $1 ${end}"
+}
+
+print( )
+{
+    echo "${greym}$1${end}"
+}
+
+# #
+#   Define › Elapsed Time
+#       - Capture end time
+#       - Calculate elapsed time
+#       - Calculate days, hours, etc.
+#       - Output to console
+# #
+
+time_elapsed( )
+{
+    local T=$1
+    D=$(( T / 86400 ))
+    H=$(( (T % 86400) / 3600 ))
+    M=$(( (T % 3600) / 60 ))
+    S=$(( T % 60 ))
 }
 
 # #
 #   Debug Mode
-#
+#   
 #   This script includes debug mode. You can enable it with the settings below:
-#       APP_DEBUG=true
-#
+#       argDevMode=true
+#   
 #   This will enable various prints to show the progress of each step. Make sure to turn this off when
 #   in production mode.
 # #
 
-SECONDS=0                                                           # set seconds count for beginning of script
-APP_NAME="GeoLite2 Database Script"                                 # name of app
-APP_VER=("1" "1" "0" "0")                                           # current script version
-APP_DEBUG=false                                                     # debug mode
-APP_REPO="configserver-software/service-blocklists"                 # repository
-APP_REPO_BRANCH="main"                                              # repository branch
-APP_CFG_FILE="aetherx.conf"                                         # Optional config file for license key / settings
-APP_TARGET_DIR="blocklists/country/geolite"                         # path to save ipsets
-APP_TARGET_EXT_TMP="tmp"                                            # temp extension for ipsets before work is done
-APP_TARGET_EXT_PROD="ipset"                                         # extension for ipsets
-APP_SOURCE_LOCAL_ENABLED=false                                      # True = loads from ./local, False = download from MaxMind
-APP_SOURCE_LOCAL="local"                                            # local mode enabled: where to fetch local csv from
-APP_SOURCE_TEMP=".temp"                                             # local mode disabled: where csv will be downloaded to
-APP_SOURCE_CACHE="cache"                                            # location where countries and continents are stored as array to file
-APP_DIR_IPV4="./${APP_TARGET_DIR}/ipv4"                             # folder to store ipv4
-APP_DIR_IPV6="./${APP_TARGET_DIR}/ipv6"                             # folder to store ipv6
-APP_GEO_LOCS_CSV="GeoLite2-Country-Locations-en.csv"                # Geolite2 Country Locations CSV 
-APP_GEO_IPV4_CSV="GeoLite2-Country-Blocks-IPv4.csv"                 # Geolite2 Country CSV IPv4
-APP_GEO_IPV6_CSV="GeoLite2-Country-Blocks-IPv6.csv"                 # Geolite2 Country CSV IPv6
-APP_GEO_ZIP="GeoLite2-Country-CSV.zip"                              # Geolite2 Country CSV Zip
-APP_GEO_ZIP_MD5="${APP_GEO_ZIP}.md5"                                # Geolite2 Country CSV Zip MD5 hash file
-COUNT_LINES=0                                                       # number of lines in doc
-COUNT_TOTAL_SUBNET=0                                                # number of IPs in all subnets combined
-COUNT_TOTAL_IP=0                                                    # number of single IPs (counts each line)
-BLOCKS_COUNT_TOTAL_IP=0                                             # number of ips for one particular file
-BLOCKS_COUNT_TOTAL_SUBNET=0                                         # number of subnets for one particular file
-APP_AGENT="Mozilla/5.0 (Windows NT 10.0; WOW64) "\
-"AppleWebKit/537.36 (KHTML, like Gecko) "\
-"Chrome/51.0.2704.103 Safari/537.36"                                # user agent used with curl
+folder_source_local="local/geo-country"                                         # local mode enabled: place geoip country .zip and .zip.md5 here.
+folder_target_storage="blocklists/country/geolite"                              # path to save compiled ipsets
+folder_target_temp="temp"                                                       # local mode disabled: where csv will be downloaded to
+folder_target_logs=".logs"                                                      # path to store logs
+folder_target_cache="cache"                                                     # location where countries and continents are stored as array to file
+path_storage_ipv4="${folder_target_storage}/ipv4"                               # folder to store ipv4
+path_storage_ipv6="${folder_target_storage}/ipv6"                               # folder to store ipv6
+file_target_ext_tmp="tmp"                                                       # temp extension for ipsets before work is done
+file_target_ext_ipset="ipset"                                                   # extension for ipsets
+file_source_csv_locs="GeoLite2-Country-Locations-en.csv"                        # File: Geolite2 Country Locations CSV 
+file_source_csv_ipv4="GeoLite2-Country-Blocks-IPv4.csv"                         # File: Geolite2 Country CSV IPv4
+file_source_csv_ipv6="GeoLite2-Country-Blocks-IPv6.csv"                         # File: Geolite2 Country CSV IPv6
+file_cfg="geolite2.conf"                                                        # Optional config file for license key / settings
 
 # #
-#   Define > Help Vars
+#   Define › GeoLite2 Database Zip / Md5
+#   
+#   Search for CSV database archive zip and md5 using wildcard for the date.
+#       GeoLite2-Country-CSV_*.zip
+#   
+#   Downloaded databases usually come with the filename:
+#       GeoLite2-Country-CSV_20260313.zip
+#       GeoLite2-Country-CSV_20260313.zip.md5
 # #
 
-APP_DESC="This script downloads the geographical databases from the MaxMind GeoLite2 servers. \n\n  They are then broken up into their respective continent and country files. Duplicates are removed, IPs\n  are re-sorted, and then all files are pushed to the repository."
+shopt -s nullglob
+for f in "${app_dir_github}/${folder_source_local}"/GeoLite2-Country-CSV*.zip; do
+    file_source_csv_zip="$f"
+    break
+done
 
-APP_USAGE="🗔  Usage: ./${APP_THIS_FILE} ${BLUE2}[-l <LICENSE_KEY>]${RESET}
-        ${GREY2}./${APP_THIS_FILE} ${BLUE2}-?${RESET}
-        ${GREY2}./${APP_THIS_FILE} ${BLUE2}clr${RESET}
-        ${GREY2}./${APP_THIS_FILE} ${BLUE2}chart${RESET}
+for f in "${app_dir_github}/${folder_source_local}"/GeoLite2-Country-CSV*.zip.md5; do
+    file_source_csv_zip_md5="$f"
+    break
+done
+shopt -u nullglob
+
+# #
+#   Define › Help Vars
+# #
+
+APP_USAGE="🗔  Usage: ./${app_file_this} ${blued}[-l <LICENSE_KEY>]${end}
+        ${greym}./${app_file_this} ${blued}-?${end}
+        ${greym}./${app_file_this} ${blued}clr${end}
+        ${greym}./${app_file_this} ${blued}chart${end}
 "
 
 # #
-#   Color Code Test
-#
-#   @usage      .github/scripts/bt-transmission.sh clr
+#   Helper › Show Color Test
+#   
+#   @usage      .github/scripts/bl-geolite2.sh --color
 # #
 
-function debug_ColorTest()
+debug_ColorTest( )
 {
-    echo -e
-    echo -e "RESET ${GREY1}................ ${RESET}This is test text ███████████████${RESET}"
-    echo -e "WHITE ${GREY1}................ ${WHITE}This is test text ███████████████${RESET}"
-    echo -e "BOLD ${GREY1}................. ${BOLD}This is test text ███████████████${RESET}"
-    echo -e "DIM ${GREY1}.................. ${DIM}This is test text ███████████████${RESET}"
-    echo -e "UNDERLINE ${GREY1}............ ${UNDERLINE}This is test text ███████████████${RESET}"
-    echo -e "BLINK ${GREY1}................ ${BLINK}This is test text ███████████████${RESET}"
-    echo -e "INVERTED ${GREY1}............. ${INVERTED}This is test text ███████████████${RESET}"
-    echo -e "HIDDEN ${GREY1}............... ${HIDDEN}This is test text ███████████████${RESET}"
-    echo -e "BLACK ${GREY1}................ ${BLACK}This is test text ███████████████${RESET}"
-    echo -e "FUCHSIA1 ${GREY1}............. ${FUCHSIA1}This is test text ███████████████${RESET}"
-    echo -e "FUCHSIA2 ${GREY1}............. ${FUCHSIA2}This is test text ███████████████${RESET}"
-    echo -e "RED1 ${GREY1}................. ${RED1}This is test text ███████████████${RESET}"
-    echo -e "RED2 ${GREY1}................. ${RED2}This is test text ███████████████${RESET}"
-    echo -e "RED3 ${GREY1}................. ${RED3}This is test text ███████████████${RESET}"
-    echo -e "ORANGE1 ${GREY1}.............. ${ORANGE1}This is test text ███████████████${RESET}"
-    echo -e "ORANGE2 ${GREY1}.............. ${ORANGE2}This is test text ███████████████${RESET}"
-    echo -e "MAGENTA ${GREY1}.............. ${MAGENTA}This is test text ███████████████${RESET}"
-    echo -e "BLUE1 ${GREY1}................ ${BLUE1}This is test text ███████████████${RESET}"
-    echo -e "BLUE2 ${GREY1}................ ${BLUE2}This is test text ███████████████${RESET}"
-    echo -e "CYAN ${GREY1}................. ${CYAN}This is test text ███████████████${RESET}"
-    echo -e "GREEN1 ${GREY1}............... ${GREEN1}This is test text ███████████████${RESET}"
-    echo -e "GREEN2 ${GREY1}............... ${GREEN2}This is test text ███████████████${RESET}"
-    echo -e "YELLOW1 ${GREY1}.............. ${YELLOW1}This is test text ███████████████${RESET}"
-    echo -e "YELLOW2 ${GREY1}.............. ${YELLOW2}This is test text ███████████████${RESET}"
-    echo -e "YELLOW3 ${GREY1}.............. ${YELLOW3}This is test text ███████████████${RESET}"
-    echo -e "GREY1 ${GREY1}................ ${GREY1}This is test text ███████████████${RESET}"
-    echo -e "GREY2 ${GREY1}................ ${GREY2}This is test text ███████████████${RESET}"
-    echo -e "GREY3 ${GREY1}................ ${GREY3}This is test text ███████████████${RESET}"
-    echo -e
+    echo
+    echo "  white      ${greym}............. ${white}This is text ███████████████${end}"
+    echo "  black      ${greym}............. ${black}This is text ███████████████${end}"
+    echo "  redl       ${greym}............. ${redl}This is text ███████████████${end}"
+    echo "  redd       ${greym}............. ${redd}This is text ███████████████${end}"
+    echo "  magental   ${greym}............. ${magental}This is text ███████████████${end}"
+    echo "  magentad   ${greym}............. ${magentad}This is text ███████████████${end}"
+    echo "  fuchsial   ${greym}............. ${fuchsial}This is text ███████████████${end}"
+    echo "  fuchsiad   ${greym}............. ${fuchsiad}This is text ███████████████${end}"
+    echo "  bluel      ${greym}............. ${bluel}This is text ███████████████${end}"
+    echo "  blued      ${greym}............. ${blued}This is text ███████████████${end}"
+    echo "  greenl     ${greym}............. ${greenl}This is text ███████████████${end}"
+    echo "  greend     ${greym}............. ${greend}This is text ███████████████${end}"
+    echo "  orangel    ${greym}............. ${orangel}This is text ███████████████${end}"
+    echo "  oranged    ${greym}............. ${oranged}This is text ███████████████${end}"
+    echo "  yellowl    ${greym}............. ${yellowl}This is text ███████████████${end}"
+    echo "  yellowd    ${greym}............. ${yellowd}This is text ███████████████${end}"
+    echo "  greyl      ${greym}............. ${greyl}This is text ███████████████${end}"
+    echo "  greym      ${greym}............. ${greym}This is text ███████████████${end}"
+    echo "  greyd      ${greym}............. ${greyd}This is text ███████████████${end}"
+    echo "  navy       ${greym}............. ${navy}This is text ███████████████${end}"
+    echo "  olive      ${greym}............. ${olive}This is text ███████████████${end}"
+    echo "  peach      ${greym}............. ${peach}This is text ███████████████${end}"
+    echo "  cyan       ${greym}............. ${cyan}This is text ███████████████${end}"
+    echo
 
     exit 1
 }
 
 # #
-#   Helper > Show Color Chart
+#   Helper › Show Color Chart
+#   
 #   Shows a complete color charge which can be used with the color declarations in this script.
-#
+#   
 #   @usage      .github/scripts/bt-transmission.sh chart
 # #
 
-function debug_ColorChart()
+debug_ColorChart( )
 {
-    # foreground / background
-    for fgbg in 38 48 ; do
-        # colors
-        for clr in {0..255} ; do
-            # show color
+    for fgbg in 38 48 ; do                                                      # foreground / background
+        for clr in {0..255} ; do                                                # colors
             printf "\e[${fgbg};5;%sm  %3s  \e[0m" $clr $clr
-            # show 6 colors per lines
-            if [ $((($clr + 1) % 6)) == 4 ] ; then
-                echo -e
+            if [ $((($clr + 1) % 6)) == 4 ] ; then                              # show 6 colors per lines
+                echo
             fi
         done
 
-        echo -e
+        echo
     done
     
     exit 1
-}
-
-# #
-#   func > get version
-#
-#   returns current version of app
-#   converts to human string.
-#       e.g.    "1" "2" "4" "0"
-#               1.2.4.0
-# #
-
-get_version()
-{
-    ver_join=${APP_VER[*]}
-    ver_str=${ver_join// /.}
-    echo ${ver_str}
 }
 
 # #
@@ -283,29 +383,29 @@ get_version()
 opt_usage()
 {
     echo -e
-    printf "  ${BLUE1}${APP_NAME}${RESET}\n" 1>&2
-    printf "  ${DIM}${APP_DESC}${RESET}\n" 1>&2
+    printf "  ${bluel}${app_name}${end}\n" 1>&2
+    printf "  ${dim}${app_desc}${end}\n" 1>&2
     echo -e
     printf '  %-5s %-40s\n' "Usage:" "" 1>&2
-    printf '  %-5s %-40s\n' "    " "${APP_THIS_FILE} [ ${GREY2} options${RESET} ]" 1>&2
-    printf '  %-5s %-40s\n\n' "    " "${APP_THIS_FILE} [ ${GREY2}--help${RESET} ] [ ${GREY2}--dry${RESET} ] [ ${GREY2}--local${RESET} ] [ ${GREY2}--license LICENSE_KEY${RESET} ] [ ${GREY2}--version${RESET} ]" 1>&2
+    printf '  %-5s %-40s\n' "    " "${app_file_this} [ ${greym} options${end} ]" 1>&2
+    printf '  %-5s %-40s\n\n' "    " "${app_file_this} [ ${greym}--help${end} ] [ ${greym}--dry${end} ] [ ${greym}--local${end} ] [ ${greym}--license LICENSE_KEY${end} ] [ ${greym}--version${end} ]" 1>&2
     printf '  %-5s %-40s\n' "Options:" "" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "-l,  --license" "specifies your MaxMind license key" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "-o,  --local" "enables local mode, geo database must be provided locally." 1>&2
-    printf '  %-5s %-18s %-40s\n' "    " "" "    ${GREY2}does not require MaxMind license key${RESET}" 1>&2
-    printf '  %-5s %-18s %-40s\n' "    " "" "    ${GREY2}local geo .csv files OR .zip must be placed in folder ${BLUE2}${APP_THIS_DIR}/${APP_SOURCE_LOCAL}${RESET}" 1>&2
-    printf '  %-5s %-18s %-40s\n' "    " "-d,  --dry" "runs a dry run of loading csv files from ${BLUE2}${APP_GITHUB_DIR}/${APP_SOURCE_TEMP}${RESET} folder" 1>&2
-    printf '  %-5s %-18s %-40s\n' "    " "" "    ${GREY2}requires you place ${GREEN1}${APP_GEO_ZIP}${RESET} and ${GREEN1}${APP_GEO_ZIP_MD5}${RESET} files in ${BLUE2}${APP_GITHUB_DIR}/${APP_SOURCE_TEMP}${RESET} folder${RESET}" 1>&2
+    printf '  %-5s %-18s %-40s\n' "    " "" "    ${greym}does not require MaxMind license key${end}" 1>&2
+    printf '  %-5s %-18s %-40s\n' "    " "" "    ${greym}local geo .csv files OR .zip must be placed in folder ${blued}${app_dir_github}/${folder_source_local}${end}" 1>&2
+    printf '  %-5s %-18s %-40s\n' "    " "-d,  --dry" "runs a dry run of loading csv files from ${blued}${app_dir_github}/${folder_source_local}${end} folder" 1>&2
+    printf '  %-5s %-18s %-40s\n' "    " "" "    ${greym}requires you place ${greenl}${file_source_csv_zip}${end} and ${greenl}${file_source_csv_zip_md5}${end} files in ${blued}${app_dir_github}/${folder_source_local}${end} folder${end}" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "-c,  --color" "displays a demo of the available colors" 1>&2
-    printf '  %-5s %-18s %-40s\n' "    " "" "    ${GREY2}only needed by developer${RESET}" 1>&2
+    printf '  %-5s %-18s %-40s\n' "    " "" "    ${greym}only needed by developer${end}" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "-g,  --graph" "displays a demo bash color graph" 1>&2
-    printf '  %-5s %-18s %-40s\n' "    " "" "    ${GREY2}only needed by developer${RESET}" 1>&2
+    printf '  %-5s %-18s %-40s\n' "    " "" "    ${greym}only needed by developer${end}" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "-d,  --dev" "dev mode" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "-p,  --path" "list of paths associated to script" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "-h,  --help" "show help menu" 1>&2
-    printf '  %-5s %-18s %-40s\n' "    " "" "    ${GREY2}not required when using local mode${RESET}" 1>&2
+    printf '  %-5s %-18s %-40s\n' "    " "" "    ${greym}not required when using local mode${end}" 1>&2
     printf '  %-5s %-18s %-40s\n' "    " "-u,  --usage" "how to use this script" 1>&2
-    printf '  %-5s %-18s %-40s\n' "    " "-v,  --version" "current version of ${APP_THIS_FILE}" 1>&2
+    printf '  %-5s %-18s %-40s\n' "    " "-v,  --version" "current version of ${app_file_this}" 1>&2
     echo
     echo
     exit 1
@@ -318,140 +418,174 @@ opt_usage()
 while [ $# -gt 0 ]; do
     case "$1" in
         -u|--usage)
-                    echo -e
-                    echo -e "  ${WHITE}To use this script, use one of the following methods:\n"
-                    echo -e "  ${GREEN1}${BOLD}   License Key / Normal Mode${RESET}"
-                    echo -e "  ${GREY3}${BOLD}   This method requires no files to be added. The geographical files will be downloaded from the${RESET}"
-                    echo -e "  ${GREY3}${BOLD}   MaxMind website / servers.${RESET}"
-                    echo -e "  ${BLUE2}         ./${APP_THIS_FILE} -l ABCDEF1234567-01234${RESET}"
-                    echo -e "  ${BLUE2}         ./${APP_THIS_FILE} -l ABCDEF1234567-01234${RESET}"
-                    echo -e
-                    echo -e
-                    echo -e "  ${GREEN1}${BOLD}   Local Mode .................................................................................................. ${DIM}[ Option 1 ]${RESET}"
-                    echo -e "  ${GREY3}   This mode allows you to use local copies of the GeoLite2 database files to generate an IP list instead of${RESET}"
-                    echo -e "  ${GREY3}   downloading a fresh copy of the .CSV / .ZIP files from the MaxMind website. This method requires you to${RESET}"
-                    echo -e "  ${GREY3}   place the .ZIP, and .ZIP.MD5 file in the folder ${ORANGE2}${APP_THIS_DIR}/${APP_SOURCE_LOCAL}${RESET}"
-                    echo -e
-                    echo -e "  ${GREY3}${BOLD}   Download the following files from the MaxMind website: ${RESET}"
-                    echo -e "  ${BLUE2}         https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=LICENSE_KEY&suffix=zip${RESET}"
-                    echo -e "  ${BLUE2}         https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=LICENSE_KEY&suffix=zip.md5${RESET}"
-                    echo -e
-                    echo -e "  ${GREY3}${BOLD}   Place the ${GREEN2}.ZIP${RESET} and ${GREEN2}.ZIP.MD5${RESET} files in: ${RESET}"
-                    echo -e "  ${BLUE2}         ${APP_THIS_DIR}/${APP_SOURCE_LOCAL}${RESET}"
-                    echo -e
-                    echo -e "  ${GREY3}${BOLD}   The filenames MUST be: ${RESET}"
-                    echo -e "  ${BLUE2}         ${APP_THIS_DIR}/${APP_SOURCE_LOCAL}/GeoLite2-Country-CSV.zip${RESET}"
-                    echo -e "  ${BLUE2}         ${APP_THIS_DIR}/${APP_SOURCE_LOCAL}/GeoLite2-Country-CSV.zip.md5${RESET}"
-                    echo -e
-                    echo -e "  ${GREY3}${BOLD}   Run the following command: ${RESET}"
-                    echo -e "  ${BLUE2}         ./${APP_THIS_FILE} --local${RESET}"
-                    echo -e "  ${BLUE2}         ./${APP_THIS_FILE} -o${RESET}"
-                    echo -e
-                    echo -e
-                    echo -e "  ${GREEN1}${BOLD}   Local Mode .................................................................................................. ${DIM}[ Option 2 ]${RESET}"
-                    echo -e "  ${GREY3}   This mode allows you to use local copies of the GeoLite2 database files to generate an IP list instead of${RESET}"
-                    echo -e "  ${GREY3}   downloading a fresh copy of the .ZIP files from the MaxMind website. This method requires you to extract${RESET}"
-                    echo -e "  ${GREY3}   the .ZIP and place the .CSV files in the folder ${ORANGE2}${APP_THIS_DIR}/${APP_SOURCE_LOCAL}${RESET}"
-                    echo -e
-                    echo -e "  ${GREY3}${BOLD}   Download the following file from the MaxMind website: ${RESET}"
-                    echo -e "  ${BLUE2}         https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=LICENSE_KEY&suffix=zip${RESET}"
-                    echo -e
-                    echo -e "  ${GREY3}${BOLD}   Open the .ZIP and extract the following files to the folder ${ORANGE2}${APP_THIS_DIR}/${APP_SOURCE_LOCAL}${RESET}"
-                    echo -e "  ${BLUE2}         ${APP_THIS_DIR}/${APP_SOURCE_LOCAL}/GeoLite2-Country-Locations-en.csv${RESET}"
-                    echo -e "  ${BLUE2}         ${APP_THIS_DIR}/${APP_SOURCE_LOCAL}/GeoLite2-Country-Blocks-IPv4.csv${RESET}"
-                    echo -e "  ${BLUE2}         ${APP_THIS_DIR}/${APP_SOURCE_LOCAL}/GeoLite2-Country-Blocks-IPv6.csv${RESET}"
-                    echo -e
-                    echo -e "  ${GREY3}${BOLD}   Run the following command: ${RESET}"
-                    echo -e "  ${BLUE2}         ./${APP_THIS_FILE} --local${RESET}"
-                    echo -e "  ${BLUE2}         ./${APP_THIS_FILE} -o${RESET}"
-                    echo -e
-                    echo -e
-                    echo -e "  ${GREEN1}${BOLD}   Dry Run .....................................................................................................${RESET}"
-                    echo -e "  ${GREY3}   This mode allows you to simulate downloading the .ZIP files from the MaxMind website. However, the CURL${RESET}"
-                    echo -e "  ${GREY3}   commands will not actually be ran. Instead, the script will look for the needed database files in the ${RESET}"
-                    echo -e "  ${GREY3}   ${APP_SOURCE_TEMP} folder. This method requires you to place either the .ZIP & .ZIP.MD5 files, or extracted CSV files${RESET}"
-                    echo -e "  ${GREY3}   in the folder ${ORANGE2}${APP_THIS_DIR}/${APP_SOURCE_TEMP}${RESET}"
-                    echo -e
-                    echo -e "  ${GREY3}${BOLD}   Place the .ZIP & .ZIP.MD5 file, OR the .CSV files in the folder ${ORANGE2}${APP_THIS_DIR}/${APP_SOURCE_TEMP}${RESET}"
-                    echo -e "  ${BLUE2}         ${APP_THIS_DIR}/${APP_SOURCE_TEMP}/GeoLite2-Country-Locations-en.csv${RESET}"
-                    echo -e "  ${BLUE2}         ${APP_THIS_DIR}/${APP_SOURCE_TEMP}/GeoLite2-Country-Blocks-IPv4.csv${RESET}"
-                    echo -e "  ${BLUE2}         ${APP_THIS_DIR}/${APP_SOURCE_TEMP}/GeoLite2-Country-Blocks-IPv6.csv${RESET}"
-                    echo -e
-                    echo -e "  ${BLUE2}         ${APP_THIS_DIR}/${APP_SOURCE_TEMP}/GeoLite2-Country-CSV.zip${RESET}"
-                    echo -e "  ${BLUE2}         ${APP_THIS_DIR}/${APP_SOURCE_TEMP}/GeoLite2-Country-CSV.zip.md5${RESET}"
-                    echo -e
-                    echo -e "  ${GREY3}${BOLD}   Run the following command: ${RESET}"
-                    echo -e "  ${BLUE2}         ./${APP_THIS_FILE} --dry${RESET}"
-                    echo -e "  ${BLUE2}         ./${APP_THIS_FILE} -d${RESET}"
-                    echo -e
-                    exit 1
-                ;;
-        -p|--paths)
-                    echo -e
-                    echo -e "  ${WHITE}List of paths important to this script:\n"
-                    echo -e "  ${GREEN1}${BOLD}${ORANGE2}${APP_THIS_DIR}/${APP_SOURCE_LOCAL}${RESET}${RESET}"
-                    echo -e "  ${GREY3}Folder used when Local Mode enabled (${GREEN2}--local${RESET})${RESET}"
-                    echo -e "  ${GREY2}    Can detect GeoLite2 ${BLUE2}.ZIP${GREY2} and ${BLUE2}.ZIP.MD5${GREY2} files${RESET}"
-                    echo -e "  ${GREY2}    Can detect GeoLite2 ${BLUE2}.CSV${GREY2} location and IPv4/IPv6 files${RESET}"
-                    echo -e
-                    echo -e
-                    echo -e "  ${GREEN1}${BOLD}${ORANGE2}${APP_THIS_DIR}/${APP_SOURCE_TEMP}${RESET}${RESET}"
-                    echo -e "  ${GREY3}Folder used when Dry Run enabled (${GREEN2}--dry${RESET})${RESET}"
-                    echo -e "  ${GREY2}    Can detect GeoLite2 ${BLUE2}.ZIP${GREY2} and ${BLUE2}.ZIP.MD5${GREY2} files${RESET}"
-                    echo -e "  ${GREY2}    Can detect GeoLite2 ${BLUE2}.CSV${GREY2} location and IPv4/IPv6 files${RESET}"
-                    echo -e
-                    echo -e
-                    echo -e "  ${GREEN1}${BOLD}${ORANGE2}${APP_THIS_DIR}/${APP_SOURCE_CACHE}${RESET}${RESET}"
-                    echo -e "  ${GREY3}Folder used to store associative array for continents and countries${RESET}"
-                    echo -e
-                    echo -e
-                    exit 1
-                ;;
-        -l|--license)
-                if [[ "$1" != *=* ]]; then shift; fi
-                LICENSE_KEY="${1#*=}"
-                if [ -z "${LICENSE_KEY}" ]; then
-                    echo -e
-                    echo -e "  ${WHITE}Specifies your MaxMind license key.${RESET}"
-                    echo -e "  ${GREY1}Required if you are not running the script in local mode.${RESET}"
-                    echo -e "  ${WHITE}      Example:    ${GREY2}./${APP_THIS_FILE} -l ABCDEF1234567-01234${RESET}"
-                    echo
-                    exit 1
-                fi
-                ;;
-        -d|--dev)
-                APP_DEBUG=true
-                echo -e "  ${FUCHSIA2}${BLINK}Devmode Enabled${RESET}"
-                ;;
-        -o|--local)
-                APP_SOURCE_LOCAL_ENABLED=true
-                echo -e "  ${FUCHSIA2}${BLINK}Local Mode Enabled${RESET}"
-                ;;
-        -d|--dry)
-                APP_DRYRUN=true
-                echo -e "  ${FUCHSIA2}${BLINK}Dry Run Enabled${RESET}"
-                ;;
-        -v|--version)
                 echo -e
-                echo -e "  ${BLUE2}${BOLD}${APP_NAME}${RESET} - v$(get_version)${RESET}"
-                echo -e "  ${GREEN1}${BOLD}https://github.com/${APP_REPO}${RESET}"
+                echo -e "  ${white}To use this script, use one of the following methods:\n"
+                echo -e "  ${greenl}${bold}   License Key / Normal Mode${end}"
+                echo -e "  ${greyl}${bold}   This method requires no files to be added. The geographical files will be downloaded from the${end}"
+                echo -e "  ${greyl}${bold}   MaxMind website / servers.${end}"
+                echo -e "  ${blued}         ./${app_file_this} -l ABCDEF1234567-01234${end}"
+                echo -e "  ${blued}         ./${app_file_this} -l ABCDEF1234567-01234${end}"
+                echo -e
+                echo -e
+                echo -e "  ${greenl}${bold}   Local Mode .................................................................................................. ${dim}[ Option 1 ]${end}"
+                echo -e "  ${greyl}   This mode allows you to use local copies of the GeoLite2 database files to generate an IP list instead of${end}"
+                echo -e "  ${greyl}   downloading a fresh copy of the .CSV / .ZIP files from the MaxMind website. This method requires you to${end}"
+                echo -e "  ${greyl}   place the .ZIP, and .ZIP.MD5 file in the folder ${orangel}${app_dir_this_dir}/${folder_source_local}${end}"
+                echo -e
+                echo -e "  ${greyl}${bold}   Download the following files from the MaxMind website: ${end}"
+                echo -e "  ${blued}         https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=LICENSE_KEY&suffix=zip${end}"
+                echo -e "  ${blued}         https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=LICENSE_KEY&suffix=zip.md5${end}"
+                echo -e
+                echo -e "  ${greyl}${bold}   Place the ${greend}.ZIP${end} and ${greend}.ZIP.MD5${end} files in: ${end}"
+                echo -e "  ${blued}         ${app_dir_this_dir}/${folder_source_local}${end}"
+                echo -e
+                echo -e "  ${greyl}${bold}   The filenames MUST be: ${end}"
+                echo -e "  ${blued}         ${app_dir_this_dir}/${folder_source_local}/GeoLite2-Country-CSV.zip${end}"
+                echo -e "  ${blued}         ${app_dir_this_dir}/${folder_source_local}/GeoLite2-Country-CSV.zip.md5${end}"
+                echo -e
+                echo -e "  ${greyl}${bold}   Run the following command: ${end}"
+                echo -e "  ${blued}         ./${app_file_this} --local${end}"
+                echo -e "  ${blued}         ./${app_file_this} -o${end}"
+                echo -e
+                echo -e
+                echo -e "  ${greenl}${bold}   Local Mode .................................................................................................. ${dim}[ Option 2 ]${end}"
+                echo -e "  ${greyl}   This mode allows you to use local copies of the GeoLite2 database files to generate an IP list instead of${end}"
+                echo -e "  ${greyl}   downloading a fresh copy of the .ZIP files from the MaxMind website. This method requires you to extract${end}"
+                echo -e "  ${greyl}   the .ZIP and place the .CSV files in the folder ${orangel}${app_dir_this_dir}/${folder_source_local}${end}"
+                echo -e
+                echo -e "  ${greyl}${bold}   Download the following file from the MaxMind website: ${end}"
+                echo -e "  ${blued}         https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=LICENSE_KEY&suffix=zip${end}"
+                echo -e
+                echo -e "  ${greyl}${bold}   Open the .ZIP and extract the following files to the folder ${orangel}${app_dir_this_dir}/${folder_source_local}${end}"
+                echo -e "  ${blued}         ${app_dir_this_dir}/${folder_source_local}/GeoLite2-Country-Locations-en.csv${end}"
+                echo -e "  ${blued}         ${app_dir_this_dir}/${folder_source_local}/GeoLite2-Country-Blocks-IPv4.csv${end}"
+                echo -e "  ${blued}         ${app_dir_this_dir}/${folder_source_local}/GeoLite2-Country-Blocks-IPv6.csv${end}"
+                echo -e
+                echo -e "  ${greyl}${bold}   Run the following command: ${end}"
+                echo -e "  ${blued}         ./${app_file_this} --local${end}"
+                echo -e "  ${blued}         ./${app_file_this} -o${end}"
+                echo -e
+                echo -e
+                echo -e "  ${greenl}${bold}   Dry Run .....................................................................................................${end}"
+                echo -e "  ${greyl}   This mode allows you to simulate downloading the .ZIP files from the MaxMind website. However, the CURL${end}"
+                echo -e "  ${greyl}   commands will not actually be ran. Instead, the script will look for the needed database files in the ${end}"
+                echo -e "  ${greyl}   ${folder_target_temp} folder. This method requires you to place either the .ZIP & .ZIP.MD5 files, or extracted CSV files${end}"
+                echo -e "  ${greyl}   in the folder ${orangel}${app_dir_this_dir}/${folder_target_temp}${end}"
+                echo -e
+                echo -e "  ${greyl}${bold}   Place the .ZIP & .ZIP.MD5 file, OR the .CSV files in the folder ${orangel}${app_dir_this_dir}/${folder_target_temp}${end}"
+                echo -e "  ${blued}         ${app_dir_this_dir}/${folder_target_temp}/GeoLite2-Country-Locations-en.csv${end}"
+                echo -e "  ${blued}         ${app_dir_this_dir}/${folder_target_temp}/GeoLite2-Country-Blocks-IPv4.csv${end}"
+                echo -e "  ${blued}         ${app_dir_this_dir}/${folder_target_temp}/GeoLite2-Country-Blocks-IPv6.csv${end}"
+                echo -e
+                echo -e "  ${blued}         ${app_dir_this_dir}/${folder_target_temp}/GeoLite2-Country-CSV.zip${end}"
+                echo -e "  ${blued}         ${app_dir_this_dir}/${folder_target_temp}/GeoLite2-Country-CSV.zip.md5${end}"
+                echo -e
+                echo -e "  ${greyl}${bold}   Run the following command: ${end}"
+                echo -e "  ${blued}         ./${app_file_this} --dry${end}"
+                echo -e "  ${blued}         ./${app_file_this} -d${end}"
+                echo -e
+                exit 1
+            ;;
+
+        -p|--paths)
+                echo -e
+                echo -e "  ${white}List of paths important to this script:\n"
+                echo -e "  ${greenl}${bold}${orangel}${app_dir_this_dir}/${folder_source_local}${end}${end}"
+                echo -e "  ${greyl}Folder used when Local Mode enabled (${greend}--local${end})${end}"
+                echo -e "  ${greym}    Can detect GeoLite2 ${blued}.ZIP${greym} and ${blued}.ZIP.MD5${greym} files${end}"
+                echo -e "  ${greym}    Can detect GeoLite2 ${blued}.CSV${greym} location and IPv4/IPv6 files${end}"
+                echo -e
+                echo -e
+                echo -e "  ${greenl}${bold}${orangel}${app_dir_this_dir}/${folder_target_temp}${end}${end}"
+                echo -e "  ${greyl}Folder used when Dry Run enabled (${greend}--dry${end})${end}"
+                echo -e "  ${greym}    Can detect GeoLite2 ${blued}.ZIP${greym} and ${blued}.ZIP.MD5${greym} files${end}"
+                echo -e "  ${greym}    Can detect GeoLite2 ${blued}.CSV${greym} location and IPv4/IPv6 files${end}"
+                echo -e
+                echo -e
+                echo -e "  ${greenl}${bold}${orangel}${app_dir_this_dir}/${folder_target_cache}${end}${end}"
+                echo -e "  ${greyl}Folder used to store associative array for continents and countries${end}"
+                echo -e
+                echo -e
+                exit 1
+            ;;
+
+        -l|--license|--key)
+            case "$1" in
+                *=*)
+                    argMMLicense=$(echo "$1" | cut -d= -f2)
+                    ;;
+                *)
+                    shift
+                    argMMLicense="$1"
+                    info "     ⚙️ License specified ${greym}${argMMLicense}"
+                    ;;
+            esac
+
+            if [ -z "${argMMLicense}" ]; then
+                echo
+                echo "  Specifies your MaxMind license key."
+                echo "  Required if you are not running the script in local mode."
+                echo "  Example: ./${app_file_this} -l ABCDEF1234567-01234"
                 echo
                 exit 1
-                ;;
+            fi
+            ;;
+
+        -L|--limit)
+            case "$1" in
+                *=*)
+                    argLimitEntries=$( echo "$1" | cut -d= -f2 )
+                    ;;
+                *)
+                    shift
+                    argLimitEntries="$1"
+                    info "    ⚙️  Specified limit ${greenl}${argLimitEntries}"
+                    ;;
+            esac
+            ;;
+
+        -d|--dev)
+            argDevMode=true
+            info "    ⚙️  Developer Mode ${greenl}enabled"
+            ;;
+
+        -o|--local)
+            argUseLocalDB=true
+            info "    ⚙️  Local Mode ${greenl}enabled"
+            ;;
+    
+        --dry|--dryrun)
+            argDryrun=true
+            info "    ⚙️  Dry-run Mode ${greenl}enabled"
+            ;;
+
+        -v|--version)
+            echo
+            echo "  ${blued}${bold}${app_name}${end} - v${app_ver} ${end}"
+            echo "  ${greenl}${bold}https://github.com/${app_repo} ${end}"
+            echo
+            exit 1
+            ;;
+
         -c|--color)
-                debug_ColorTest
-                exit 1
-                ;;
+            debug_ColorTest
+            exit 1
+            ;;
+
         -g|--graph|--chart)
-                debug_ColorChart
-                exit 1
-                ;;
+            debug_ColorChart
+            exit 1
+            ;;
+
         -\?|-h|--help)
-                opt_usage
-                ;;
+            opt_usage
+            exit 1
+            ;;
+
         *)
-                opt_usage
-                ;;
+            printf '%-28s %-65s\n' "  ${redl} ERROR ${end}" "${greym} Unknown parameter:${redl} $1 ${greym}. Aborting ${end}"
+            exit 1
+            ;;
     esac
     shift
 done
@@ -460,9 +594,9 @@ done
 #   Define
 # #
 
-readonly CONFIGS_LIST="${APP_GEO_LOCS_CSV} ${APP_GEO_IPV4_CSV} ${APP_GEO_IPV6_CSV}"
-declare -A MAP_COUNTRY
-declare -A MAP_CONTINENT
+readonly CONFIGS_LIST="${file_source_csv_locs} ${file_source_csv_ipv4} ${file_source_csv_ipv6}"
+declare -A map_country
+declare -A map_continent
 
 # #
 #   Arguments
@@ -796,12 +930,12 @@ af["ke"]="KE"               # Kenya
 af["km"]="KM"               # Comoros
 af["lr"]="LR"               # Liberia
 af["ls"]="LS"               # Lesotho
-af["ly"]="RE"               # Libya
+af["ly"]="LY"               # Libya
 af["ma"]="MA"               # Morocco
 af["mg"]="MG"               # Madagascar
 af["ml"]="ML"               # Mali
 af["mr"]="MR"               # Mauritania
-af["mu"]="RU"               # Mauritius
+af["mu"]="MU"               # Mauritius
 af["mw"]="MW"               # Malawi
 af["mz"]="MZ"               # Mozambique
 af["na"]="NA"               # Namibia
@@ -843,16 +977,55 @@ an["tf"]="TF"               # French Southern Territories
 # #
 
 declare -A as
+as["ae"]="AE"               # United Arab Emirates
+as["af"]="AF"               # Afghanistan
 as["am"]="AM"               # Armenia
+as["az"]="AZ"               # Azerbaijan
+as["bd"]="BD"               # Bangladesh
+as["bh"]="BH"               # Bahrain
+as["bn"]="BN"               # Brunei
+as["bt"]="BT"               # Bhutan
+as["cn"]="CN"               # China
+as["ge"]="GE"               # Georgia
+as["hk"]="HK"               # Hong Kong
+as["id"]="ID"               # Indonesia
+as["il"]="IL"               # Israel
+as["in"]="IN"               # India
+as["io"]="IO"               # British Indian Ocean Territory
 as["iq"]="IQ"               # Iraq
 as["ir"]="IR"               # Iran
-as["jo"]="JO"               # Hashemite Kingdom of Jordan
+as["jo"]="JO"               # Jordan
+as["jp"]="JP"               # Japan
+as["kg"]="KG"               # Kyrgyzstan
+as["kh"]="KH"               # Cambodia
+as["kp"]="KP"               # North Korea
+as["kr"]="KR"               # South Korea
 as["kw"]="KW"               # Kuwait
+as["kz"]="KZ"               # Kazakhstan
+as["la"]="LA"               # Laos
 as["lb"]="LB"               # Lebanon
+as["lk"]="LK"               # Sri Lanka
+as["mm"]="MM"               # Myanmar
+as["mn"]="MN"               # Mongolia
+as["mo"]="MO"               # Macao
+as["mv"]="MV"               # Maldives
+as["my"]="MY"               # Malaysia
+as["np"]="NP"               # Nepal
 as["om"]="OM"               # Oman
+as["ph"]="PH"               # Philippines
+as["pk"]="PK"               # Pakistan
+as["ps"]="PS"               # Palestine
 as["qa"]="QA"               # Qatar
 as["sa"]="SA"               # Saudi Arabia
+as["sg"]="SG"               # Singapore
 as["sy"]="SY"               # Syria
+as["th"]="TH"               # Thailand
+as["tj"]="TJ"               # Tajikistan
+as["tm"]="TM"               # Turkmenistan
+as["tr"]="TR"               # Turkey
+as["tw"]="TW"               # Taiwan
+as["uz"]="UZ"               # Uzbekistan
+as["vn"]="VN"               # Vietnam
 as["ye"]="YE"               # Yemen
 
 # #
@@ -880,7 +1053,7 @@ eu["fo"]="FO"               # Faroe Islands
 eu["fr"]="FR"               # France
 eu["gb"]="GB"               # United Kingdom
 eu["gg"]="GG"               # Guernsey
-eu["gg"]="SM"               # San Marino
+eu["sm"]="SM"               # San Marino
 eu["gi"]="GI"               # Gibraltar
 eu["gr"]="GR"               # Greece
 eu["hr"]="HR"               # Croatia
@@ -1017,92 +1190,432 @@ sa["ve"]="VE"               # Venezuela
 
 # #
 #   Sort Results
-#
+#   
 #   @usage          line=$(parse_spf_record "${ip}" | sort_results)
 # #
 
 sort_results()
 {
-	declare -a ipv4 ipv6
 
-	while read -r line ; do
-		if [[ ${line} =~ : ]] ; then
-			ipv6+=("${line}")
-		else
-			ipv4+=("${line}")
-		fi
-	done
+    # Temp files for IPv4 and IPv6
+    _ipv4_tmp=$(mktemp) || exit 1
+    _ipv6_tmp=$(mktemp) || exit 1
 
-	[[ -v ipv4[@] ]] && printf '%s\n' "${ipv4[@]}" | sort -g -t. -k1,1 -k 2,2 -k 3,3 -k 4,4 | uniq
-	[[ -v ipv6[@] ]] && printf '%s\n' "${ipv6[@]}" | sort -g -t: -k1,1 -k 2,2 -k 3,3 -k 4,4 -k 5,5 -k 6,6 -k 7,7 -k 8,8 | uniq
+    # Read stdin line by line
+    while IFS= read -r line; do
+        case "$line" in
+            *:*)
+                printf '%s\n' "$line" >> "$_ipv6_tmp" ;;
+            *)
+                printf '%s\n' "$line" >> "$_ipv4_tmp" ;;
+        esac
+    done
+
+    # Sort IPv4 numerically, remove duplicates
+    if [ -s "$_ipv4_tmp" ]; then
+        sort -t. -n -k1,1 -k2,2 -k3,3 -k4,4 "$_ipv4_tmp" | uniq
+    fi
+
+    # Sort IPv6 lexicographically, remove duplicates
+    if [ -s "$_ipv6_tmp" ]; then
+        sort "$_ipv6_tmp" | uniq
+    fi
+
+    # Clean up temp files
+    rm -f "$_ipv4_tmp" "$_ipv6_tmp"
+
+    # #
+    #   Unset
+    # #
+
+    unset   _ipv4_tmp _ipv6_tmp
 }
 
 # #
-#   ensure the programs needed to execute are available
+#   Count file statistics
+#       - IPv4 CIDR contributes all IPv4 addresses in the subnet
+#       - IPv6 CIDR contributes one entry (do not expand)
+#       - Single IPv4/IPv6 contributes one entry
 # #
 
-function CHECK_PACKAGES()
+count_ip_stats( )
 {
-    local PKG="awk cat curl sed md5sum mktemp unzip"
-    which ${PKG} > /dev/null 2>&1 || error "Required dependencies not found in PATH: ${PKG}"
+    _fnCountFile=$1
+    _fnSubnetIps=0
+    _fnTotalIps=0
+    _fnTotalSubnets=0
+
+    while IFS= read -r _fnLine; do
+
+        # #
+        #   IPv4 CIDR
+        # #
+
+        if [[ $_fnLine =~ $regex_ipv4_cidr ]]; then
+            _fnCidr="${BASH_REMATCH[2]}"
+            if [ "$_fnCidr" -le 32 ]; then
+                _fnSubnetIps=$(( 1 << (32 - _fnCidr) ))
+                _fnTotalIps=$(( _fnTotalIps + _fnSubnetIps ))
+                _fnTotalSubnets=$(( _fnTotalSubnets + 1 ))
+            fi
+
+        # #
+        #   IPv4 single
+        # #
+
+        elif [[ $_fnLine =~ $regex_ipv4 ]]; then
+            _fnTotalIps=$(( _fnTotalIps + 1 ))
+
+        # #
+        #   IPv6 CIDR (count as one entry, do not expand)
+        # #
+
+        elif [[ $_fnLine =~ $regex_ipv6_cidr ]]; then
+            _fnCidr="${_fnLine#*/}"
+            if [ "$_fnCidr" -le 128 ]; then
+                _fnTotalIps=$(( _fnTotalIps + 1 ))
+                _fnTotalSubnets=$(( _fnTotalSubnets + 1 ))
+            fi
+
+        # #
+        #   IPv6 single
+        # #
+
+        elif [[ $_fnLine =~ $regex_ipv6 ]] && [[ $_fnLine == *:* ]]; then
+            _fnTotalIps=$(( _fnTotalIps + 1 ))
+        fi
+
+    done < "${_fnCountFile}"
+
+    total_ips=$_fnTotalIps
+    total_subnets=$_fnTotalSubnets
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnCountFile _fnSubnetIps _fnTotalIps _fnTotalSubnets _fnLine _fnCidr
 }
 
 # #
-#   get latest MaxMind GeoLite2 IP country database and md5 checksum
+#   Print › Box › Paragraph
+#   
+#   Places an ASCII box around text. Supports multi-lines with \n, and also emojis.
+#   Func determines the character count if color codes are used and ensures that
+#       the box borders are aligned properly.
+#   
+#   If using emojis; adjust the spacing so that the far-right line will align
+#       with the rest. Add the number of spaces to increase the value, which is
+#       represented with a number enclosed in square brackets.
+#           [1]     add 1 space to the right.
+#           [2]     add 2 spaces to the right.
+#           [-1]    remove 1 space to the right (needed for some emojis depending on if the emoji is 1 or 2 bytes)
+#   
+#   You can also hide the last verticle scrollbar by appending the bool "false" as the latest argument.
+#       prinp "🎌[41] Finished!" false
+#   
+#   @usage          prinp "Certificate Generation Successful" "Your new certificate and keys have been generated successfully.\n\nYou can find them in the ${greenl}${app_dir_output}${greyd} folder."
+#                   prinp "🎗️[1]  ${file_domain_base}" "The following description will show on multiple lines with a ASCII box around it."
+#                   prinp "📄[-1] File Overview" "The following list outlines the files that you have generated using this utility, and what certs/keys may be missing."
+#                   prinp "➡️[15]  ${bluel}Paths${end}"
+#   
+#   @arg    title   Text to show in box.
+#           false   (optional) hide right-side │ on title line
+#                   prinp "Title" false
+#                   prinp "Title" false "Body text"
+# #
+
+prinp()
+{
+    _title="$1"
+    _show_right_border=true
+
+    if [ "$2" = "false" ]; then
+        _show_right_border=false
+        shift 2
+    else
+        shift
+    fi
+
+    _text="$*"
+    _indent="  "
+    _box_width=110
+    _pad=1
+    _content_width=$(( _box_width ))
+    _inner_width=$(( _box_width - _pad*2 ))
+    _hline=$(printf '─%.0s' $(seq 1 "$_content_width"))
+    _emoji_adjust=0
+
+    print
+    printf "${greyd}%s┌%s┐\n" "$_indent" "$_hline"
+
+    # #
+    #   Title
+    #   
+    #   Extract optional [N] adjustment from title (signed integer), portably
+    # #
+
+    _display_title="$_title"
+
+    # #
+    #   Get content inside first [...] (if present)
+    # #
+
+    if printf '%s\n' "$_title" | grep -q '\[[[:space:]]*[-0-9][-0-9[:space:]]*\]'; then
+
+        # #
+        #   Extract numeric inside brackets (allow optional leading -)
+        #       - use sed to capture first bracketed token, then strip non-digit except leading -
+        # #
+
+        _bracket=$(printf '%s' "$_title" | sed -n 's/.*\[\([-0-9][-0-9]*\)\].*/\1/p')
+
+        # #
+        #   Validate numeric and assign, otherwise fallback to 0
+        # #
+    
+        if printf '%s\n' "$_bracket" | grep -qE '^-?[0-9]+$'; then
+            _emoji_adjust=$_bracket
+        else
+            _emoji_adjust=0
+        fi
+
+        # #
+        #   Remove the first [...] token from the display_title
+        # #
+    
+        _display_title=$(printf '%s' "$_title" | sed 's/\[[^]]*\]//')
+    fi
+
+    # #
+    #   Ensure emoji_adjust is a decimal integer so math works
+    # #
+
+    case "$_emoji_adjust" in
+        ''|*[!0-9-]*)
+            _emoji_adjust=0
+            ;;
+    esac
+
+    _title_width=$(( _content_width - _pad ))
+
+    # #
+    #   Account for emoji adjustment in visible length calculation
+    #   Inner line containing content and trailing |
+    # #
+  
+    _title_vis_len=$(( ${#_display_title} - _emoji_adjust ))
+
+    if [ "$_show_right_border" = "true" ]; then
+        printf "${greyd}%s│%*s${bluel}%s${greyd}%*s│\n" \
+            "$_indent" "$_pad" "" "$_display_title" "$(( _title_width - _title_vis_len ))" ""
+    else
+        printf "${greyd}%s│%*s${bluel}%s\n" \
+            "$_indent" "$_pad" "" "$_display_title"
+    fi
+
+    # #
+    #   Only render body text if provided
+    # #
+
+    if [ -n "$_text" ]; then
+        printf "${greyd}%s│%-${_content_width}s│\n" "$_indent" ""
+
+        # #
+        #   Convert literal \n to real newlines
+        # #
+
+        _text=$(printf "%b" "$_text")
+
+        # #
+        #   Handle each line with ANSI-aware wrapping and true padding
+        # #
+
+        printf "%s" "$_text" | while IFS= read -r line || [ -n "$line" ]; do
+
+        # #
+        #   Blank line
+        # #
+    
+        if [ -z "$line" ]; then
+            printf "${greyd}%s│%-*s│\n" "$_indent" "$_content_width" ""
+            continue
+        fi
+
+        # #
+        #   Optional [N] spacing adjustment in body line (same thing done for title)
+        # #    
+
+        _line_emoji_adjust=0
+        if printf '%s\n' "$line" | grep -q '\[[[:space:]]*[-0-9][-0-9[:space:]]*\]'; then
+            _line_bracket=$(printf '%s' "$line" | sed -n 's/.*\[\([-0-9][-0-9]*\)\].*/\1/p')
+
+            if printf '%s\n' "$_line_bracket" | grep -qE '^-?[0-9]+$'; then
+                _line_emoji_adjust=$_line_bracket
+            else
+                _line_emoji_adjust=0
+            fi
+
+            line=$(printf '%s' "$line" | sed 's/\[[^]]*\]//')
+        fi
+
+        case "$_line_emoji_adjust" in
+            ''|*[!0-9-]*)
+                _line_emoji_adjust=0
+                ;;
+        esac
+
+        _out=""
+        for word in $line; do
+
+            # #
+            #   Strip ANSI for visible width
+            # #
+        
+            _vis_out=$(printf "%s" "$_out" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g')
+            _vis_word=$(printf "%s" "$word" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g')
+            _vis_len=$(( ${#_vis_out} + ( ${#_vis_out} > 0 ? 1 : 0 ) + ${#_vis_word} - _line_emoji_adjust ))
+
+            if [ -z "$_out" ]; then
+                _out="$word"
+            elif [ $_vis_len -le $_inner_width ]; then
+                _out="$_out $word"
+            else
+
+                # #
+                #   Print and pad manually based on visible length
+                # #
+
+                _vis_len_full=$(printf "%s" "$_out" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g' | wc -c | tr -d ' ')
+                _vis_len_full=$(( _vis_len_full - _line_emoji_adjust ))
+                [ $_vis_len_full -lt 0 ] && _vis_len_full=0
+                _pad_spaces=$(( _inner_width - _vis_len_full ))
+                [ $_pad_spaces -lt 0 ] && _pad_spaces=0
+                printf "${greyd}%s│%*s%s%*s│\n" "$_indent" "$_pad" "" "$_out" "$(( _pad + _pad_spaces ))" ""
+                _out="$word"
+            fi
+        done
+
+        # #
+        #   Final flush line
+        # #
+    
+        if [ -n "$_out" ]; then
+            _vis_len_full=$(printf "%s" "$_out" | sed 's/\x1B\[[0-9;]*[A-Za-z]//g' | wc -c | tr -d ' ')
+            _vis_len_full=$(( _vis_len_full - _line_emoji_adjust ))
+            [ $_vis_len_full -lt 0 ] && _vis_len_full=0
+            _pad_spaces=$(( _inner_width - _vis_len_full ))
+            [ $_pad_spaces -lt 0 ] && _pad_spaces=0
+            printf "${greyd}%s│%*s%s%*s│\n" "$_indent" "$_pad" "" "$_out" "$(( _pad + _pad_spaces ))" ""
+        fi
+
+        done
+    fi
+
+    printf "${greyd}%s└%s┘${end}\n" "$_indent" "$_hline"
+    print
+
+    # #
+    #   Unset
+    # #
+
+    unset   _title _title_width _text _indent _pad _padding _content_width \
+            _title_length _inner_width _box_width _emoji_adjust \
+            _hline _line _out _i _display_title _vis_out _vis_word _vis_len _vis_len_full \
+            _line_bracket _line_emoji_adjust _pad_spaces _bracket \
+            _show_right_border
+}
+
+# #
+#   Ensure the programs needed to execute are available
+# #
+
+required_Packages()
+{
+    PKG="awk cat curl sed md5sum mktemp unzip"
+
+    for cmd in $PKG; do
+        if ! command -v "${cmd}" >/dev/null 2>&1; then
+            error "    ❌ Required dependency not found in PATH: ${redl}${cmd}"
+        fi
+    done
+}
+
+# #
+#   Get latest MaxMind GeoLite2 IP Country database and md5 checksum
 #       CSV URL: https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=LICENSE_KEY&suffix=zip
 #       MD5 URL: https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=LICENSE_KEY&suffix=zip.md5
-#
-#   if using --dry, you must manually download the .zip and .zip.md5 files and place them in the local folder assigned to the value
-#       $APP_SOURCE_LOCAL
+#   
+#   If using --dry, you must manually download the .zip and .zip.md5 files and place them in the local folder assigned to the value
+#       $folder_source_local
 # #
 
-function DB_DOWNLOAD()
+maxmind_Database_Download( )
 {
-    local URL_CSV="https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=${LICENSE_KEY}&suffix=zip"
+    echo
+    info "    📦 Setup MaxMind databases${greym}"
+
+    local URL_CSV="https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=${argMMLicense}&suffix=zip"
     local URL_MD5="${URL_CSV}.md5" # take URL_CSV value and add .md5 to end for hash file
 
     # #
     #   download files
+    #       - will not download if --dryrun specified
+    #       - will not download if --local specified
     # #
 
-    if [[ "${APP_DRYRUN}" != "true" ]] && [[ $APP_SOURCE_LOCAL_ENABLED != "true" ]]; then
-        local URL_HIDDEN_CSV=$(echo $URL_CSV | sed -e "s/$LICENSE_KEY/HIDDEN/g")
-        local URL_HIDDEN_MD5=$(echo $URL_MD5 | sed -e "s/$LICENSE_KEY/HIDDEN/g")
+    if [ "${argDryrun}" != "true" ] && [ "${argUseLocalDB}" != "true" ]; then
+        URL_HIDDEN_CSV=$(printf '%s\n' "${URL_CSV}" | sed "s/${argMMLicense}/HIDDEN/g")
+        URL_HIDDEN_MD5=$(printf '%s\n' "${URL_MD5}" | sed "s/${argMMLicense}/HIDDEN/g")
 
-        echo -e "  🌎 Downloading file ${GREEN2}${APP_GEO_ZIP}${RESET} from ${URL_HIDDEN_CSV}"
-        curl --silent --location --output $APP_GEO_ZIP "$URL_CSV" || error "Failed to curl file: ${URL_CSV}"
+        info "    🌎 Downloading ${bluel}${file_source_csv_zip}${end} from ${bluel}${URL_HIDDEN_CSV}"
+        if ! curl --silent --show-error --location \
+                --user-agent "${app_agent}" \
+                --output "${file_source_csv_zip}" "${URL_CSV}"
+        then
+            error "    ❌ Failed to curl database files from ${redl}${URL_HIDDEN_CSV}${greym}"
+        fi
 
-        echo -e "  🌎 Downloading file ${GREEN2}${APP_GEO_ZIP_MD5}${RESET} from ${URL_HIDDEN_MD5}"
-        curl --silent --location --output $APP_GEO_ZIP_MD5 "$URL_MD5" || error "Failed to curl file: ${URL_MD5}"
+        info "    🌎 Downloading ${bluel}${file_source_csv_zip_md5}${end} from ${bluel}${URL_HIDDEN_MD5}"
+        if ! curl --silent --show-error --location \
+                --user-agent "${app_agent}" \
+                --output "${file_source_csv_zip_md5}" "${URL_MD5}"
+        then
+            error "    ❌ Failed to curl database files from ${redl}${URL_HIDDEN_MD5}${greym}"
+        fi
     fi
 
     # #
-    #   Both the .ZIP and the .CSV are missing, warn user to provide one or the other
+    #   .CSV missing, warn user to provide one or the other
     # #
 
-    if [[ ! -f ${APP_GEO_ZIP} ]] && [[ ! -f ${APP_GEO_LOCS_CSV} ]]; then
-        error "You must supply either the [ ZIP ${RED2}${APP_GEO_ZIP}${RESET} + MD5 hash file ${RED2}${APP_GEO_ZIP_MD5}${RESET} ] or the extracted CSV files ${RED2}${APP_GEO_LOCS_CSV}${RESET} -- Cannot locate either${RESET}"
+    if [ ! -f "${file_source_csv_zip}" ] && [ ! -f ${file_source_csv_locs} ]; then
+        error "    ❌ Must supply zip ${redl}${file_source_csv_zip}${greym} + md5 ${redl}${file_source_csv_zip_md5}${greym}, or the extracted CSV files ${redd}${file_source_csv_locs}${greym}; cannot locate"
+        exit 0
     fi
 
     # #
     #   Provided the .ZIP, but not the ZIP hash file
     # #
 
-    if [[ -f ${APP_GEO_ZIP} ]] && [[ ! -f "${APP_GEO_ZIP_MD5}" ]]; then
-        error "You provided the ZIP ${RED2}${APP_GEO_ZIP}${RESET}, but did not provide the hash file ${RED2}${APP_GEO_ZIP_MD5}${RESET} -- Cannot continue${RESET}"
+    if [ -f "${file_source_csv_zip}" ] && [ ! -f "${file_source_csv_zip_md5}" ]; then
+        error "    ❌ You supplied zip ${redl}${file_source_csv_zip}${greym}, but did not provide the md5 file ${redl}${file_source_csv_zip_md5}${greym}; cannot continue"
+        exit 0
     fi
 
     # #
     #   Provided the LOCATIONS csv file, but may be missing the others
     # #
 
-    if [[ -f ${APP_GEO_LOCS_CSV} ]]; then
-        if [[ ! -f ${APP_GEO_IPV4_CSV} ]]; then
-            error "You provided the LOCATION CSV ${RED2}${APP_GEO_LOCS_CSV}${RESET}, but did not provide the other needed CSV file ${RED2}$APP_GEO_IPV4_CSV${RESET} -- Cannot continue${RESET}"
+    if [ -f "${file_source_csv_locs}" ]; then
+        if [ ! -f "${file_source_csv_ipv4}" ]; then
+            error "    ❌ You provided the LOCATION CSV ${redl}${file_source_csv_locs}${greym}, but did not provide the other CSV file ${redl}${file_source_csv_ipv4}${greym}; cannot continue"
+            exit 0
         fi
 
-        if [[ ! -f ${APP_GEO_IPV6_CSV} ]]; then
-            error "You provided the LOCATION CSV ${RED2}${APP_GEO_LOCS_CSV}${RESET}, but did not provide the other needed CSV file ${RED2}$APP_GEO_IPV6_CSV${RESET} -- Cannot continue${RESET}"
+        if [ ! -f "${file_source_csv_ipv6}" ]; then
+            error "    ❌ You provided the LOCATION CSV ${redl}${file_source_csv_locs}${greym}, but did not provide the other CSV file ${redl}${file_source_csv_ipv6}${greym}; cannot continue"
+            exit 0
         fi
     fi
 
@@ -1110,27 +1623,31 @@ function DB_DOWNLOAD()
     #   Provided the IPv4 csv file, but may be missing the others
     # #
 
-    if [[ -f ${APP_GEO_IPV4_CSV} ]]; then
-        if [[ ! -f ${APP_GEO_LOCS_CSV} ]]; then
-            error "You provided the IPV4 CSV ${RED2}${APP_GEO_IPV4_CSV}${RESET}, the locations file ${RED2}$APP_GEO_LOCS_CSV${RESET} -- Cannot continue${RESET}"
+    if [ -f "${file_source_csv_ipv4}" ]; then
+        if [ ! -f "${file_source_csv_locs}" ]; then
+            error "    ❌ You supplied IPV4 CSV ${redl}${file_source_csv_ipv4}${greym}, but the locations file ${redl}${file_source_csv_locs}${greym} is missing/empty; cannot continue"
+            exit 0
         fi
 
-        if [[ ! -f ${APP_GEO_IPV6_CSV} ]]; then
-            error "You provided the IPV4 CSV ${RED2}${APP_GEO_IPV4_CSV}${RESET}, but did not provide the other IPv6 CSV file ${RED2}$APP_GEO_IPV6_CSV${RESET} -- Cannot continue${RESET}"
+        if [ ! -f "${file_source_csv_ipv6}" ]; then
+            error "    ❌ You supplied IPV4 CSV ${redl}${file_source_csv_ipv4}${greym}, but did not provide the IPv6 CSV file ${redl}${file_source_csv_ipv6}${greym}; cannot continue"
+            exit 0
         fi
     fi
 
     # #
-    #   Provided the IPv6 csv file, but may be missing the others
+    #   Provided IPv6 csv file, but may be missing the others
     # #
 
-    if [[ -f ${APP_GEO_IPV6_CSV} ]]; then
-        if [[ ! -f ${APP_GEO_LOCS_CSV} ]]; then
-            error "You provided the IPV6 CSV ${RED2}${APP_GEO_IPV6_CSV}${RESET}, but did not provide the locations file ${RED2}$APP_GEO_LOCS_CSV${RESET} -- Cannot continue${RESET}"
+    if [ -f "${file_source_csv_ipv6}" ]; then
+        if [ ! -f "${file_source_csv_locs}" ]; then
+            error "    ❌ You supplied IPV6 CSV ${redl}${file_source_csv_ipv6}${greym}, but the locations file ${redl}${file_source_csv_locs}${greym} is missing/empty; cannot continue"
+            exit 0
         fi
 
-        if [[ ! -f ${APP_GEO_IPV4_CSV} ]]; then
-            error "You provided the IPV6 CSV ${RED2}${APP_GEO_IPV6_CSV}${RESET}, but did not provide the IPv4 CSV file ${RED2}$APP_GEO_IPV4_CSV${RESET} -- Cannot continue${RESET}"
+        if [ ! -f "${file_source_csv_ipv4}" ]; then
+            error "    ❌ You supplied IPv6 CSV ${redl}${file_source_csv_ipv6}${greym}, but did not provide IPv4 CSV file ${redl}${file_source_csv_ipv4}${greym}; cannot continue"
+            exit 0
         fi
     fi
 
@@ -1138,68 +1655,396 @@ function DB_DOWNLOAD()
     #   Zip files provided, check MD5
     # #
 
-    if [[ -f ${APP_GEO_ZIP} ]] && [[ -f ${APP_GEO_ZIP_MD5} ]]; then
+    if [ -f "${file_source_csv_zip}" ] && [ -f "${file_source_csv_zip_md5}" ]; then
 
-        echo -e "  📄 Found ZIP set ${BLUE2}${APP_GEO_ZIP}${RESET} and ${BLUE2}${APP_GEO_ZIP_MD5}${RESET}"
+        info "    📄 Found local Country .zip files ${bluel}${file_source_csv_zip}${greym} and ${bluel}${file_source_csv_zip_md5}${greym}"
 
-        local md5Response="$(cat ${APP_GEO_ZIP_MD5})"
-        if [[ $md5Response == *"download limit reached"* ]]; then
-            error "MaxMind: Daily download limit reached"
+        # #
+        #   Check for download limit reached
+        # #
+
+        md5Response=$(cat "${file_source_csv_zip_md5}")
+        case "$md5Response" in
+            *"download limit reached"*)
+                error "    ❌ MaxMind: Daily API download limit reached"
+                exit 0
+                ;;
+        esac
+
+        # #
+        #   Validate checksum
+        #   .md5 file is not in expected format; 'md5sum --check' won't work
+        # #
+
+        md5_local=$(md5sum "${file_source_csv_zip}" | awk '{print $1}')
+        if [ "$md5Response" != "$md5_local" ]; then
+            error "    ❌ GeoLite2 MD5 downloaded checksum does not match local md5 checksum"
+            exit 0
         fi
 
         # #
-        #   validate checksum
-        #   .md5 file is not in expected format; which means method 'md5sum --check $APP_GEO_ZIP_MD5' wont work
+        #   Unzip into current working directory
         # #
 
-        [[ "$md5Response" == "$(md5sum ${TEMPDIR}/${APP_GEO_ZIP} | awk '{print $1}')" ]] || error "GeoLite2 md5 downloaded checksum does not match local md5 checksum"
-
-        # #
-        #   unzip into current working directory
-        # #
-
-        if [ -f ${APP_GEO_ZIP} ]; then
-            echo -e "      📦 Unzip ${BLUE2}${APP_GEO_ZIP}${RESET}"
-            unzip -o -j -q -d . ${APP_GEO_ZIP}
+        if [ -f "${file_source_csv_zip}" ]; then
+            info "    📦 Found zip ${bluel}${file_source_csv_zip}${greym}"
+            if unzip -o -j -q -d . "${file_source_csv_zip}"; then
+                ok "    📦 Unzip successful ${greenl}${file_source_csv_zip}"
+            else
+                error "    ❌ Unzip failed ${redl}${file_source_csv_zip}${greym}, aborting${greym}"
+                exit 0
+            fi
         else
-            error "Cannot find ${RED2}${APP_GEO_ZIP}${RESET}"
+            error "    ❌ Cannot locate zip ${redl}${file_source_csv_zip}"
+            exit 0
         fi
 
-    elif [[ -f ${APP_GEO_LOCS_CSV} ]] && [[ -f ${APP_GEO_IPV4_CSV} ]] && [[ -f ${APP_GEO_IPV6_CSV} ]]; then
-        echo -e "  📄 Found Uncompressed set ${BLUE2}${APP_GEO_LOCS_CSV}${RESET}, ${BLUE2}${APP_GEO_IPV4_CSV}${RESET} and ${BLUE2}${APP_GEO_IPV6_CSV}${RESET}"
+    elif [ -f "${file_source_csv_locs}" ] && [ -f "${file_source_csv_ipv4}" ] && [ -f "${file_source_csv_ipv6}" ]; then
+        info "    📄 Found Uncompressed set ${bluel}${file_source_csv_locs}${greym},${bluel}${file_source_csv_ipv4}${greym} and ${bluel}${file_source_csv_ipv6}${greym}"
     else
-        error "Could not find either ${ORANGE1}ZIP + MD5${RESET}, or the ${ORANGE1}uncompressed CSV files${RESET}. Aborting.${RESET}"
+        error "    ❌ Could not locate either ${redl}zip + md5${greym} or ${redl}uncompressed csv${greym}"
+        exit 0
     fi
 }
 
 # #
-#   ensure the configuration files needed to execute are available
+#   Maxmind › Load Database
+#   
+#   Database can either be provided locally, or downloaded from the MaxMind site.
+#   This func covers local loading.
 # #
 
-function CONFIG_LOAD()
+maxmind_Database_Load( )
 {
-    echo -e "  📄 Loading geo database files"
+
+    info "    📄 Load COUNTRY Database Files${greym}"
+
+    # #
+    #   Called from
+    #       readonly CONFIGS_LIST="${file_source_csv_locs} ${file_source_csv_ipv4} ${file_source_csv_ipv6}"
+    # #
 
     local configs=(${CONFIGS_LIST})
     for f in ${configs[@]}; do
-        echo -e "      📄 Mounting geo file ${BLUE2}${TEMPDIR}/${f}${RESET}"
-        [[ -f $f  ]] || error "Missing geo file: $f"
+
+        info "    📄 Mounting COUNTRY file ${blued}${TEMPDIR}/${f}"
+        if [ ! -f "$f" ]; then
+            error "    ❌ Missing COUNTRY database: ${redl}${TEMPDIR}/${f}${greym}"
+        fi
     done
 }
 
 # #
+#   Generate › IPv4
+#   
+#   Loads the list of countries and pulls out the IPv4 addresses. Each country will have a country .tmp file created and the list of
+#   ip addresses will be thrown in that file.
+#   
+#   Continents will be placed in:
+#       blocklists/country/geolite/ipv4/AN.tmp
+#       blocklists/country/geolite/ipv4/AF.tmp
+#   
+#   Countries will be placed in:
+#       blocklists/country/geolite/ipv4/AD.tmp
+#       blocklists/country/geolite/ipv4/AE.tmp
+#       [ ... ]
+#   
+#   CSV Structure [ GeoLite2-Blocks-IPv4.csv ]
+#   
+#   Line 0          Line 1          Line 2                              Line 3                              Line 4                  Line 5                          Line 6
+#   -------------------------------------------------------------------------------------------------------------------------------------------------------
+#   network         geoname_id      registered_country_geoname_id       represented_country_geoname_id      is_anonymous_proxy      is_satellite_provider
+#   -------------------------------------------------------------------------------------------------------------------------------------------------------
+#   1.0.0.0/24                      2077456                                                                 0                       0
+#   1.0.1.0/24      1814991         1814991                                                                 0                       0
+#   1.0.164.0/28    1605651         1605651                                                                 0                       0
+# #
+
+generate_IPv4( )
+{
+    echo
+    info "    📟 Generate ${bluel}IPv4${greym} ipsets from database"
+
+    # #
+    #   remove existing ipv4 folder:
+    #       blocklists/country/geolite2/ipv4/
+    # #
+
+    rm -rf "${path_storage_ipv4}"
+    if [ ! -d "${path_storage_ipv4}" ]; then
+        ok "    🗑️  Removed folder ${bluel}${path_storage_ipv4}"
+    else
+        error "    ❌ Failed to remove folder ${greenl}${path_storage_ipv4}"
+    fi
+
+    # #
+    #   Create new ipv4 folder:
+    #       blocklists/country/geolite2/ipv4/
+    # #
+
+    if [ ! -d "${path_storage_ipv4}" ]; then
+        mkdir -p "${path_storage_ipv4}"
+
+        if [ -d "${path_storage_ipv4}" ]; then
+            ok "    📂 Created folder ${greenl}${path_storage_ipv4}"
+        else
+            error "    ❌ Failed to create ${redl}${path_storage_ipv4}"
+        fi
+    fi
+
+    # #
+    #   Generate › IPv4 › Import › GeoLite2-Blocks-IPv4.csv
+    # #
+
+    info "    ➕ Importing ${bluel}IPv4${greym} from COUNTRY database"
+
+    count_ipv4=0
+    OIFS=$IFS
+    IFS=','
+    while read -ra LINE; do
+        [[ $argLimitEntries -gt 0 && $count_ipv4 -ge $argLimitEntries ]] && break
+        ((count_ipv4++))
+
+        # #
+        #   Generate › IPv4 › CSV Structure [ GeoLite2-Blocks-IPv4.csv ]
+        #   
+        #   Line 0          Line 1          Line 2                              Line 3                              Line 4                  Line 5                      Line 6
+        #   ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        #   network         geoname_id      registered_country_geoname_id       represented_country_geoname_id      is_anonymous_proxy      is_satellite_provider       is_anycast
+        #   ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        #   1.0.0.0/24                      2077456                                                                 0                       0
+        #   1.0.1.0/24      1814991         1814991                                                                 0                       0
+        #   1.0.164.0/28    1605651         1605651                                                                 0                       0
+        # #
+
+        ID="${LINE[1]}"
+        if [ -z "${ID}" ]; then
+            ID="${LINE[2]}"
+        fi
+
+        # #
+        #   skip entry if both location and registered country are empty
+        # #
+
+        if [ -z "${ID}" ]; then
+            continue
+        fi
+
+        # #
+        #   If country code
+        # #
+
+        country_code="${map_country[${ID}]}"                                    # AU
+        continent_code="${map_continent[${ID}]}"                                # OC
+        subnet="${LINE[0]}"                                                     # 1.0.0.0/24
+        SET_NAME="${country_code}.${file_target_ext_tmp}"                       # AU.tmp
+
+        # #
+        #   Generate › IPv4 › Define Iptables/Ipsets file
+        # #
+
+        IPSET_FILE="${path_storage_ipv4}/${SET_NAME}"                           # blocklists/country/geolite/ipv4/AU.tmp
+
+        # #
+        #   Generate › IPv4 › Add Continent
+        # #
+
+        if [ -z "${country_code}" ] || [ "${country_code}" == "_" ]; then
+            SET_NAME="${continent_code}.${file_target_ext_tmp}"
+            IPSET_FILE="${path_storage_ipv4}/${SET_NAME}"
+            
+            if [ "$argDevMode" == "true" ]; then
+                debug "    📄 Adding continent ${bluel}${continent_code}${greym} › ${bluel}${IPSET_FILE}${greym}"
+                echo -e "+ Item missing country, assigning as Continent | ID ${ID} - ${LINE[2]} | Subnet ${subnet} | Continent ${continent_code} Country ${country_code} | File ${IPSET_FILE} | NAME ${SET_NAME}" >> "${app_file_this}-ipv4-missing.log"
+            fi
+        fi
+
+        # #
+        #   Generate › IPv4 › Debug Output
+        # #
+
+        if [ $argDevMode == "true" ]; then
+            debug "    📄  Writing IPv4 ${bluel}${subnet}${greym} › ${bluel}${IPSET_FILE}${greym}"
+        fi
+
+        # #
+        #   Generate › IPv4 › Add IP to Ipset File
+        # #
+
+        echo "${subnet}" >> $IPSET_FILE                                         # blocklists/country/geolite/ipv4/AU.tmp
+
+    done < <(sed -e 1d "${TEMPDIR}/${file_source_csv_ipv4}")
+    IFS=$OIFS
+
+    # #
+    #   Generate › IPv4 › Complete
+    # #
+
+    if [ "$count_ipv4" -gt 0 ]; then
+        count_ipv4=$(printf "%'d" "$count_ipv4")
+        ok "    ✅ Import complete (${count_ipv4} entries processed)"
+    else
+        error "    ⭕ Import failed or no entries processed"
+    fi
+}
+
+# #
+#   Generate > IPv6
+#   
+#   Loads the list of countries and pulls out the IPv6 addresses. Each country will have a country .tmp file created and the list of
+#   ip addresses will be thrown in that file.
+#   
+#   Continents will be placed in:
+#       blocklists/country/geolite/ipv6/AN.tmp
+#       blocklists/country/geolite/ipv6/AF.tmp
+#   
+#   Countries will be placed in:
+#       blocklists/country/geolite/ipv6/AD.tmp
+#       blocklists/country/geolite/ipv6/AE.tmp
+#       [ ... ]
+# #
+
+generate_IPv6( )
+{
+    echo
+    info "    📟 Generate ${bluel}IPv6${greym} ipsets from database"
+
+    # #
+    #   Remove existing ipv4 folder:
+    #       blocklists/country/geolite2/ipv4/
+    # #
+
+    rm -rf "${path_storage_ipv6}"
+    if [ ! -d "${path_storage_ipv6}" ]; then
+        ok "    🗑️  Removed folder ${bluel}${path_storage_ipv6}"
+    else
+        error "    ❌ Failed to remove folder ${greenl}${path_storage_ipv6}"
+    fi
+
+    # #
+    #   Create new ipv6 folder:
+    #       blocklists/country/geolite2/ipv6/
+    # #
+
+    if [ ! -d "${path_storage_ipv6}" ]; then
+        mkdir -p "${path_storage_ipv6}"
+
+        if [ -d "${path_storage_ipv6}" ]; then
+            ok "    📂 Created folder ${greenl}${path_storage_ipv6}"
+        else
+            error "    ❌ Failed to create ${redl}${path_storage_ipv6}"
+        fi
+    fi
+
+    # #
+    #   Generate › IPv6 › Import › GeoLite2-Blocks-IPv6.csv
+    # #
+
+    info "    ➕ Importing ${bluel}IPv6${greym} from COUNTRY database"
+
+    count_ipv6=0
+    OIFS=$IFS
+    IFS=','
+    while read -ra LINE; do
+        [[ $argLimitEntries -gt 0 && $count_ipv6 -ge $argLimitEntries ]] && break
+        ((count_ipv6++))
+
+        # #
+        #   Generate › IPv6 › CSV Structure [ GeoLite2-Blocks-IPv6.csv ]
+        #   
+        #   Line 0          Line 1          Line 2                              Line 3                              Line 4                  Line 5                      Line 6
+        #   ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        #   network         geoname_id      registered_country_geoname_id       represented_country_geoname_id      is_anonymous_proxy      is_satellite_provider       is_anycast
+        #   ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        #   2001:200::/32   1861060         1861060                                                                 0                       0
+        #   2001:208::/32   1880251         1880251                                                                 0                       0
+        #   2001:218::/34   1861060         1861060                                                                 0                       0
+        # #
+
+        ID="${LINE[1]}"                                                         # 1605651
+        if [ -z "${ID}" ]; then
+            ID="${LINE[2]}"                                                     # 1605651
+        fi
+
+        # #
+        #   skip entry if both location and registered country are empty
+        # #
+
+        if [ -z "${ID}" ]; then
+            continue
+        fi
+
+        # #
+        #   If country code
+        # #
+
+        country_code="${map_country[${ID}]}"
+        continent_code="${map_continent[${ID}]}"
+        subnet="${LINE[0]}"
+        SET_NAME="${country_code}.${file_target_ext_tmp}"
+
+        # #
+        #   Generate › IPv6 › Define Iptables/Ipsets file
+        # #
+  
+        IPSET_FILE="${path_storage_ipv6}/${SET_NAME}"                           # blocklists/country/geolite/ipv6/AU.tmp
+
+        # #
+        #   Generate › IPv6 › Add Continent
+        # #
+
+        if [ -z "${country_code}" ] || [ "${country_code}" == "_" ]; then
+            SET_NAME="${continent_code}.${file_target_ext_tmp}"
+            IPSET_FILE="${path_storage_ipv6}/${SET_NAME}"
+
+            if [ "$argDevMode" == "true" ]; then
+                debug "    📄 Adding continent ${bluel}${continent_code}${greym} › ${bluel}${IPSET_FILE}${greym}"
+                echo -e "+ Item missing country, assigning as Continent | ID ${ID} - ${LINE[2]} | Subnet ${subnet} | Continent ${continent_code} Country ${country_code} | File ${IPSET_FILE} | NAME ${SET_NAME}" >> "${app_file_this}-ipv6-missing.log"
+            fi
+        fi
+
+        # #
+        #   Generate › IPv6 › Debug Output
+        # #
+
+        if [ $argDevMode == "true" ]; then
+            debug "    📄  Writing IPv6 ${bluel}${subnet}${greym} › ${bluel}${IPSET_FILE}${greym}"
+        fi
+
+        # #
+        #   Generate › IPv6 › Add IP to Ipset File
+        # #
+
+        echo "${subnet}" >> $IPSET_FILE                                         # blocklists/country/geolite/ipv6/AU.tmp
+
+    done < <(sed -e 1d "${TEMPDIR}/${file_source_csv_ipv6}")
+    IFS=$OIFS
+
+    # #
+    #   Generate › IPv6 › Complete
+    # #
+
+    if [ "$count_ipv6" -gt 0 ]; then
+        count_ipv6=$(printf "%'d" "$count_ipv6")
+        ok "    ✅ Import complete (${count_ipv6} entries processed)"
+    else
+        error "    ⭕ Import failed or no entries processed"
+    fi
+}
+
+# #
 #   Loads the GeoLite2 Geolite2-Country-Locations-en.csv file and grabs a list of all locations, line by line.
-#
+#   
 #   Two lists will be populated:
-#       - CONTINENT_CODE
-#       - COUNTRY_CODE
-#
+#       - continent_code
+#       - country_code
+#   
 #   build map of geoname_id to ISO country code
-#   ${MAP_COUNTRY[$geoname_id]}='country_iso_code'
+#   ${map_country[$geoname_id]}='country_iso_code'
 #   example row: 6251999,en,NA,"North America",CA,Canada,0
-#
+#   
 #   CSV Structure [ Geolite2-Country-Locations-en.csv ]
-#
+#   
 #   Line 0          Line 1          Line 2              Line 3              Line 4                  Line 5                          Line 6
 #   -------------------------------------------------------------------------------------------------------------------------------------------------------
 #   geoname_id      locale_code     continent_code      continent_name      country_iso_code        country_name                    is_in_european_union
@@ -1212,305 +2057,117 @@ function CONFIG_LOAD()
 #   6252001         en              NA                  North America       US                      United States                   0
 # #
 
-function MAP_BUILD()
+maxmind_Map_Build( )
 {
-    echo -e "  🗺️  Build map"
+    echo
+    info "    🗺️  Building ${bluel}IP Map${greym}"
 
     OIFS=$IFS
     IFS=','
     while read -ra LINE; do
 
-        if [[ $APP_DEBUG == "true" ]]; then
-            echo -e "ID ............... ${LINE[0]}"
-            echo -e "Lang ............. ${LINE[1]}"
-            echo -e "Continent Code ... ${LINE[2]}"
-            echo -e "Continent ........ ${LINE[3]}"
-            echo -e "Country Code. .... ${LINE[4]}"
-            echo -e "Country .......... ${LINE[5]}"
-            echo -e "In EU Union ...... ${LINE[6]}"
-            echo -e
+        if [ $argDevMode == "true" ]; then
+            debug "    🗺️  Map: ${yellowd}ID: ${blued}${LINE[0]}${greyd} › ${yellowd}Lang: ${blued}${LINE[1]}${greyd} › ${yellowd}EU Union: ${blued}${LINE[6]}${greym} › ${yellowd}Continent: ${blued}${LINE[3]} (${LINE[2]})${greyd} › ${yellowd}Country: ${blued}${LINE[5]} (${LINE[4]})${greyd}"
         fi
 
         # echo "geoname_id: ${LINE[0]} country code: ${LINE[4]}"
-        CONTINENT_CODE="${LINE[2]}"
-        COUNTRY_CODE="${LINE[4]}"
+        continent_code="${LINE[2]}"
+        country_code="${LINE[4]}"
     
         # skip geoname_id which are not country specific (ex: Europe)
-        if [[ ! -z $COUNTRY_CODE ]]; then
-            MAP_COUNTRY[${LINE[0]}]=${COUNTRY_CODE}
+        if [[ ! -z $country_code ]]; then
+            map_country[${LINE[0]}]=${country_code}
         fi
 
-        if [[ ! -z $CONTINENT_CODE ]]; then
-            MAP_CONTINENT[${LINE[0]}]=${CONTINENT_CODE}
+        if [[ ! -z $continent_code ]]; then
+            map_continent[${LINE[0]}]=${continent_code}
         fi
 
-    done < <(sed -e 1d ${APP_GEO_LOCS_CSV})
-    IFS=$OIFS
-}
-
-# #
-#   Generate > IPv4
-#
-#   Loads the list of countries and pulls out the IPv4 addresses. Each country will have a country .tmp file created and the list of
-#   ip addresses will be thrown in that file.
-#
-#   Continents will be placed in:
-#       blocklists/country/geolite/ipv4/AN.tmp
-#       blocklists/country/geolite/ipv4/AF.tmp
-#       blocklists/country/geolite/ipv4/EU.tmp
-#       blocklists/country/geolite/ipv4/AS.tmp
-#       blocklists/country/geolite/ipv4/SA.tmp
-#       blocklists/country/geolite/ipv4/NA.tmp
-#       blocklists/country/geolite/ipv4/OC.tmp
-#
-#   Countries will be placed in:
-#       blocklists/country/geolite/ipv4/AD.tmp
-#       blocklists/country/geolite/ipv4/AE.tmp
-#       blocklists/country/geolite/ipv4/AF.tmp
-#       [ ... ]
-#
-#   CSV Structure [ GeoLite2-Blocks-IPv4.csv ]
-#
-#   Line 0          Line 1          Line 2                              Line 3                              Line 4                  Line 5                          Line 6
-#   -------------------------------------------------------------------------------------------------------------------------------------------------------
-#   network         geoname_id      registered_country_geoname_id       represented_country_geoname_id      is_anonymous_proxy      is_satellite_provider
-#   -------------------------------------------------------------------------------------------------------------------------------------------------------
-#   1.0.0.0/24                      2077456                                                                 0                       0
-#   1.0.1.0/24      1814991         1814991                                                                 0                       0
-#   1.0.164.0/28    1605651         1605651                                                                 0                       0
-# #
-
-function GENERATE_IPv4
-{
-
-    echo -e "  📟 Generate IPv4"
-    echo -e "      📂 Remove ${RED2}${APP_DIR_IPV4}${RESET}"
-
-    rm -rf $APP_DIR_IPV4
-    echo -e "      📂 Create ${GREEN1}${APP_DIR_IPV4}${RESET}"
-    mkdir --parent $APP_DIR_IPV4
-
-    OIFS=$IFS
-    IFS=','
-
-    echo -e "      ➕ Importing IPs from database${RESET}"
-    while read -ra LINE; do
-
-        # #
-        #   prefer location over registered country 
-        # #
-
-        ID="${LINE[1]}"
-        if [ -z "${ID}" ]; then
-            ID="${LINE[2]}"
-        fi
-
-        # #
-        #   skip entry if both location and registered country are empty
-        # #
-
-        if [ -z "${ID}" ]; then
-            continue
-        fi
-
-        # #
-        #   If country code
-        # #
-
-        COUNTRY_CODE="${MAP_COUNTRY[${ID}]}"
-        CONTINENT_CODE="${MAP_CONTINENT[${ID}]}"
-        SUBNET="${LINE[0]}"
-        SET_NAME="${COUNTRY_CODE}.${APP_TARGET_EXT_TMP}"
-
-        # #
-        #   iptables/ipsets
-        # #
-
-        IPSET_FILE="${APP_DIR_IPV4}/${SET_NAME}"
-
-        # #
-        #   add ip to ipset file
-        # #
-
-        if [ -z "${COUNTRY_CODE}" ] || [ "${COUNTRY_CODE}" == "" ] || [ "${COUNTRY_CODE}" == "_" ]; then
-            SET_NAME="${CONTINENT_CODE}.${APP_TARGET_EXT_TMP}"
-            IPSET_FILE="${APP_DIR_IPV4}/${SET_NAME}"
-
-            if [[ $APP_DEBUG == "true" ]]; then
-                echo -e "      🌎 Added continent ${CONTINENT_CODE} to ${IPSET_FILE}"
-                echo -e "+ Item missing country, assigning as Continent | ID ${ID} - ${LINE[2]} | Subnet ${SUBNET} | Continent ${CONTINENT_CODE} Country ${COUNTRY_CODE} | File ${IPSET_FILE} | NAME ${SET_NAME}" >> "${APP_THIS_FILE}-ipv4-missing.log"
-            fi
-        fi
-
-        # #
-        #   add ip to ipset file
-        # #
-
-        if [[ $APP_DEBUG == "true" ]]; then
-            echo -e "      📄 Add ${SUBNET} to ${IPSET_FILE}"
-        fi
-
-        echo "${SUBNET}" >> $IPSET_FILE
-
-    done < <(sed -e 1d "${TEMPDIR}/${APP_GEO_IPV4_CSV}")
-    IFS=$OIFS
-}
-
-# #
-#   Generate > IPv6
-#
-#   Loads the list of countries and pulls out the IPv6 addresses. Each country will have a country .tmp file created and the list of
-#   ip addresses will be thrown in that file.
-#
-#   Continents will be placed in:
-#       blocklists/country/geolite/ipv6/AN.tmp
-#       blocklists/country/geolite/ipv6/AF.tmp
-#       blocklists/country/geolite/ipv6/EU.tmp
-#       blocklists/country/geolite/ipv6/AS.tmp
-#       blocklists/country/geolite/ipv6/SA.tmp
-#       blocklists/country/geolite/ipv6/NA.tmp
-#       blocklists/country/geolite/ipv6/OC.tmp
-#
-#   Countries will be placed in:
-#       blocklists/country/geolite/ipv6/AD.tmp
-#       blocklists/country/geolite/ipv6/AE.tmp
-#       blocklists/country/geolite/ipv6/AF.tmp
-#       [ ... ]
-# #
-
-function GENERATE_IPv6
-{
-
-    echo -e "  📟 Generate IPv6"
-    echo -e "      📂 Remove ${RED2}${APP_DIR_IPV6}${RESET}"
-
-    rm -rf $APP_DIR_IPV6
-    echo -e "      📂 Create ${GREEN1}${APP_DIR_IPV6}${RESET}"
-    mkdir --parent $APP_DIR_IPV6
-
-    OIFS=$IFS
-    IFS=','
-
-    echo -e "      ➕ Importing IPs from database${RESET}"
-    while read -ra LINE; do
-
-        # #
-        #   prefer location over registered country
-        # #
-
-        ID="${LINE[1]}"
-        if [ -z "${ID}" ]; then
-            ID="${LINE[2]}"
-        fi
-
-        # #
-        #   skip entry if both location and registered country are empty
-        # #
-
-        if [ -z "${ID}" ]; then
-            continue
-        fi
-
-        # #
-        #   If country code
-        # #
-
-        COUNTRY_CODE="${MAP_COUNTRY[${ID}]}"
-        CONTINENT_CODE="${MAP_CONTINENT[${ID}]}"
-        SUBNET="${LINE[0]}"
-        SET_NAME="${COUNTRY_CODE}.${APP_TARGET_EXT_TMP}"
-
-        # #
-        #   iptables/ipsets
-        # #
-  
-        IPSET_FILE="${APP_DIR_IPV6}/${SET_NAME}"
-
-        # #
-        #   add ip to ipset file
-        # #
-
-        if [ -z "${COUNTRY_CODE}" ] || [ "${COUNTRY_CODE}" == "" ] || [ "${COUNTRY_CODE}" == "_" ]; then
-            SET_NAME="${CONTINENT_CODE}.${APP_TARGET_EXT_TMP}"
-            IPSET_FILE="${APP_DIR_IPV4}/${SET_NAME}"
-
-            if [[ $APP_DEBUG == "true" ]]; then
-                echo -e "      🌎 Added continent ${CONTINENT_CODE} to ${IPSET_FILE}"
-                echo -e "+ Item missing country, assigning as Continent | ID ${ID} - ${LINE[2]} | Subnet ${SUBNET} | Continent ${CONTINENT_CODE} Country ${COUNTRY_CODE} | File ${IPSET_FILE} | NAME ${SET_NAME}" >> "${APP_THIS_FILE}-ipv4-missing.log"
-            fi
-        fi
-
-        # #
-        #   add ip to ipset file
-        # #
-
-        if [[ $APP_DEBUG == "true" ]]; then
-            echo -e "      📄 Add ${SUBNET} to ${IPSET_FILE}"
-        fi
-
-        echo "${SUBNET}" >> $IPSET_FILE
-
-    done < <(sed -e 1d "${TEMPDIR}/${APP_GEO_IPV6_CSV}")
+    done < <(sed -e 1d ${file_source_csv_locs})
     IFS=$OIFS
 }
 
 # #
 #   Merge IPv4 and IPv6 Files
-#
+#   
 #   Takes all of the ipv6 addresses and merges them with the ipv4 file.
 #       blocklists/country/geolite/ipv6/AD.tmp  =>  blocklists/country/geolite/ipv4/AD.tmp
 #       [ DELETED ]                             =>                         [ MERGED WITH ]
-#
+#   
 #   Removes the ipv6 file after the merge is done.
 # #
 
-function MERGE_IPSETS()
+ipsets_Merge( )
 {
+    echo
+    info "    🔀 Start Merge"
 
-    echo -e
-    echo -e "  🚛 Start Merge"
-
-    for fullpath_ipv6 in ${APP_DIR_IPV6}/*.${APP_TARGET_EXT_TMP}; do
+    for fullpath_ipv6 in ${path_storage_ipv6}/*.${file_target_ext_tmp}; do
         file_ipv6=$(basename ${fullpath_ipv6})
 
-        if [[ $APP_DEBUG == "true" ]]; then
-            # /blocklists/country/geolite/ipv6/AE.tmp to ./blocklists/country/geolite/ipv4/AE.tmp
-            echo -e "  📄 Move ${fullpath_ipv6} to ${APP_DIR_IPV4}/${file_ipv6}"
+        mv -- "$fullpath_ipv6" "${path_storage_ipv4}/${file_ipv6}"
+        if [[ $? -ne 0 ]]; then
+            error "    ❌ Could not move file ${redd}${fullpath_ipv6}${greym} › ${redd}${path_storage_ipv4}/${file_ipv6}${end}"
+            exit 1
+        else
+            ok "    📄 Moved ${greenl}${fullpath_ipv6}${greym} › ${greenl}${path_storage_ipv4}/${file_ipv6}${greym}"
         fi
 
-        cat $fullpath_ipv6 >> ${APP_DIR_IPV4}/${file_ipv6}
         rm -rf $fullpath_ipv6
+        if [ ! -d "${fullpath_ipv6}" ]; then
+            ok "    🗑️  Removed folder ${bluel}${fullpath_ipv6}"
+        else
+            error "    ❌ Failed to remove folder ${greenl}${fullpath_ipv6}"
+        fi
     done
 }
 
 # #
 #   Cleanup Garbage
-#
+#   
 #   Removes old ipv4 and ipv5 folders
 # #
 
-function GARBAGE()
+gcc( )
 {
-    if [ -d $APP_DIR_IPV4 ]; then
-        echo -e "  🗑️  Cleanup ${APP_DIR_IPV4}"
-        rm -rf ${APP_DIR_IPV4}
+    echo
+    info "    🗑️  Starting ${bluel}GCC${greym} cleanup"
+
+    # remove blocklists/country/geolite/ipv4
+    if [ -d $path_storage_ipv4 ]; then
+        rm -rf ${path_storage_ipv4}
+        if [ ! -d "${path_storage_ipv4}" ]; then
+            ok "    🗑️  Removed folder ${bluel}${path_storage_ipv4}"
+        else
+            error "    ❌ Failed to remove folder ${greenl}${path_storage_ipv4}"
+        fi
     fi
 
-    if [ -d $APP_DIR_IPV6 ]; then
-        echo -e "  🗑️  Cleanup ${APP_DIR_IPV6}"
-       rm -rf ${APP_DIR_IPV6}
+    # remove blocklists/country/geolite/ipv6
+    if [ -d $path_storage_ipv6 ]; then
+       rm -rf ${path_storage_ipv6}
+        if [ ! -d "${path_storage_ipv6}" ]; then
+            ok "    🗑️  Removed folder ${bluel}${path_storage_ipv6}"
+        else
+            error "    ❌ Failed to remove folder ${greenl}${path_storage_ipv6}"
+        fi
     fi
 
     # remove temp
-    rm -rf "${APP_GITHUB_DIR}/${APP_SOURCE_TEMP}"
+    rm -rf "${app_dir_github}/${folder_target_temp}"
+    if [ ! -d "${app_dir_github}/${folder_target_temp}" ]; then
+        ok "    🗑️  Removed folder ${bluel}${app_dir_github}/${folder_target_temp}"
+    else
+        error "    ❌ Failed to remove folder ${greenl}${app_dir_github}/${folder_target_temp}"
+    fi
 }
 
 # #
 #   Generate Continents
-#
+#   
 #   Loops through array continents to get the 7 main continents.
 #   Within each loop, the other country arrays will be checked to see if that parent continent has any countries within it to list under that continent name.
-#
+#   
 #   CONTINENT files will be created in:
 #       blocklists/country/geolite/ipv4/AN.tmp
 #       blocklists/country/geolite/ipv4/AF.tmp
@@ -1519,55 +2176,60 @@ function GARBAGE()
 #       blocklists/country/geolite/ipv4/SA.tmp
 #       blocklists/country/geolite/ipv4/NA.tmp
 #       blocklists/country/geolite/ipv4/OC.tmp
-#
+#   
 #   COUNTRY files will be created in:
 #       blocklists/country/geolite/ipv4/AD.tmp
 #       blocklists/country/geolite/ipv4/AE.tmp
 #       blocklists/country/geolite/ipv4/AF.tmp
 #       [ ... ]
-#
+#   
 #   If a country exists within a continent, a new file will be created:
 #       blocklists/country/geolite/ipv4/AD.tmp
-#
+#   
 #   If there are IP addresses with NO country specified, and are continent only, those IPs will be moved to
 #   a base (parent) continent file:
 #       blocklists/country/geolite/ipv4/EU.tmp
-#
+#   
 #   After all IPs are added for a continent, the .tmp file will be moved to its final spot:
 #       blocklists/country/geolite/ipv4/EU.tmp => blocklists/country/geolite/EU.ipset
 # #
 
-function GENERATE_CONTINENTS()
+generate_Continents( )
 {
 
-    echo -e
-    echo -e "  🏷️  Generate Continents"
-
+    echo
+    info "    🌎 Generate New ${bluel}Continent${greym}"
+    
     # #
     #   continents array
     #       key     value
     #       -------------------
     #       AN      Antartica
     #       AS      Asia
-    #
-    #       CONTINENT_NAME          = South America
-    #       CONTINENT_ID            = south_america
+    #   
+    #       _continent_name         = South America
+    #       _continent_id           = south_america
     #       FILE_CONTINENT_TEMP     = blocklists/country/geolite/ipv4/continent_europe.tmp
-    #       FILE_CONTINENT_PERM     = blocklists/country/geolite/ipv4/continent_europe.ipset
+    #       _continent_file_perm    = blocklists/country/geolite/ipv4/continent_europe.ipset
     # #
 
     # loop continents, antartica, europe, north america
-    local TEMPL_COUNTRIES_LIST=""
-    local count=0
+    templ_countries_list=""
+    count=0
+    _continent_build_hasmatch=""
+
+    grand_total_ips=0
+    grand_total_subnets=0
+    grand_total_lines=0
     for key in "${!continents[@]}"; do
     
-        CONTINENT_NAME=${continents[$key]}
-        CONTINENT_ID=$( echo "$CONTINENT_NAME" | sed 's/ /_/g' | tr -d "[.,/\\-\=\+\{\[\]\}\!\@\#\$\%\^\*\'\\\(\)]" | tr '[:upper:]' '[:lower:]')
+        _continent_name=${continents[$key]}
+        _continent_id=$( echo "$_continent_name" | sed 's/ /_/g' | tr -d "[.,/\\-\=\+\{\[\]\}\!\@\#\$\%\^\*\'\\\(\)]" | tr '[:upper:]' '[:lower:]')
 
-        FILE_CONTINENT_TEMP="$APP_DIR_IPV4/continent_$CONTINENT_ID.$APP_TARGET_EXT_TMP"             # blocklists/country/geolite/ipv4/continent_europe.tmp
-        FILE_CONTINENT_PERM="$APP_TARGET_DIR/continent_$CONTINENT_ID.$APP_TARGET_EXT_PROD"          # blocklists/country/geolite/ipv4/continent_europe.ipset
+        _continent_file_temp="$path_storage_ipv4/continent_$_continent_id.$file_target_ext_tmp"             # blocklists/country/geolite/ipv4/continent_europe.tmp
+        _continent_file_perm="$folder_target_storage/continent_$_continent_id.$file_target_ext_ipset"       # blocklists/country/geolite/ipv4/continent_europe.ipset
 
-        echo -e "      🌎 Generate Continent ${BLUE2}${CONTINENT_NAME}${RESET} ${GREY3}(${CONTINENT_ID})${RESET}"
+        info "       🗺️  Generating ${bluel}${_continent_name}${end} ${greyl}(${_continent_id})${end}"
 
         # #
         #   Return each country's ips to be included in continent file
@@ -1575,30 +2237,33 @@ function GENERATE_CONTINENTS()
         #       BG
         # #
 
-        COUNTRY_ABBREV=$(echo "$key" | tr '[:upper:]' '[:lower:]')
-        TEMPL_COUNTRIES_LIST=""
-        local count=1   # start at one, since the last step is base continent file
-        for country in $(eval echo \${$COUNTRY_ABBREV${i}[@]}); do
+        templ_countries_list=""
+        _continent_abbrev=$(echo "$key" | tr '[:upper:]' '[:lower:]')
+        count=1                                                                 # start at one, since the last step is base continent file
+        for country in $( eval echo \${$_continent_abbrev${i}[@]} ); do
+            time_start_task=$( date +%s )                                       # record start time of script
             CONTINENT_COUNTRY_NAME=$(get_country_name "$country")
 
             # count number of items in country array for this particular continent
-            i_array=$(eval echo \${#$COUNTRY_ABBREV${i}[@]})
+            i_array=$(eval echo \${#$_continent_abbrev${i}[@]})
             i_array=$(( $i_array - 1 ))
 
-            echo -e "          🌎 + Country ${DIM}${BLUE2}${CONTINENT_NAME}${RESET} › ${BLUE2}${CONTINENT_COUNTRY_NAME}${RESET} ${GREY2}(${country})${RESET}"
+            info "          New country ${dim}${bluel}${_continent_name}${greym} › ${bluel}${CONTINENT_COUNTRY_NAME}${greym}(${country})${end}"
 
-            # blocklists/country/geolite/ipv4/JE.tmp
-            FILE_TARGET="$APP_DIR_IPV4/$country.$APP_TARGET_EXT_TMP"
+            _file_target="$path_storage_ipv4/$country.$file_target_ext_tmp"     # blocklists/country/geolite/ipv4/JE.tmp
 
-            # check if a specific country file exists, if so, open and grab all the IPs in the list. They need to be copied to $FILE_CONTINENT_TEMP
-            if [ -f "$FILE_TARGET" ]; then
+            # check if a specific country file exists, if so, open and grab all the IPs in the list. They need to be copied to $_continent_file_temp
+            if [ -f "$_file_target" ]; then
                 # ./blocklists/country/geolite/ipv4/VU.tmp to ./blocklists/country/geolite/ipv4/continent_oceania.tmp
-                if [[ $APP_DEBUG == "true" ]]; then
-                    echo -e "          📒 Add country to continent file ${ORANGE2}${FILE_TARGET}${RESET} to ${BLUE2}${FILE_CONTINENT_TEMP}${RESET}"
-                fi
-                APP_OUTPUT=$(cat "$FILE_TARGET" | sort_results | awk '{if (++dup[$0] == 1) print $0;}' >> ${FILE_CONTINENT_TEMP})
+                mkdir -p "$(dirname "${_continent_file_temp}")"                 # ensure directory exists
+                touch "${_continent_file_temp}"                                 # ensure file exists
+                cat "$_file_target" | sort_results | awk '{if (++dup[$0] == 1) print $0;}' >> "${_continent_file_temp}"
+
+                : "${_continent_build_hasmatch:=$_file_target}"
+
+                ok "          Added ${greenl}${_continent_name}${greym} › ${greenl}${CONTINENT_COUNTRY_NAME}${greym} to ${greenl}${_continent_file_temp}"
             else
-                echo -e "          ⭕ Could not find target file $FILE_TARGET"
+                warn "          No country file ${yellowd}${_file_target}${greym}; skipping"
             fi
 
             # #
@@ -1607,16 +2272,16 @@ function GENERATE_CONTINENTS()
             # #
 
             if [ "${i_array}" == "${count}" ]; then
-                if [ $((ASN_I_STEP%3)) -eq 0 ]; then
-                    TEMPL_ASN_LIST+=$'\n'"#                   ${CONTINENT_COUNTRY_NAME} (${country})"
+                if [ $((count%3)) -eq 0 ]; then
+                    templ_countries_list+=$'\n'"#                   ${CONTINENT_COUNTRY_NAME} (${country})"
                 else
-                    TEMPL_ASN_LIST+="${CONTINENT_COUNTRY_NAME} (${country})"
+                    templ_countries_list+="${CONTINENT_COUNTRY_NAME} (${country})"
                 fi
             else
                 if [ $((count%3)) -eq 0 ]; then
-                    TEMPL_COUNTRIES_LIST+=$'\n'"#                   ${CONTINENT_COUNTRY_NAME} (${country}), "
+                    templ_countries_list+=$'\n'"#                   ${CONTINENT_COUNTRY_NAME} (${country}), "
                 else
-                    TEMPL_COUNTRIES_LIST+="${CONTINENT_COUNTRY_NAME} (${country}), "
+                    templ_countries_list+="${CONTINENT_COUNTRY_NAME} (${country}), "
                 fi
             fi
 
@@ -1625,150 +2290,190 @@ function GENERATE_CONTINENTS()
 
         # #
         #   Import the continent file
-        #
+        #   
         #   Looks for the continent file that contains all non-country assigned IPs. Not all continents will have one.
-        #
-        #   CONTINENT_BASE_TARGET
+        #   
+        #   _continent_base_target
         #       blocklists/country/geolite/ipv4/AN.tmp
         #       blocklists/country/geolite/ipv4/AF.tmp
         #       blocklists/country/geolite/ipv4/EU.tmp
-        #       blocklists/country/geolite/ipv4/AS.tmp
-        #       blocklists/country/geolite/ipv4/SA.tmp
-        #       blocklists/country/geolite/ipv4/NA.tmp
-        #       blocklists/country/geolite/ipv4/OC.tmp
+        #       blocklists/country/geolite/ipv4/continent_oceania.tmp
         # #
 
-        CONTINENT_BASE_TARGET="$APP_DIR_IPV4/$key.$APP_TARGET_EXT_TMP"
-        if [ -f "$CONTINENT_BASE_TARGET" ]; then
-            echo -e "          📒 Merge base continent file ${ORANGE2}${CONTINENT_BASE_TARGET}${RESET} to ${BLUE2}${FILE_CONTINENT_TEMP}${RESET}"
-
-            APP_OUTPUT=$(cat "$CONTINENT_BASE_TARGET" | sort_results | awk '{if (++dup[$0] == 1) print $0;}' >> ${FILE_CONTINENT_TEMP})
-            echo -e
+        _continent_base_target="$path_storage_ipv4/$key.$file_target_ext_tmp"
+        if [ -f "$_continent_base_target" ]; then
+            info "          Merge base continent file ${bluel}${_continent_base_target}${greym} › ${bluel}${_continent_file_temp}${end}"
+            cat "$_continent_base_target" | sort_results | awk '{if (++dup[$0] == 1) print $0;}' >> "${_continent_file_temp}"
         else
-            echo -e "          ⭕ Continent ${BLUE2}${CONTINENT_NAME}${RESET} doesn't have a base file to import from ${BLUE2}${CONTINENT_BASE_TARGET}${RESET} ... skipping"
+            warn "          Continent ${yellowl}${_continent_name}${greym} doesn't have a base file to import from ${yellowl}${_continent_base_target}${greym}; skipping"
+        fi
+
+        # #
+        #   Set Continent Name
+        # #
+
+        templ_continent_name="${_continent_name}"
+        _fnFileTemp="${_continent_file_temp}"
+
+        # #
+        #   Perform sed actions on downloaded file.
+        # #
+
+        if [ -f "$_fnFileTemp" ]; then
+
+            # normalize CRLF
+            sed -i 's/\r$//' "${_fnFileTemp}"
+
+            # remove hyphens from IP ranges (if format is "1.2.3.4 - 1.2.3.5" take left side)
+            sed -i 's/-.*//' "${_fnFileTemp}"
+
+            # remove inline comments (strip ' # comment' or ' ; comment' from end of lines ; collapse whitespace, trim)
+            sed -i 's/[[:space:]]*[#;].*$//' "${_fnFileTemp}"
+
+            # collapse multiple whitespace into a single space
+            sed -i 's/[[:space:]]\+/ /g' "${_fnFileTemp}"
+
+            # trim leading and trailing whitespace
+            sed -i 's/^[[:space:]]*//;s/[[:space:]]*$//' "${_fnFileTemp}"
+
+            # remove empty lines (after trimming/comment removal)
+            sed -i '/^$/d' "${_fnFileTemp}"
+
+            # #
+            #   Dedupe, Sort: Move from .tmp to .sort
+            # #
+
+            info "          Sorted and dedup'ed results for ${bluel}$_fnFileTemp${greyd}"
+            grep -vE '^[[:space:]]*(#|;|$)' "${_fnFileTemp}" | sort_results > "${_fnFileTemp}.sort"
+
+            mv "${_fnFileTemp}.sort" "${_fnFileTemp}"
+            if [[ $? -ne 0 ]]; then
+                error "          Could not move file ${redd}${_fnFileTemp}.sort${greym} › ${redd}${_fnFileTemp}${end}"
+                exit 1
+            else
+                ok "          Moved ${greenl}${_fnFileTemp}.sort${greym} › ${greenl}${_fnFileTemp}${greym}"
+            fi
+
+        else
+            warn "       ⚠️  Skipping ${yellowd}$_fnFileTemp${greym} — no data to process"
+            echo
+            continue
         fi
 
         # #
         #   Confirm country temp file exists
         # #
 
-        if [ ! -f "$FILE_TARGET" ]; then
-            echo -e "          ⭕ Could not find temp country file ${ORANGE2}${FILE_CONTINENT_TEMP}${RESET}. Something failed."
-            break
+        if [ ! -f "$_file_target" ] && [ ! -f "$_continent_build_hasmatch" ]; then
+            warn "       ⚠️  No temp country file ${redd}${_file_target}${greym}. Missing file."
+            continue
         fi
 
         # #
-        #   Count statistics
+        #   Get Counts
         # #
 
-        BLOCKS_COUNT_LINES=0
-        BLOCKS_COUNT_TOTAL_IP=0
-        BLOCKS_COUNT_TOTAL_SUBNET=0
+        info "          Count IPs and subnets in ${bluel}$_fnFileTemp${greyd}"
 
-        # blocklists/country/geolite/ipv4/continent_europe.tmp
-        for line in $(cat ${FILE_CONTINENT_TEMP}); do
+        count_ip_stats "${_fnFileTemp}"
+        total_ips=$total_ips
+        total_subnets=$total_subnets
 
-            # is ipv6
-            if [ "$line" != "${line#*:[0-9a-fA-F]}" ]; then
-                if [[ $line =~ /[0-9]{1,3}$ ]]; then
-                    COUNT_TOTAL_SUBNET=$(( $COUNT_TOTAL_SUBNET + 1 ))                       # GLOBAL count subnet
-                    BLOCKS_COUNT_TOTAL_SUBNET=$(( $BLOCKS_COUNT_TOTAL_SUBNET + 1 ))         # LOCAL count subnet
-                else
-                    COUNT_TOTAL_IP=$(( $COUNT_TOTAL_IP + 1 ))                               # GLOBAL count ip
-                    BLOCKS_COUNT_TOTAL_IP=$(( $BLOCKS_COUNT_TOTAL_IP + 1 ))                 # LOCAL count ip
-                fi
+        total_lines=$(wc -l < "${_fnFileTemp}")                                 # count ip lines
+        total_lines=$(printf "%'d" "$total_lines")                              # GLOBAL add commas to thousands
+        total_subnets=$(printf "%'d" "$total_subnets")                          # GLOBAL add commas to thousands
+        total_ips=$(printf "%'d" "$total_ips")                                  # GLOBAL add commas to thousands
 
-            # is subnet
-            elif [[ $line =~ /[0-9]{1,2}$ ]]; then
-                ips=$(( 1 << (32 - ${line#*/}) ))
+        # Add running totals
+        (( grand_total_ips += ${total_ips//,/} ))
+        (( grand_total_subnets += ${total_subnets//,/} ))
+        (( grand_total_lines += ${total_lines//,/} ))
 
-                if [[ $ips =~ $REGEX_ISNUM ]]; then
-                    BLOCKS_COUNT_TOTAL_IP=$(( $BLOCKS_COUNT_TOTAL_IP + $ips ))              # LOCAL count IPs in subnet
-                    BLOCKS_COUNT_TOTAL_SUBNET=$(( $BLOCKS_COUNT_TOTAL_SUBNET + 1 ))         # LOCAL count subnet
-
-                    COUNT_TOTAL_IP=$(( $COUNT_TOTAL_IP + $ips ))                            # GLOBAL count IPs in subnet
-                    COUNT_TOTAL_SUBNET=$(( $COUNT_TOTAL_SUBNET + 1 ))                       # GLOBAL count subnet
-                fi
-
-            # is normal IP
-            elif [[ $line =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-                BLOCKS_COUNT_TOTAL_IP=$(( $BLOCKS_COUNT_TOTAL_IP + 1 ))
-                COUNT_TOTAL_IP=$(( $COUNT_TOTAL_IP + 1 ))
-            fi
-        done
-
-        # #
-        #   Continents > Format block count
-        # #
-
-        BLOCKS_COUNT_LINES=$(wc -l < ${FILE_CONTINENT_TEMP})                                # LOCAL count ip lines
-        COUNT_LINES=$(wc -l < ${FILE_CONTINENT_TEMP})                                       # GLOBAL count ip lines
-
-        BLOCKS_COUNT_TOTAL_IP=$(printf "%'d" "$BLOCKS_COUNT_TOTAL_IP")                      # LOCAL add commas to thousands
-        BLOCKS_COUNT_TOTAL_SUBNET=$(printf "%'d" "$BLOCKS_COUNT_TOTAL_SUBNET")              # LOCAL add commas to thousands
-        BLOCKS_COUNT_LINES=$(printf "%'d" "$BLOCKS_COUNT_LINES")                            # LOCAL add commas to thousands
-
-        echo -e "  🚛 Move ${ORANGE2}${FILE_CONTINENT_TEMP}${RESET} to ${BLUE2}${FILE_CONTINENT_PERM}${RESET}"
-        mv -- "$FILE_CONTINENT_TEMP" "${FILE_CONTINENT_PERM}"
-        # cp "$FILE_CONTINENT_TEMP" "${FILE_CONTINENT_PERM}"
-
-        echo -e "  ➕ Added ${FUCHSIA2}${BLOCKS_COUNT_TOTAL_IP} IPs${RESET} and ${FUCHSIA2}${BLOCKS_COUNT_TOTAL_SUBNET} Subnets${RESET} to ${BLUE2}${FILE_CONTINENT_PERM}${RESET}"
-        echo -e
-
-        TEMPL_NAME=$(basename -- ${FILE_CONTINENT_PERM})        # file name
-        TEMPL_NOW=`date -u`                                     # get current date in utc format
-        TEMPL_ID=$(basename -- ${FILE_CONTINENT_PERM})          # ipset id, get base filename
-        TEMPL_ID="${TEMPL_ID//[^[:alnum:]]/_}"                  # ipset id, only allow alphanum and underscore, /description/* and /category/* files must match this value
-        TEMPL_UUID=$(uuidgen -m -N "${TEMPL_ID}" -n @url)       # uuid associated to each release
-        TEMPL_DESC=$(curl -sSL -A "${APP_CURL_AGENT}" "https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/.github/descriptions/countries/geolite2_ipset.txt")
-        TEMPL_CAT=$(curl -sSL -A "${APP_CURL_AGENT}" "https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/.github/categories/countries/geolite2_ipset.txt")
-        TEMPL_EXP=$(curl -sSL -A "${APP_CURL_AGENT}" "https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/.github/expires/countries/geolite2_ipset.txt")
-        templ_url_service=$(curl -sSL -A "${APP_CURL_AGENT}" "https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/.github/url-source/countries/geolite2_ipset.txt")
-
-        # #
-        #   Continents > Default Values
-        # #
-
-        if [[ "$TEMPL_DESC" == *"404: Not Found"* ]]; then
-            TEMPL_DESC="#   No description provided"
+        mv -- "$_fnFileTemp" "${_continent_file_perm}"
+        if [[ $? -ne 0 ]]; then
+            error "          Could not move file ${redd}${_fnFileTemp}${greym} › ${redd}${_continent_file_perm}${end}"
+            exit 1
+        else
+            ok "          Moved ${greenl}${_fnFileTemp}${greym} › ${greenl}${_continent_file_perm}${greym}"
         fi
 
-        if [[ "$TEMPL_CAT" == *"404: Not Found"* ]]; then
-            TEMPL_CAT="Uncategorized"
+        ok "          Added ${fuchsiad}${total_lines} Lines${greyd} | ${fuchsiad}${total_ips} IPs${greym}${greyd} | ${fuchsiad}${total_subnets} Subnets${greym} to ${bluel}${_continent_file_perm}${end}"
+
+        # #
+        #   Continents › Template › Initialize
+        # #
+
+        templ_now="$(date -u)"                                                  # Get current date in utc format
+        templ_id=$(basename -- "${_continent_file_perm}")                       # Ipset id, get base filename
+        templ_id="${templ_id//[^[:alnum:]]/_}"                                  # Ipset id, only allow alphanum and underscore, /description/* and /category/* files must match this value
+        templ_uuid="$(uuidgen -m -N "${templ_id}" -n @url)"                     # UUID associated to each release
+        templ_curl_opts=(-sSL -A "$app_agent")                                  # cUrl command
+
+        info "          Fetching blocklist properties from ${bluel}$app_repo_curl_storage${greyd}"
+
+        # #
+        #   Continents › Template › External Sources
+        # #
+
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/descriptions/countries/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/desc.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/categories/countries/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/cat.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/expires/countries/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/exp.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/url-source/countries/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/src.txt &
+        wait
+
+        # #
+        #   Continents › Template › Get Details
+        # #
+
+        templ_desc=$(<"${app_dir_github}/${folder_target_temp}/desc.txt")
+        templ_cat=$(<"${app_dir_github}/${folder_target_temp}/cat.txt")
+        templ_exp=$(<"${app_dir_github}/${folder_target_temp}/exp.txt")
+        templ_url_service=$(<"${app_dir_github}/${folder_target_temp}/src.txt")
+
+        if rm -f "${app_dir_github}/${folder_target_temp}/desc.txt" \
+                "${app_dir_github}/${folder_target_temp}/cat.txt" \
+                "${app_dir_github}/${folder_target_temp}/exp.txt" \
+                "${app_dir_github}/${folder_target_temp}/src.txt"
+        then
+            ok "          Removed temp files from ${greenl}${folder_target_temp}${greym}: ${greend}${folder_target_temp}/desc.txt${greym}, ${greend}${folder_target_temp}/cat.txt${greym}, ${greend}${folder_target_temp}/exp.txt${greym}, ${greend}${folder_target_temp}/src.txt${greym}"
+        else
+            error "          Could not remove temp files from ${redd}${app_dir_github}/${folder_target_temp}${end}"
+            exit 1
         fi
 
-        if [[ "$TEMPL_EXP" == *"404: Not Found"* ]]; then
-            TEMPL_EXP="6 hours"
-        fi
+        # #
+        #   Continents › Template › Defaults
+        # #
 
-        if [[ "$templ_url_service" == *"404: Not Found"* ]]; then
-            templ_url_service="None"
-        fi
+        case "$templ_desc" in *"404: Not Found"*) templ_desc="#   No description provided";; esac
+        case "$templ_cat" in *"404: Not Found"*) templ_cat="Uncategorized";; esac
+        case "$templ_exp" in *"404: Not Found"*) templ_exp="6 hours";; esac
+        case "$templ_url_service" in *"404: Not Found"*) templ_url_service="None";; esac
 
         # #
         #   ed
         #       0a  top of file
         # #
 
-ed -s ${FILE_CONTINENT_PERM} <<END_ED
+ed -s ${_continent_file_perm} <<END_ED
 0a
 # #
-#   🧱 Firewall Blocklist - ${TEMPL_NAME}
+#   🧱 Firewall Blocklist - ${_continent_file_perm}
 #
-#   @repo           https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/${APP_FILE_PERM}
+#   @repo           https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/${_continent_file_perm}
 #   @service        ${templ_url_service}
-#   @id             ${TEMPL_ID}
-#   @uuid           ${TEMPL_UUID}
-#   @updated        ${TEMPL_NOW}
-#   @entries        ${BLOCKS_COUNT_TOTAL_IP} ips
-#                   ${BLOCKS_COUNT_TOTAL_SUBNET} subnets
-#                   ${BLOCKS_COUNT_LINES} lines
-#   @continent      ${CONTINENT_NAME} (${key})
-#   @countries      ${TEMPL_COUNTRIES_LIST}
-#   @expires        ${TEMPL_EXP}
-#   @category       ${TEMPL_CAT}
+#   @id             ${templ_id}
+#   @uuid           ${templ_uuid}
+#   @updated        ${templ_now}
+#   @entries        ${total_ips} ips
+#                   ${total_subnets} subnets
+#                   ${total_lines} lines
+#   @continent      ${templ_continent_name} (${key})
+#   @countries      ${templ_countries_list}
+#   @expires        ${templ_exp}
+#   @category       ${templ_cat}
 #
-${TEMPL_DESC}
+${templ_desc}
 # #
 
 .
@@ -1776,61 +2481,48 @@ w
 q
 END_ED
 
+        # #
+        #   Output › Loop › Footer
+        # #
+
+        time_elapsed $(( $( date +%s ) - time_start_task ))
+        ok "          Finished ${greenl}${yellowl}${D} days ${H} hrs ${M} mins ${S} secs${greyd}"
+        echo
+
     done
 
     # #
-    #   Continents > Count lines and subnets
+    #   Output › Footer
     # #
 
-    COUNT_TOTAL_IP=$(printf "%'d" "$COUNT_TOTAL_IP")                                    # GLOBAL add commas to thousands
-    COUNT_TOTAL_SUBNET=$(printf "%'d" "$COUNT_TOTAL_SUBNET")                            # GLOBAL add commas to thousands
+    grand_total_lines=$(printf "%'d" "$grand_total_lines")                      # GLOBAL total lines across all files
+    grand_total_subnets=$(printf "%'d" "$grand_total_subnets")                  # GLOBAL total subnets across all files
+    grand_total_ips=$(printf "%'d" "$grand_total_ips")                          # GLOBAL total ips across all files
 
-    # #
-    #   Continents > Finished
-    # #
-
-    T=$SECONDS
-    D=$((T/86400))
-    H=$((T/3600%24))
-    M=$((T/60%60))
-    S=$((T%60))
-
-    echo -e "  🎌 ${GREY2}Finished! ${YELLOW2}${D} days ${H} hrs ${M} mins ${S} secs${RESET}"
-
-    # #
-    #   Continents > Output
-    # #
-
-    echo -e
-    echo -e " ──────────────────────────────────────────────────────────────────────────────────────────────"
-    echo -e "  #️⃣ ${BLUE2}${FILE_CONTINENT_PERM}${RESET} | Added ${FUCHSIA2}${COUNT_TOTAL_IP} IPs${RESET} and ${FUCHSIA2}${COUNT_TOTAL_SUBNET} Subnets${RESET}"
-    echo -e " ──────────────────────────────────────────────────────────────────────────────────────────────"
-    echo -e
-    echo -e
-    echo -e
-
+    time_elapsed $(( $( date +%s ) - time_start ))
+    prinp "🎌[41] Finished!   ${fuchsiad}Lines: ${yellowl}${grand_total_lines}${greyd} | ${fuchsiad}IPs: ${yellowl}${grand_total_ips}${greyd} | ${fuchsiad}Subnets: ${yellowl}${grand_total_subnets}${greyd} | Duration: ${yellowl}${D} days ${H} hrs ${M} mins ${S} secs${greyd}" false
 }
 
 # #
 #   Generate Countries
-#
+#   
 #   Loops through each file in blocklists/country/geolite/ipv4/*
 #   Counts the statistics:
 #       - Number of lines in file
 #       - Number of normal IPs
 #       - Number of subnets
-#
+#   
 #   Header will be added to the top of the file which statistics and other info.
-#
+#   
 #   File will be re-named / moved:
 #       blocklists/country/geolite/ipv4/AE.tmp => blocklists/country/geolite/AE.ipset
 # #
 
-function GENERATE_COUNTRIES()
+generate_Countries( )
 {
 
-    echo -e
-    echo -e "  🔖  Generate Countries"
+    echo
+    info "    🌎 Generate New ${bluel}Countries${greym}"
 
     # #
     #   Loop each temp file
@@ -1838,112 +2530,104 @@ function GENERATE_COUNTRIES()
     #       US.TMP
     # #
 
-    COUNT_TOTAL_IP=0
-    COUNT_TOTAL_SUBNET=0
+    grand_total_ips=0
+    grand_total_subnets=0
+    grand_total_lines=0
 
-    for APP_FILE_TEMP in ./${APP_DIR_IPV4}/*.${APP_TARGET_EXT_TMP}; do
+    #   country_file blocklists/country/geolite/ipv4/SG.tmp
+    #   country_file blocklists/country/geolite/ipv4/TH.tmp
+    for country_file in ${path_storage_ipv4}/*.${file_target_ext_tmp}; do
+        time_start_task=$( date +%s )                                                               # record start time of script
+        file_temp_base=$(basename -- ${country_file})                                               # get two letter country code
+        country_code="${file_temp_base%.*}"                                                         # base file without extension
+        country=$(get_country_name "$country_code")                                                 # get full country name from abbreviation
 
-        file_temp_base=$(basename -- ${APP_FILE_TEMP})                                      # get two letter country code
-        COUNTRY_CODE="${file_temp_base%.*}"                                                 # base file without extension
-        COUNTRY=$(get_country_name "$COUNTRY_CODE")                                         # get full country name from abbreviation
+        info "       🗺️  Assign Country ${dim}${bluel}${country} (${country_code})${greym} to ${dim}${bluel}${country_file}${end}"
+        country_id=$(echo "$country" | sed 's/ /_/g' | tr -d "[.,/\\-\=\+\{\[\]\}\!\@\#\$\%\^\*\'\\\(\)]" | tr '[:upper:]' '[:lower:]') # country long name with spaces, special chars removed
 
-        echo -e "  📒 + Country ${GREY2}${COUNTRY}${RESET} to ${ORANGE2}${APP_FILE_TEMP}${RESET}"
-        COUNTRY_ID=$(echo "$COUNTRY" | sed 's/ /_/g' | tr -d "[.,/\\-\=\+\{\[\]\}\!\@\#\$\%\^\*\'\\\(\)]" | tr '[:upper:]' '[:lower:]') # country long name with spaces, special chars removed
-
-        APP_FILE_TEMP=${APP_FILE_TEMP#././}                                                 # remove ./ from front which means us with just the temp path
-        APP_FILE_PERM="${APP_TARGET_DIR}/country_${COUNTRY_ID}.${APP_TARGET_EXT_PROD}"      # final location where ipset files should be
-
-        # #
-        #   calculate how many IPs are in a subnet
-        #   if you want to calculate the USABLE IP addresses, subtract -2 from any subnet not ending with 31 or 32.
-        #   
-        #   for our purpose, we want to block them all in the event that the network has reconfigured their network / broadcast IPs,
-        #   so we will count every IP in the block.
-        # #
-
-        BLOCKS_COUNT_LINES=0
-        BLOCKS_COUNT_TOTAL_IP=0
-        BLOCKS_COUNT_TOTAL_SUBNET=0
-
-        echo -e "  📊 Fetching statistics for clean file ${ORANGE2}${APP_FILE_TEMP}${RESET}"
-        for line in $(cat ${APP_FILE_TEMP}); do
-
-            # is ipv6
-            if [ "$line" != "${line#*:[0-9a-fA-F]}" ]; then
-                if [[ $line =~ /[0-9]{1,3}$ ]]; then
-                    COUNT_TOTAL_SUBNET=$(( $COUNT_TOTAL_SUBNET + 1 ))                       # GLOBAL count subnet
-                    BLOCKS_COUNT_TOTAL_SUBNET=$(( $BLOCKS_COUNT_TOTAL_SUBNET + 1 ))         # LOCAL count subnet
-                else
-                    COUNT_TOTAL_IP=$(( $COUNT_TOTAL_IP + 1 ))                               # GLOBAL count ip
-                    BLOCKS_COUNT_TOTAL_IP=$(( $BLOCKS_COUNT_TOTAL_IP + 1 ))                 # LOCAL count ip
-                fi
-
-            # is subnet
-            elif [[ $line =~ /[0-9]{1,2}$ ]]; then
-                ips=$(( 1 << (32 - ${line#*/}) ))
-
-                if [[ $ips =~ $REGEX_ISNUM ]]; then
-                    BLOCKS_COUNT_TOTAL_IP=$(( $BLOCKS_COUNT_TOTAL_IP + $ips ))              # LOCAL count IPs in subnet
-                    BLOCKS_COUNT_TOTAL_SUBNET=$(( $BLOCKS_COUNT_TOTAL_SUBNET + 1 ))         # LOCAL count subnet
-
-                    COUNT_TOTAL_IP=$(( $COUNT_TOTAL_IP + $ips ))                            # GLOBAL count IPs in subnet
-                    COUNT_TOTAL_SUBNET=$(( $COUNT_TOTAL_SUBNET + 1 ))                       # GLOBAL count subnet
-                fi
-
-            # is normal IP
-            elif [[ $line =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-                BLOCKS_COUNT_TOTAL_IP=$(( $BLOCKS_COUNT_TOTAL_IP + 1 ))
-                COUNT_TOTAL_IP=$(( $COUNT_TOTAL_IP + 1 ))
-            fi
-        done
+        country_file=${country_file#././}                                                           # remove ./ from front which means us with just the temp path
+        APP_FILE_PERM="${folder_target_storage}/country_${country_id}.${file_target_ext_ipset}"     # final location where ipset files should be
 
         # #
-        #   Format block count
+        #   Get Counts
         # #
 
-        BLOCKS_COUNT_LINES=$(wc -l < ${APP_FILE_TEMP})
-        COUNT_LINES=$(wc -l < ${APP_FILE_TEMP})                                             # GLOBAL count ip lines
+        info "          Count IPs and subnets in ${bluel}$country_file${greyd}"
 
-        BLOCKS_COUNT_TOTAL_IP=$(printf "%'d" "$BLOCKS_COUNT_TOTAL_IP")                      # LOCAL add commas to thousands
-        BLOCKS_COUNT_TOTAL_SUBNET=$(printf "%'d" "$BLOCKS_COUNT_TOTAL_SUBNET")              # LOCAL add commas to thousands
-        BLOCKS_COUNT_LINES=$(printf "%'d" "$BLOCKS_COUNT_LINES")                            # LOCAL add commas to thousands
+        count_ip_stats "${country_file}"
+        total_ips=$total_ips
+        total_subnets=$total_subnets
 
-        echo -e "  🚛 Move ${ORANGE2}${APP_FILE_TEMP}${RESET} to ${BLUE2}${APP_FILE_PERM}${RESET}"
-        mv -- "$APP_FILE_TEMP" "${APP_FILE_PERM}"
-        # cp "$APP_FILE_TEMP" "${APP_FILE_PERM}"
+        total_lines=$(wc -l < "${country_file}")                                # count ip lines
+        total_lines=$(printf "%'d" "$total_lines")                              # GLOBAL add commas to thousands
+        total_subnets=$(printf "%'d" "$total_subnets")                          # GLOBAL add commas to thousands
+        total_ips=$(printf "%'d" "$total_ips")                                  # GLOBAL add commas to thousands
 
-        echo -e "  ➕ Added ${FUCHSIA2}${BLOCKS_COUNT_TOTAL_IP} IPs${RESET} and ${FUCHSIA2}${BLOCKS_COUNT_TOTAL_SUBNET} subnets${RESET} to ${BLUE2}${APP_FILE_PERM}${RESET}"
-        echo -e
+        # Add running totals
+        (( grand_total_ips += ${total_ips//,/} ))
+        (( grand_total_subnets += ${total_subnets//,/} ))
+        (( grand_total_lines += ${total_lines//,/} ))
 
-        TEMPL_NAME=$(basename -- ${APP_FILE_PERM})              # file name
-        TEMPL_NOW=`date -u`                                     # get current date in utc format
-        TEMPL_ID=$(basename -- ${APP_FILE_PERM})                # ipset id, get base filename
-        TEMPL_ID="${TEMPL_ID//[^[:alnum:]]/_}"                  # ipset id, only allow alphanum and underscore, /description/* and /category/* files must match this value
-        TEMPL_UUID=$(uuidgen -m -N "${TEMPL_ID}" -n @url)       # uuid associated to each release
-        TEMPL_DESC=$(curl -sSL -A "${APP_CURL_AGENT}" "https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/.github/descriptions/countries/geolite2_ipset.txt")
-        TEMPL_CAT=$(curl -sSL -A "${APP_CURL_AGENT}" "https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/.github/categories/countries/geolite2_ipset.txt")
-        TEMPL_EXP=$(curl -sSL -A "${APP_CURL_AGENT}" "https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/.github/expires/countries/geolite2_ipset.txt")
-        templ_url_service=$(curl -sSL -A "${APP_CURL_AGENT}" "https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/.github/url-source/countries/geolite2_ipset.txt")
-
-        # #
-        #   Default Values
-        # #
-
-        if [[ "$TEMPL_DESC" == *"404: Not Found"* ]]; then
-            TEMPL_DESC="#   No description provided"
+        mv -- "$country_file" "${APP_FILE_PERM}"
+        if [[ $? -ne 0 ]]; then
+            error "          Could not move file ${redd}${country_file}${greym} › ${redd}${APP_FILE_PERM}${end}"
+            exit 1
+        else
+            ok "          Moved ${greenl}${country_file}${greym} › ${greenl}${APP_FILE_PERM}${greym}"
         fi
 
-        if [[ "$TEMPL_CAT" == *"404: Not Found"* ]]; then
-            TEMPL_CAT="Uncategorized"
+        ok "          Added ${fuchsiad}${total_lines} Lines${greyd} | ${fuchsiad}${total_ips} IPs${greym}${greyd} | ${fuchsiad}${total_subnets} Subnets${greym} to ${bluel}${APP_FILE_PERM}${end}"
+
+        # #
+        #   Countries › Template › Initialize
+        # #
+
+        templ_now="$(date -u)"                                                  # Get current date in utc format
+        templ_id=$(basename -- "${APP_FILE_PERM}")                              # Ipset id, get base filename
+        templ_id="${templ_id//[^[:alnum:]]/_}"                                  # Ipset id, only allow alphanum and underscore, /description/* and /category/* files must match this value
+        templ_uuid="$(uuidgen -m -N "${templ_id}" -n @url)"                     # UUID associated to each release
+        templ_curl_opts=(-sSL -A "$app_agent")                                  # cUrl command
+
+        info "          Fetching blocklist properties from ${bluel}$app_repo_curl_storage${greyd}"
+
+        # #
+        #   Countries › Template › External Sources
+        # #
+
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/descriptions/countries/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/desc.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/categories/countries/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/cat.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/expires/countries/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/exp.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/url-source/countries/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/src.txt &
+        wait
+
+        # #
+        #   Countries › Template › Get Details
+        # #
+
+        templ_desc=$(<"${app_dir_github}/${folder_target_temp}/desc.txt")
+        templ_cat=$(<"${app_dir_github}/${folder_target_temp}/cat.txt")
+        templ_exp=$(<"${app_dir_github}/${folder_target_temp}/exp.txt")
+        templ_url_service=$(<"${app_dir_github}/${folder_target_temp}/src.txt")
+
+        if rm -f "${app_dir_github}/${folder_target_temp}/desc.txt" \
+                "${app_dir_github}/${folder_target_temp}/cat.txt" \
+                "${app_dir_github}/${folder_target_temp}/exp.txt" \
+                "${app_dir_github}/${folder_target_temp}/src.txt"
+        then
+            ok "          Removed temp files from ${greenl}${folder_target_temp}${greym}: ${greend}${folder_target_temp}/desc.txt${greym}, ${greend}${folder_target_temp}/cat.txt${greym}, ${greend}${folder_target_temp}/exp.txt${greym}, ${greend}${folder_target_temp}/src.txt${greym}"
+        else
+            error "          Could not remove temp files from ${redd}${app_dir_github}/${folder_target_temp}${end}"
+            exit 1
         fi
 
-        if [[ "$TEMPL_EXP" == *"404: Not Found"* ]]; then
-            TEMPL_EXP="6 hours"
-        fi
+        # #
+        #   Countries › Template › Defaults
+        # #
 
-        if [[ "$templ_url_service" == *"404: Not Found"* ]]; then
-            templ_url_service="None"
-        fi
+        case "$templ_desc" in *"404: Not Found"*) templ_desc="#   No description provided";; esac
+        case "$templ_cat" in *"404: Not Found"*) templ_cat="Uncategorized";; esac
+        case "$templ_exp" in *"404: Not Found"*) templ_exp="6 hours";; esac
+        case "$templ_url_service" in *"404: Not Found"*) templ_url_service="None";; esac
 
         # #
         #   ed
@@ -1953,21 +2637,21 @@ function GENERATE_COUNTRIES()
 ed -s ${APP_FILE_PERM} <<END_ED
 0a
 # #
-#   🧱 Firewall Blocklist - ${TEMPL_NAME}
+#   🧱 Firewall Blocklist - ${APP_FILE_PERM}
 #
-#   @repo           https://raw.githubusercontent.com/${APP_REPO}/${APP_REPO_BRANCH}/${APP_FILE_PERM}
+#   @repo           https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/${APP_FILE_PERM}
 #   @service        ${templ_url_service}
-#   @id             ${TEMPL_ID}
-#   @uuid           ${TEMPL_UUID}
-#   @updated        ${TEMPL_NOW}
-#   @entries        ${BLOCKS_COUNT_TOTAL_IP} ips
-#                   ${BLOCKS_COUNT_TOTAL_SUBNET} subnets
-#                   ${BLOCKS_COUNT_LINES} lines
-#   @country        ${COUNTRY} (${COUNTRY_CODE})
-#   @expires        ${TEMPL_EXP}
-#   @category       ${TEMPL_CAT}
+#   @id             ${templ_id}
+#   @uuid           ${templ_uuid}
+#   @updated        ${templ_now}
+#   @entries        ${total_ips} ips
+#                   ${total_subnets} subnets
+#                   ${total_lines} lines
+#   @country        ${country} (${country_code})
+#   @expires        ${templ_exp}
+#   @category       ${templ_cat}
 #
-${TEMPL_DESC}
+${templ_desc}
 # #
 
 .
@@ -1975,133 +2659,175 @@ w
 q
 END_ED
 
+        # #
+        #   Output › Loop › Footer
+        # #
+    
+        time_elapsed $(( $( date +%s ) - time_start_task ))
+        ok "          Finished ${greenl}${yellowl}${D} days ${H} hrs ${M} mins ${S} secs${greyd}"
+        echo
+
     done
 
     # #
-    #   Count lines and subnets
+    #   Output › Footer › Country Statistics
     # #
 
-    COUNT_TOTAL_IP=$(printf "%'d" "$COUNT_TOTAL_IP")                                    # GLOBAL add commas to thousands
-    COUNT_TOTAL_SUBNET=$(printf "%'d" "$COUNT_TOTAL_SUBNET")                            # GLOBAL add commas to thousands
+    grand_total_lines=$(printf "%'d" "$grand_total_lines")                      # GLOBAL total lines across all files
+    grand_total_subnets=$(printf "%'d" "$grand_total_subnets")                  # GLOBAL total subnets across all files
+    grand_total_ips=$(printf "%'d" "$grand_total_ips")                          # GLOBAL total ips across all files
 
     # #
-    #   Run garbge cleanup
+    #   Output › Footer › Countries
     # #
 
-    GARBAGE
-
-    # #
-    #   Countries > Finished
-    # #
-
-    T=$SECONDS
-    D=$((T/86400))
-    H=$((T/3600%24))
-    M=$((T/60%60))
-    S=$((T%60))
-
-    echo -e "  🎌 ${GREY2}Finished! ${YELLOW2}${D} days ${H} hrs ${M} mins ${S} secs${RESET}"
-
-    # #
-    #   Output
-    # #
-
-    echo -e
-    echo -e " ──────────────────────────────────────────────────────────────────────────────────────────────"
-    echo -e "  #️⃣ ${BLUE2}${APP_FILE_PERM}${RESET} | Added ${FUCHSIA2}${COUNT_TOTAL_IP} IPs${RESET} and ${FUCHSIA2}${COUNT_TOTAL_SUBNET} Subnets${RESET}"
-    echo -e " ──────────────────────────────────────────────────────────────────────────────────────────────"
-    echo -e
-
+    time_elapsed $(( $( date +%s ) - time_start ))
+    prinp "🎌[41] Finished!   ${fuchsiad}Lines: ${yellowl}${grand_total_lines}${greyd} | ${fuchsiad}IPs: ${yellowl}${grand_total_ips}${greyd} | ${fuchsiad}Subnets: ${yellowl}${grand_total_subnets}${greyd} | Duration: ${yellowl}${D} days ${H} hrs ${M} mins ${S} secs${greyd}" false
 }
 
 # #
 #   Main Function
-#
-#   Accepts -p (parameters)
-#     ./script -p LICENSE_KEY
+#   
+#   Accepts -l license parameters
+#       ./script -l LICENSE_KEY
 # #
 
-function main()
+main()
 {
-
-    # #
-    #   get license key
-    # #
-
-    if [ -f "${APP_THIS_DIR}/${APP_CFG_FILE}" ]; then
-        echo -e "Loading config ${APP_THIS_DIR}/${APP_CFG_FILE}"
-        source "${APP_THIS_DIR}/${APP_CFG_FILE}" > /dev/null 2>&1
-    fi
-
-    if [[ -z "${APP_SOURCE_LOCAL_ENABLED}" ]] && [[ -z "${LICENSE_KEY}" ]]; then
-        error "Must supply a valid MaxMind license key -- aborting"
-    fi
 
     # #
     #   Start
     # #
 
-    echo -e
-    echo -e "  ⭐ Starting script ${GREEN1}${APP_THIS_FILE}${RESET}"
+    echo
+    echo
+    info "    ⭐ Starting ${bluel}${app_file_this}"
+
+    # #
+    #   Get license key
+    #       ./geolite2.conf
+    # #
+
+    if [ -f "${app_dir_this_dir}/${file_cfg}" ]; then
+        info "    📄 Loading config ${bluel}${app_dir_this_dir}/${file_cfg}"
+        # shellcheck disable=SC1090
+        . "${app_dir_this_dir}/${file_cfg}" >/dev/null 2>&1
+    fi
+
+    if [ -z "${argUseLocalDB}" ] && [ -z "${argMMLicense}" ]; then
+        error "    ❌ Must supply valid MaxMind license key. Aborting ..."
+    fi
 
     # #
     #   Check Packages
-    #
-    #   ensure all the packages we need are installed on the system.
+    #   
+    #   Ensure all the packages we need are installed on the system.
     # #
 
-    CHECK_PACKAGES
+    required_Packages
 
     # #
     #   Temp Path
-    #
+    #   
     #   Local Mode          .github/local
     #   Network Mode        .github/.temp
     # #
 
-    if [[ $APP_SOURCE_LOCAL_ENABLED == "false" ]]; then
-       # export TEMPDIR=$(mktemp --directory "${APP_GITHUB_DIR}/${APP_SOURCE_TEMP}")
-        mkdir -p "${APP_GITHUB_DIR}/${APP_SOURCE_TEMP}"
-        export TEMPDIR="${APP_GITHUB_DIR}/${APP_SOURCE_TEMP}"
+    if [ "${argUseLocalDB}" = "false" ]; then
+        mkdir -p "${app_dir_github}/${folder_target_temp}"
+        if [ -d "${app_dir_github}/${folder_target_temp}" ]; then
+            ok "    📂 Created TEMPDIR ${greenl}${app_dir_github}/${folder_target_temp}"
+        else
+            error "    ❌ Failed to create ${redl}${app_dir_github}/${folder_target_temp}"
+        fi
+
+        TEMPDIR="${app_dir_github}/${folder_target_temp}"
     else
-        mkdir -p "${APP_GITHUB_DIR}/${APP_SOURCE_LOCAL}"
-        export TEMPDIR="${APP_GITHUB_DIR}/${APP_SOURCE_LOCAL}"
+        mkdir -p "${app_dir_github}/${folder_source_local}"
+        if [ -d "${app_dir_github}/${folder_source_local}" ]; then
+            ok "    📂 Created TEMPDIR ${greenl}${app_dir_github}/${folder_source_local}"
+        else
+            error "    ❌ Failed to create ${redl}${app_dir_github}/${folder_source_local}"
+        fi
+
+        TEMPDIR="${app_dir_github}/${folder_source_local}"
+    fi
+
+    ok "    📄 Setting TEMPDIR ${greenl}${TEMPDIR}"
+    export TEMPDIR
+
+    # #
+    #   Switch to tempdir
+    # #
+
+    if pushd "${TEMPDIR}" > /dev/null 2>&1; then
+        ok "    📁 Using TEMPDIR ${greenl}${TEMPDIR}${greym}"
+    else
+        error "    ⭕ Failed to enter ${redl}${TEMPDIR}${greym}"
+        exit 1
     fi
 
     # #
-    #   place geolite data in temporary directory
+    #   Create cache folder
     # #
 
-    echo -e "  ⚙️  Setting temp folder ${YELLOW2}${TEMPDIR}${RESET}"
-    pushd ${TEMPDIR} > /dev/null 2>&1
-  
+    mkdir -p "${app_dir_github}/${folder_target_cache}"
+    if [ -d "${app_dir_github}/${folder_target_cache}" ]; then
+        ok "    📁 Created folder ${greenl}${app_dir_github}/${folder_target_cache}${greym}"
+    else
+        error "    ⭕  Failed to create directory ${redl}${app_dir_github}/${folder_target_cache}${greym}; aborting"
+        exit 1
+    fi
+
+    # #
+    #   Create temp folder
+    # #
+
+    mkdir -p "${app_dir_github}/${folder_target_temp}"
+    if [ -d "${app_dir_github}/${folder_target_temp}" ]; then
+        ok "    📁 Created folder ${greenl}${app_dir_github}/${folder_target_temp}${greym}"
+    else
+        error "    ⭕  Failed to create directory ${redl}${app_dir_github}/${folder_target_temp}${greym}; aborting"
+        exit 1
+    fi
+
+    # #
+    #   Create logs folder
+    # #
+
+    mkdir -p "${app_dir_github}/${folder_target_logs}"
+    if [ -d "${app_dir_github}/${folder_target_logs}" ]; then
+        ok "    📁 Created folder ${greenl}${app_dir_github}/${folder_target_logs}${greym}"
+    else
+        error "    ⭕  Failed to create directory ${redl}${app_dir_github}/${folder_target_logs}${greym}; aborting"
+        exit 1
+    fi
+
     # #
     #   Download / Unzip .zip
     # #
 
-    DB_DOWNLOAD
-
-
-    CONFIG_LOAD
-    MAP_BUILD
+    maxmind_Database_Download
+    maxmind_Database_Load
+    maxmind_Map_Build
 
     # #
-    #   @TODO       add caching for associative array
+    #   Define > Maps
     # #
 
-    mkdir -p "${APP_GITHUB_DIR}/${APP_SOURCE_CACHE}"
+    declare -p map_continent > ${app_dir_github}/${folder_target_cache}/MAP_CONTINENT.cache
+    declare -p map_country > ${app_dir_github}/${folder_target_cache}/MAP_COUNTRY.cache
 
-    declare -p MAP_CONTINENT > ${APP_GITHUB_DIR}/${APP_SOURCE_CACHE}/MAP_CONTINENT.cache
-    declare -p MAP_COUNTRY > ${APP_GITHUB_DIR}/${APP_SOURCE_CACHE}/MAP_COUNTRY.cache
+    if [ "$argDevMode" == "true" ]; then
+        for KEY in "${!map_continent[@]}"; do
+            printf "%s --> %s\n" "$KEY" "${map_continent[$KEY]}" >> "${app_dir_github}/${folder_target_logs}/MAP_CONTINENT.log"
+            debug "       ${greyd}Writing ${navy}$KEY${greyd} › ${navy}${map_continent[$KEY]}${greyd} to log › ${yellowd}${folder_target_logs}/MAP_CONTINENT.log${greyd}"
+        done
 
-    if [[ $APP_DEBUG == "true" ]]; then
-        for KEY in "${!MAP_CONTINENT[@]}"; do
-            printf "%s --> %s\n" "$KEY" "${MAP_CONTINENT[$KEY]}"
-        done | tee "${APP_GITHUB_DIR}/.logs/MAP_CONTINENT.log"
-
-        for KEY in "${!MAP_COUNTRY[@]}"; do
-            printf "%s --> %s\n" "$KEY" "${MAP_COUNTRY[$KEY]}"
-        done | tee "${APP_GITHUB_DIR}/.logs/MAP_COUNTRY.log"
+        for KEY in "${!map_country[@]}"; do
+            printf "%s --> %s\n" "$KEY" "${map_country[$KEY]}" >> "${app_dir_github}/${folder_target_logs}/MAP_COUNTRY.log"
+            debug "       ${greyd}Writing ${navy}$KEY${greyd} › ${navy}${map_country[$KEY]}${greyd} to log › ${yellowd}${folder_target_logs}/MAP_COUNTRY.log${greyd}"
+        done
     fi
 
     # #
@@ -2114,24 +2840,26 @@ function main()
     #   Cleanup old files
     # #
 
-    rm -rf $APP_TARGET_DIR/*
-
-    rm -rf $APP_DIR_IPV4
-    mkdir --parent $APP_DIR_IPV4
-
-    rm -rf $APP_DIR_IPV6
-    mkdir --parent $APP_DIR_IPV6
+    if [ "$argClean" = true ]; then
+        info "    🗑️ Cleaning ${bluel}${folder_target_storage}"
+        rm -rf "${folder_target_storage}"/*
+        if [ ! -d "${folder_target_storage}" ]; then
+            ok "    🗑️  Removed folder ${greenl}${folder_target_storage}"
+        else
+            error "    ❌ Failed to remove folder ${redl}${folder_target_storage}"
+        fi
+    fi
 
     # #
     #   Run actions
     # #
 
-    GENERATE_IPv4
-    GENERATE_IPv6
-    MERGE_IPSETS
-    GENERATE_CONTINENTS
-    GENERATE_COUNTRIES
-    GARBAGE
+    generate_IPv4
+    generate_IPv6
+    ipsets_Merge
+    generate_Continents
+    generate_Countries
+    gcc
 }
 
 main "$@"

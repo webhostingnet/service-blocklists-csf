@@ -109,7 +109,8 @@ app_repo="configserver-software/service-blocklists"                             
 app_repo_branch="main"                                                          # repository branch
 app_agent="Mozilla/5.0 (Windows NT 10.0; WOW64) "\
 "AppleWebKit/537.36 (KHTML, like Gecko) "\
-"Chrome/51.0.2704.103 Safari/537.36"                                            # user agent used with curl
+"Chrome/51.0.2704.103 Safari/537.36 "\
+"ConfigServer Security (hello@configserver.dev)"                                # user agent used with curl
 
 # #
 #   Define › Args
@@ -598,7 +599,7 @@ prinp()
 
     unset   _title _title_width _text _indent _pad _padding _content_width \
             _title_length _inner_width _box_width _emoji_adjust \
-            _hline _line _out i _display_title _vis_out _vis_word _vis_len _vis_len_full \
+            _hline _line _out _i _display_title _vis_out _vis_word _vis_len _vis_len_full \
             _line_bracket _line_emoji_adjust _pad_spaces _bracket \
             _show_right_border
 }
@@ -919,9 +920,9 @@ download_list()
     _fnArgFile=$2
     _fnArgFilter=$3
     _fnListNum=$4
-    _fnFileTemp="${2}.tmp"
-    _fnFileRaw="${2}.raw"
-    _fnFileSrc="${2}.src"
+    _fnFileTemp="${_fnArgFile}.tmp"
+    _fnFileRaw="${_fnArgFile}.raw"
+    _fnFileSrc="${_fnArgFile}.src"
     _count_total_ips=0
     _count_total_subnets=0
 
@@ -1087,8 +1088,8 @@ download_list()
     #   Unset
     # #
 
-    unset _fnArgSource _fnArgFile _fnArgFilter _fnListNum _fnFileTemp _fnFileRaw _fnFileSrc \
-          _count_total_ips _count_total_subnets
+    unset   _fnArgSource _fnArgFile _fnArgFilter _fnListNum _fnFileTemp _fnFileRaw _fnFileSrc \
+            _count_total_ips _count_total_subnets
 }
 
 # #

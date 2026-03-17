@@ -25,6 +25,9 @@
 #                           <argUrl>            str         required
 #                           <argJsonPattern>    str         optional            default: 'map(.[]) | .[]'
 #   
+#   @demo               .github/scripts/bl-json.sh blocklists/privacy/privacy_google.ipset https://developers.google.com/search/apis/ipranges/googlebot.json '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty'
+#                       .github/scripts/bl-json.sh blocklists/privacy/privacy_microsoft365.ipset https://endpoints.office.com/endpoints/worldwide?clientrequestid=XXXXX-XXX-XXX-XXX-XXXXXX '.[] | .ips[]?'
+#   
 #   @structure          📁 .github
 #                           📁 scripts
 #                               📄 bl-json.sh
@@ -125,7 +128,8 @@ app_repo="configserver-software/service-blocklists"                             
 app_repo_branch="main"                                                          # repository branch
 app_agent="Mozilla/5.0 (Windows NT 10.0; WOW64) "\
 "AppleWebKit/537.36 (KHTML, like Gecko) "\
-"Chrome/51.0.2704.103 Safari/537.36"                                            # user agent used with curl
+"Chrome/51.0.2704.103 Safari/537.36 "\
+"ConfigServer Security (hello@configserver.dev)"                                # user agent used with curl
 
 # #
 #   Define › Args
@@ -929,12 +933,11 @@ filter_bogon_ips( )
 
 download_list()
 {
-
     _fnArgUrl=$1
     _fnArgFile=$2
     _fnArgPattern=$3
-    _fnFileTemp="${_fnArgFile}.tmp"
     _fnListNum=$4
+    _fnFileTemp="${_fnArgFile}.tmp"
     _count_total_ips=0
     _count_total_subnets=0
 

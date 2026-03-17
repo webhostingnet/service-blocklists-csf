@@ -24,6 +24,8 @@
 #                           <argUrl>            vararg      required
 #                           {...}
 #   
+#   @demo               .github/scripts/bl-plain.sh blocklists/spam/spam_spamhaus.ipset https://www.spamhaus.org/drop/drop.txt
+#   
 #   @structure          📁 .github
 #                           📁 scripts
 #                               📄 bl-plain.sh
@@ -115,13 +117,14 @@ bgError="${esc}[1;38;5;15;48;5;160m"
 # #
 
 app_name="Blocklist › Plain Text"                                               # name of app
-app_desc="Fetch list of IP addresses from plain-text source"                    # desc
+app_desc="Fetch list of IP addresses from url in plain-text"                    # desc
 app_ver="1.2.0.0"                                                               # current script version
 app_repo="configserver-software/service-blocklists"                             # repository
 app_repo_branch="main"                                                          # repository branch
 app_agent="Mozilla/5.0 (Windows NT 10.0; WOW64) "\
 "AppleWebKit/537.36 (KHTML, like Gecko) "\
-"Chrome/51.0.2704.103 Safari/537.36"                                            # user agent used with curl
+"Chrome/51.0.2704.103 Safari/537.36 "\
+"ConfigServer Security (hello@configserver.dev)"                                # user agent used with curl
 
 # #
 #   Define › Args
@@ -148,6 +151,7 @@ regex_ipv4='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
 regex_ipv4_cidr='^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]{1,2})$'
 regex_ipv6='^[0-9A-Fa-f:.]+$'
 regex_ipv6_cidr='^[0-9A-Fa-f:.]+/[0-9]{1,3}$'
+regex_ipv4_range='([0-9]{1,3}\.){3}[0-9]{1,3}[[:space:]]*-[[:space:]]*([0-9]{1,3}\.){3}[0-9]{1,3}'
 
 # #
 #   Define › Defaults
@@ -296,10 +300,10 @@ prin0()
     _line_width=$(( _box_width + 2 ))
 
     _line=""
-    i=1
-    while [ "$i" -le "${_line_width}" ]; do
+    _i=1
+    while [ "$_i" -le "${_line_width}" ]; do
         _line="${_line}─"
-        i=$(( i + 1 ))
+        _i=$(( _i + 1 ))
     done
 
     printf '\n'
@@ -310,7 +314,7 @@ prin0()
     #   Unset
     # #
 
-    unset   _indent _box_width _line_width _line i
+    unset   _indent _box_width _line_width _line _i
 }
 
 # #
@@ -343,10 +347,10 @@ prinb()
     # #
 
     _line=""
-    i=1
-    while [ "$i" -le "$_inner_width" ]; do
+    _i=1
+    while [ "$_i" -le "$_inner_width" ]; do
         _line="${_line}─"
-        i=$(( i + 1 ))
+        _i=$(( _i + 1 ))
     done
 
     # #
@@ -366,7 +370,7 @@ prinb()
 
     unset   _title _indent _padding \
             _title_length _inner_width _box_width \
-            _line i
+            _line _i
 }
 
 # #
@@ -593,7 +597,7 @@ prinp()
 
     unset   _title _title_width _text _indent _pad _padding _content_width \
             _title_length _inner_width _box_width _emoji_adjust \
-            _hline _line _out i _display_title _vis_out _vis_word _vis_len _vis_len_full \
+            _hline _line _out _i _display_title _vis_out _vis_word _vis_len _vis_len_full \
             _line_bracket _line_emoji_adjust _pad_spaces _bracket \
             _show_right_border
 }
@@ -910,11 +914,10 @@ filter_bogon_ips( )
 
 download_list()
 {
-
     _fnArgUrl=$1
     _fnArgFile=$2
-    _fnFileTemp="${2}.tmp"
     _fnListNum=$3
+    _fnFileTemp="${_fnArgFile}.tmp"
     _count_total_ips=0
     _count_total_subnets=0
 
@@ -966,6 +969,19 @@ download_list()
     sed -i '/^$/d' "${_fnFileTemp}"
 
     # #
+    #   Dedupe, Sort: Move from .tmp to .sort
+    # #
+
+    info "    🔃 Sorting and deduplicating results"
+    grep -vE '^[[:space:]]*(#|;|$)' "${_fnFileTemp}" | sort_results > "${_fnFileTemp}.sort"
+
+    # #
+    #   Move from .sort to .tmp
+    # #
+
+    mv "${_fnFileTemp}.sort" "${_fnFileTemp}"
+
+    # #
     #   IPSET › Filter BOGON
     #       - Optional
     #       - Run before count_ip_stats for accurate totals
@@ -979,12 +995,17 @@ download_list()
     # #
 
     info "    📊 Fetching statistics for clean file ${bluel}${PWD}/${_fnFileTemp}${greym}"
+
     count_ip_stats "${_fnFileTemp}"
     _count_total_ips=$total_ips
     _count_total_subnets=$total_subnets
 
     _count_total_ips=$(printf "%'d" "$_count_total_ips")                        # LOCAL add commas to thousands
     _count_total_subnets=$(printf "%'d" "$_count_total_subnets")                # LOCAL add commas to thousands
+
+    # #
+    #   Move to target
+    # #
 
     info "    🚛 Move ${bluel}${_fnFileTemp}${greym} to ${bluel}${_fnArgFile}${greym}"
 
@@ -997,7 +1018,7 @@ download_list()
     fi
 
     cat "${_fnFileTemp}" >> "${_fnArgFile}"                                     # Copy .tmp to permanent file
-    rm "${_fnFileTemp}"                                                         # Delete temp file
+    rm -f "${_fnFileTemp}"                                                      # Delete temp file
 
     if [ ! -f "${_fnFileTemp}" ]; then
         ok "    📄 Removed temp file ${greenl}${PWD}/${_fnFileTemp}${greym}"
@@ -1104,10 +1125,6 @@ fi
 
 # #
 #   Download lists
-#   
-#   flips the args around.
-#       - url is first
-#       - file to store ips in second
 # #
 
 i=1
@@ -1115,7 +1132,7 @@ for url in "$@"; do
     case "$url" in
         http://*|https://*)
             # Get the Nth entry from the table
-            name=$(echo "$TABLE_LIST" | awk -v n="$i" '{print $n}')
+            name=$( echo "$TABLE_LIST" | awk -v n="$i" '{print $n}')
 
             # <str:url> <str:ipset_dest.ipset> <int:file_progress>
             download_list "$url" "$file_ipset_target" "$i"

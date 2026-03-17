@@ -1,20 +1,21 @@
 #!/bin/bash
 
 # #
-#   @script             Blocklist › BOGON IP List
+#   @script             Blocklist › Range Converter (iprange)
 #   @repo               https://github.com/ConfigServer-Software/service-blocklists
 #   @workflow           blocklist-generate.yml
 #   @type               Bash script
 #   
-#   @summary            Generates a list of BOGON IP addresses.
-#                           A bogon IP is an address which should not appear on
-#                           the public internet. It includes unallocated ranges
-#                           not yet assigned by RIRs and reserved/private
-#                           address spaces (e.g., RFC1918). These are filtered
-#                           to prevent spoofed, misconfigured, or malicious traffic.
+#   @summary            Convert IPv4 start-end ranges to CIDR blocks using `iprange`,
+#                           then output cleaned, deduped, counted ipset format.
+#                           Source supports local file path or URL.
 #   
-#   @usage              .github/scripts/bogon.sh
+#   @usage              .github/scripts/tool-range-iprange.sh
 #                           <argFileSaveto>     str         required
+#                           <argSourceFile>     str         required
+#                           <argGrepFilter>     str         optional            default: '^#|^;|^$'
+#   
+#   @demo               .github/scripts/microsoft365.sh blocklists/privacy/privacy_microsoft365.ipset
 # #
 
 # #
@@ -28,8 +29,8 @@ export LC_NUMERIC=en_US.UTF-8
 #   Define › Files
 # #
 
-app_file_this=$(basename "$0")                                                  # bogon.sh  (with ext)
-app_file_bin="${app_file_this%.*}"                                              # bogon     (without ext)
+app_file_this=$(basename "$0")                                                  # tool-range-iprange.sh (with ext)
+app_file_bin="${app_file_this%.*}"                                              # tool-range-iprange    (without ext)
 
 # #
 #   Define › Folders
@@ -44,6 +45,9 @@ app_dir_github="${app_dir_this_dir}/.github"                                    
 # #
 
 argFileSaveto=$1
+argSourceFile=${2:-'https://endpoints.office.com/endpoints/worldwide'}
+argJqFilter=${3:-'.[] | .ips[]?'}
+argGrepFilter=${4:-'^#|^;|^$'}
 
 # #
 #   Define › Colors
@@ -92,8 +96,8 @@ bgError="${esc}[1;38;5;15;48;5;160m"
 #   Define › App
 # #
 
-app_name="Blocklist › BOGON List"                                               # name of app
-app_desc="Fetch list of BOGON IP subnets for IPv4 and IPv6"                     # desc
+app_name="Blocklist › Range Source"                                             # name of app
+app_desc="Download list of Microsoft365 associated IP addresses"                # desc
 app_ver="1.2.0.0"                                                               # current script version
 app_repo="configserver-software/service-blocklists"                             # repository
 app_repo_branch="main"                                                          # repository branch
@@ -109,6 +113,7 @@ app_agent="Mozilla/5.0 (Windows NT 10.0; WOW64) "\
 argDryrun="false"                                                               # dryrun mode
 argDevMode="false"                                                              # dev mode
 argVerbose="false"                                                              # verbose mode
+argIncludeBogon="false"                                                         # filter out BOGON IP addresses from list
 
 # #
 #   Define › Time
@@ -138,6 +143,14 @@ total_ips=0                                                                     
 
 # #
 #   Define › Logging functions
+#   
+#   verbose "This is an verbose message"
+#   debug "This is an debug message"
+#   info "This is an info message"
+#   ok "This is an ok message"
+#   warn "This is a warn message"
+#   danger "This is a danger message"
+#   error "This is an error message"
 # #
 
 info( )
@@ -199,6 +212,22 @@ if [ -z "${argFileSaveto}" ]; then
     error "    ⭕  No target file specified ${yellowd}${app_file_this}${greym}; aborting${end}"
     exit 0
 fi
+
+if [ -z "${argSourceFile}" ]; then
+    error "    ⭕  No URL specified for ${yellowd}${argFileSaveto}${greym}; aborting${end}"
+    exit 0
+fi
+
+case "${argSourceFile}" in
+    http://*|https://*|ftp://*|file://*)
+        ;;
+    *)
+        if [ ! -f "${argSourceFile}" ]; then
+            error "    ⭕  Invalid URL specified ${yellowd}${argSourceFile}${greym}; aborting${end}"
+            exit 0
+        fi
+        ;;
+esac
 
 # #
 #   Print › Demo Notifications
@@ -741,13 +770,149 @@ count_ip_stats( )
 }
 
 # #
+#   IPSET › Filter BOGON › IPv4
+#   
+#   Check if IPv4 matches known bogon ranges
+# #
+
+is_bogon_ipv4( )
+{
+    _fnBogonIp=$1
+
+    case "${_fnBogonIp}" in
+        0.*|10.*|127.*|127.0.53.53|169.254.*|192.168.*|255.255.255.255)
+            return 0
+            ;;
+        100.6[4-9].*|100.[7-9][0-9].*|100.1[01][0-9].*|100.12[0-7].*)           # 100.64.0.0/10
+            return 0
+            ;;
+        172.1[6-9].*|172.2[0-9].*|172.3[0-1].*)                                 # 172.16.0.0/12
+            return 0
+            ;;
+        192.0.0.*|192.0.2.*|198.18.*|198.19.*|198.51.100.*|203.0.113.*)
+            return 0
+            ;;
+        22[4-9].*|23[0-9].*|24[0-9].*|25[0-5].*)                                # 224.0.0.0/4 + 240.0.0.0/4
+            return 0
+            ;;
+    esac
+
+    return 1
+}
+
+# #
+#   IPSET › Filter BOGON › IPv6
+#   
+#   Check if IPv6 matches known bogon ranges
+# #
+
+is_bogon_ipv6( )
+{
+    _fnBogonIp="${1,,}"
+    _fnBogonIp="${_fnBogonIp%%/*}"
+
+    case "${_fnBogonIp}" in
+        ::|::1|::ffff:*|::*)                                                        # ::/128 ::1/128 ::ffff:0:0/96 ::/96
+            return 0
+            ;;
+        100:*|100::*)                                                               # 100::/64
+            return 0
+            ;;
+        2001:1[0-9a-f]:*|2001:01[0-9a-f]:*|2001:001[0-9a-f]:*|2001:0001[0-9a-f]:*)  # 2001:10::/28
+            return 0
+            ;;
+        2001:db8:*|3fff:*|fc*|fd*|fe8*|fe9*|fea*|feb*|fec*|fed*|fee*|fef*|ff*)
+            return 0
+            ;;
+    esac
+
+    return 1
+}
+
+# #
+#   IPSET › Filter BOGON Addresses
+#   
+#   Some of our IPSETs will include BOGON addresses which may cause issues with
+#   users who are not expecting such IPs to be included.
+#   
+#   This functionality removes the BOGON addresses completely before the list is
+#   counted.
+#   
+#       - Runs only when argIncludeBogon=false
+#       - Run before count_ip_stats to ensure count accuracy
+# #
+
+filter_bogon_ips( )
+{
+    _fnBogonFile=$1
+    _fnBogonTemp="${1}.bogon"
+    _fnBogonLine=""
+    _fnBogonBase=""
+    _fnBogonBefore=0
+    _fnBogonAfter=0
+    _fnBogonRemoved=0
+
+    case "${argIncludeBogon:-true}" in
+        1|true|TRUE|yes|YES)
+            return 0
+            ;;
+    esac
+
+    if [ ! -f "${_fnBogonFile}" ]; then
+        warn "    ⚠️  Bogon filter skipped; file not found ${yellowl}${_fnBogonFile}${greym}"
+        return 0
+    fi
+
+    info "    🚫 Filtering bogon IP ranges from ${bluel}${PWD}/${_fnBogonFile}${greym}"
+    _fnBogonBefore=$(wc -l < "${_fnBogonFile}")
+    > "${_fnBogonTemp}"
+
+    while IFS= read -r _fnBogonLine || [ -n "${_fnBogonLine}" ]; do
+        [ -z "${_fnBogonLine}" ] && continue
+        _fnBogonBase="${_fnBogonLine%%/*}"
+
+        if [[ "${_fnBogonBase}" == *:* ]]; then
+            if is_bogon_ipv6 "${_fnBogonLine}"; then
+                _fnBogonRemoved=$(( _fnBogonRemoved + 1 ))
+                continue
+            fi
+        elif [[ "${_fnBogonBase}" == *.* ]]; then
+            if is_bogon_ipv4 "${_fnBogonBase}"; then
+                _fnBogonRemoved=$(( _fnBogonRemoved + 1 ))
+                continue
+            fi
+        fi
+
+        printf '%s\n' "${_fnBogonLine}" >> "${_fnBogonTemp}"
+    done < "${_fnBogonFile}"
+
+    mv "${_fnBogonTemp}" "${_fnBogonFile}"
+
+    _fnBogonAfter=$(wc -l < "${_fnBogonFile}")
+
+    ok "    🚫 Removed ${greenl}${_fnBogonRemoved}${greym} bogon entries from ${bluel}${PWD}/${_fnBogonFile}${greym}"
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnBogonFile _fnBogonTemp _fnBogonLine _fnBogonBase _fnBogonBefore _fnBogonAfter _fnBogonRemoved _fnBogonIp
+}
+
+# #
 #   Func › Download List
 # #
 
 download_list()
 {
-    _fnArgFile=$1
-    _fnFileTemp="${_fnArgFile}.tmp"
+    _fnArgUrl=$1                    # https://endpoints.office.com/endpoints/worldwide
+    _fnArgFile=$2                   # file_ipset_target
+    _fnArgJqFilter=$3               # '.[] | .ips[]?'
+    _fnArgGrepFilter=$4             # '^#|^;|^$'
+    _fnListNum=$5                   # Process list count
+    _fnFileTemp="${2}.tmp"
+    _fnFileRaw="${2}.raw"
+    _fnFileSrc="${2}.src"
     _count_total_ips=0
     _count_total_subnets=0
 
@@ -755,7 +920,7 @@ download_list()
     #   Create the file if it doesn't exist
     # #
 
-    prinp "📄[-1] Generating BOGON IP list"
+    prinp "📄[-1] Processing list #${_fnListNum}"
 
     if [ ! -f "${_fnFileTemp}" ]; then
         touch "${_fnFileTemp}"
@@ -769,64 +934,53 @@ download_list()
     fi
 
     # #
-    #   Generate › IPv4 bogon addresses
+    #   Supports:
+    #       - Direct URL to gzip file
+    #           If specifying a web url to a gz file; must enclose the URL in quotes.
+    #           In bash, the char & makes the previous command run in the background.
+    #   
+    #           Must use wget to download gz files; otherwise you will be blocked
+    #           by captcha.
+    #       - Local gzip file
     # #
 
-    info "    🌐 Generating IPv4 bogon addresses"
-
-    cat >> "${_fnFileTemp}" <<'EOF'
-0.0.0.0/8               # "This" network
-10.0.0.0/8              # Private-use networks
-100.64.0.0/10           # Carrier-grade NAT
-127.0.0.0/8             # Loopback
-127.0.53.53             # Name collision occurrence
-169.254.0.0/16          # Link local
-172.16.0.0/12           # Private-use networks
-192.0.0.0/24            # IETF protocol assignments
-192.0.2.0/24            # TEST-NET-1
-192.168.0.0/16          # Private-use networks
-198.18.0.0/15           # Network interconnect device benchmark testing
-198.51.100.0/24         # TEST-NET-2
-203.0.113.0/24          # TEST-NET-3
-224.0.0.0/4             # Multicast
-240.0.0.0/4             # Reserved for future use
-EOF
+    _fnMs365Url+="${_fnArgUrl}?clientrequestid=${templ_uuid}"
+    info "    🌎 Downloading Microsoft365 IPs from ${bluel}${_fnMs365Url}${greym} to ${bluel}${_fnFileTemp}${greym}"
+    info "    🔍 Running jq filter ${bluel}${_fnArgJqFilter}${greym}"
 
     # #
-    #   Generate › IPv6 bogon addresses
+    #   Download file
     # #
 
-    info "    🌐 Generating IPv6 bogon addresses"
-
-    cat >> "${_fnFileTemp}" <<'EOF'
-::/128
-::1/128
-::ffff:0:0/96
-::/96
-100::/64
-2001:2::/48
-2001:db8::/32
-2001:10::/28
-fc00::/7
-fe80::/10
-ff00::/8
-EOF
+    curl -sSL -k -A "${app_agent}" "${_fnMs365Url}" | jq -r "${_fnArgJqFilter}" > "${_fnFileTemp}"
 
     # #
     #   Perform sed actions on downloaded file.
     # #
 
+    # normalize CRLF
     sed -i 's/\r$//' "${_fnFileTemp}"
+
+    # remove hyphens from IP ranges (if format is "1.2.3.4 - 1.2.3.5" take left side)
+    sed -i 's/-.*//' "${_fnFileTemp}"
+
+    # remove inline comments (strip ' # comment' or ' ; comment' from end of lines ; collapse whitespace, trim)
     sed -i 's/[[:space:]]*[#;].*$//' "${_fnFileTemp}"
+
+    # collapse multiple whitespace into a single space
+    sed -i 's/[[:space:]]\+/ /g' "${_fnFileTemp}"
+
+    # trim leading and trailing whitespace
     sed -i 's/^[[:space:]]*//;s/[[:space:]]*$//' "${_fnFileTemp}"
+
+    # remove empty lines (after trimming/comment removal)
     sed -i '/^$/d' "${_fnFileTemp}"
 
-    # #
+        # #
     #   Dedupe, Sort: Move from .tmp to .sort
     # #
 
-    info "    🔃 Sorting and deduplicating results"
-    sort_results < "${_fnFileTemp}" > "${_fnFileTemp}.sort"
+    grep -vE '^[[:space:]]*(#|;|$)' "${_fnFileTemp}" | sort_results > "${_fnFileTemp}.sort"
 
     # #
     #   Move from .sort to .tmp
@@ -835,12 +989,19 @@ EOF
     mv "${_fnFileTemp}.sort" "${_fnFileTemp}"
 
     # #
+    #   IPSET › Filter BOGON
+    #       - Optional
+    #       - Run before count_ip_stats for accurate totals
+    # #
+
+    filter_bogon_ips "${_fnFileTemp}"
+
+    # #
     #   Calculate list statistics
     #       - local only (global totals are calculated after final dedupe)
     # #
 
     info "    📊 Fetching statistics for clean file ${bluel}${PWD}/${_fnFileTemp}${greym}"
-
     count_ip_stats "${_fnFileTemp}"
     _count_total_ips=$total_ips
     _count_total_subnets=$total_subnets
@@ -877,7 +1038,8 @@ EOF
     #   Unset
     # #
 
-    unset _fnArgFile _fnFileTemp _count_total_ips _count_total_subnets
+    unset _fnArgUrl _fnArgFile _fnArgGrepFilter _fnListNum _fnFileTemp _fnFileRaw _fnFileSrc \
+          _count_total_ips _count_total_subnets
 }
 
 # #
@@ -971,12 +1133,15 @@ fi
 #   Download lists
 # #
 
-download_list "${file_ipset_target}"
+i=1
+download_list "${argSourceFile}" "${file_ipset_target}" "${argJqFilter}" "${argGrepFilter}" "${i}"
 
 # #
 #   Sort
 #       - Remove downloaded comment/blank lines
 #       - Sort/dedupe IPv4 and IPv6 separately
+#       - Move sorted text over to permanent file
+#       - Delete temp sort file
 # #
 
 if [ -f "${file_ipset_target}" ]; then

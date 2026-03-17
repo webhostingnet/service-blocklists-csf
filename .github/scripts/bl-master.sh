@@ -129,7 +129,8 @@ app_repo="configserver-software/service-blocklists"                             
 app_repo_branch="main"                                                          # repository branch
 app_agent="Mozilla/5.0 (Windows NT 10.0; WOW64) "\
 "AppleWebKit/537.36 (KHTML, like Gecko) "\
-"Chrome/51.0.2704.103 Safari/537.36"                                            # user agent used with curl
+"Chrome/51.0.2704.103 Safari/537.36 "\
+"ConfigServer Security (hello@configserver.dev)"                                # user agent used with curl
 
 # #
 #   Define › Args
@@ -918,7 +919,6 @@ filter_bogon_ips( )
 
 download_list()
 {
-
     _fnArgSource=$1
     _fnArgFile=$2
     _fnListNum=$3
@@ -1142,10 +1142,6 @@ fi
 
 # #
 #   Download lists
-#   
-#   flips the args around.
-#       - url is first
-#       - file to store ips in second
 # #
 
 i=1

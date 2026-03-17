@@ -205,7 +205,7 @@ bgDanger="${esc}[1;38;5;15;48;5;202m"
 bgError="${esc}[1;38;5;15;48;5;160m"
 
 # #
-#   define > app
+#   Define › App
 # #
 
 app_name="Blocklist › Geolite2 ASN"                                             # name of app
@@ -215,7 +215,8 @@ app_repo="configserver-software/service-blocklists"                             
 app_repo_branch="main"                                                          # repository branch
 app_agent="Mozilla/5.0 (Windows NT 10.0; WOW64) "\
 "AppleWebKit/537.36 (KHTML, like Gecko) "\
-"Chrome/51.0.2704.103 Safari/537.36"                                            # user agent used with curl
+"Chrome/51.0.2704.103 Safari/537.36 "\
+"ConfigServer Security (hello@configserver.dev)"                                # user agent used with curl
 
 # #
 #   Define › Args
@@ -616,7 +617,7 @@ while [ $# -gt 0 ]; do
 
         -v|--version)
             echo
-            echo "  ${blued}${bold}${APP_NAME}${end} - v$app_ver ${end}"
+            echo "  ${blued}${bold}${app_name}${end} - v${app_ver} ${end}"
             echo "  ${greenl}${bold}https://github.com/${app_repo} ${end}"
             echo
             exit 1
@@ -770,10 +771,10 @@ prin0()
     _line_width=$(( _box_width + 2 ))
 
     _line=""
-    i=1
-    while [ "$i" -le "${_line_width}" ]; do
+    _i=1
+    while [ "$_i" -le "${_line_width}" ]; do
         _line="${_line}─"
-        i=$(( i + 1 ))
+        _i=$(( _i + 1 ))
     done
 
     printf '\n'
@@ -784,7 +785,7 @@ prin0()
     #   Unset
     # #
 
-    unset   _indent _box_width _line_width _line i
+    unset   _indent _box_width _line_width _line _i
 }
 
 # #
@@ -817,10 +818,10 @@ prinb()
     # #
 
     _line=""
-    i=1
-    while [ "$i" -le "$_inner_width" ]; do
+    _i=1
+    while [ "$_i" -le "$_inner_width" ]; do
         _line="${_line}─"
-        i=$(( i + 1 ))
+        _i=$(( _i + 1 ))
     done
 
     # #
@@ -840,7 +841,7 @@ prinb()
 
     unset   _title _indent _padding \
             _title_length _inner_width _box_width \
-            _line i
+            _line _i
 }
 
 # #
@@ -1067,7 +1068,7 @@ prinp()
 
     unset   _title _title_width _text _indent _pad _padding _content_width \
             _title_length _inner_width _box_width _emoji_adjust \
-            _hline _line _out i _display_title _vis_out _vis_word _vis_len _vis_len_full \
+            _hline _line _out _i _display_title _vis_out _vis_word _vis_len _vis_len_full \
             _line_bracket _line_emoji_adjust _pad_spaces _bracket \
             _show_right_border
 }
@@ -1171,6 +1172,11 @@ sort_results()
 }
 
 # #
+#   Developer › Test IP Sorting
+# #
+
+
+# #
 #   Count file statistics
 #       - IPv4 CIDR contributes all IPv4 addresses in the subnet
 #       - IPv6 CIDR contributes one entry (do not expand)
@@ -1192,7 +1198,7 @@ count_ip_stats( )
 
         if [[ $_fnLine =~ $regex_ipv4_cidr ]]; then
             _fnCidr="${BASH_REMATCH[2]}"
-            if [[ "${_fnCidr}" =~ ^[0-9]+$ ]] && [ "$_fnCidr" -le 32 ]; then
+            if [ "$_fnCidr" -le 32 ]; then
                 _fnSubnetIps=$(( 1 << (32 - _fnCidr) ))
                 _fnTotalIps=$(( _fnTotalIps + _fnSubnetIps ))
                 _fnTotalSubnets=$(( _fnTotalSubnets + 1 ))
@@ -1211,7 +1217,7 @@ count_ip_stats( )
 
         elif [[ $_fnLine =~ $regex_ipv6_cidr ]]; then
             _fnCidr="${_fnLine#*/}"
-            if [[ "${_fnCidr}" =~ ^[0-9]+$ ]] && [ "$_fnCidr" -le 128 ]; then
+            if [ "$_fnCidr" -le 128 ]; then
                 _fnTotalIps=$(( _fnTotalIps + 1 ))
                 _fnTotalSubnets=$(( _fnTotalSubnets + 1 ))
             fi
@@ -1252,7 +1258,7 @@ required_Packages()
 }
 
 # #
-#   Get latest MaxMind GeoLite2 IP asn database and md5 checksum
+#   Get latest MaxMind GeoLite2 IP ASN database and md5 checksum
 #       CSV URL: https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-ASN-CSV&license_key=LICENSE_KEY&suffix=zip
 #       MD5 URL: https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-ASN-CSV&license_key=LICENSE_KEY&suffix=zip.md5
 #   
@@ -1266,7 +1272,7 @@ maxmind_Database_Download( )
     info "    📦 Getting ready to download MaxMind databases${greym}"
 
     local URL_CSV="https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-ASN-CSV&license_key=${argMMLicense}&suffix=zip"
-    local URL_MD5="${URL_CSV}.md5" # Take URL_CSV value and add .md5 to end for hash file
+    local URL_MD5="${URL_CSV}.md5" # take URL_CSV value and add .md5 to end for hash file
 
     # #
     #   download files
@@ -1312,7 +1318,7 @@ maxmind_Database_Download( )
     fi
 
     # #
-    #   Provided IPv4 csv file, but may be missing the others
+    #   Provided the IPv4 csv file, but may be missing the others
     # #
 
     if [ -f "${file_source_csv_ipv4}" ]; then
@@ -1365,7 +1371,6 @@ maxmind_Database_Download( )
         # #
 
         if [ -f "${file_source_csv_zip}" ]; then
-
             info "    📦 Found zip ${bluel}${file_source_csv_zip}${greym}"
             if unzip -o -j -q -d . "${file_source_csv_zip}"; then
                 ok "    📦 Unzip successful ${greenl}${file_source_csv_zip}"
@@ -1382,7 +1387,6 @@ maxmind_Database_Download( )
     else
         error "    ❌ Could not locate either ${redl}zip + md5${greym} or ${redl}uncompressed csv${greym}"
     fi
-
 }
 
 # #
@@ -2297,8 +2301,8 @@ gcc( )
 # #
 #   Main Function
 #   
-#   Accepts -p (parameters)
-#       ./script -p LICENSE_KEY
+#   Accepts -l license parameters
+#       ./script -l LICENSE_KEY
 # #
 
 main()
@@ -2391,7 +2395,6 @@ main()
     # #
 
     if [ "$argClean" = true ]; then
-
         info "    🗑️ Cleaning ${bluel}${folder_target_storage}"
         rm -rf "${folder_target_storage}"/*
         if [ ! -d "${folder_target_storage}" ]; then
@@ -2399,7 +2402,6 @@ main()
         else
             error "    ❌ Failed to remove folder ${redl}${folder_target_storage}"
         fi
-
     fi
 
     # #
