@@ -2104,21 +2104,19 @@ ipsets_Merge( )
 
     for fullpath_ipv6 in ${path_storage_ipv6}/*.${file_target_ext_tmp}; do
         file_ipv6=$(basename ${fullpath_ipv6})
+        dest_file="${path_storage_ipv4}/${file_ipv6}"
 
-        mv -- "$fullpath_ipv6" "${path_storage_ipv4}/${file_ipv6}"
-        if [[ $? -ne 0 ]]; then
-            error "    ❌ Could not move file ${redd}${fullpath_ipv6}${greym} › ${redd}${path_storage_ipv4}/${file_ipv6}${end}"
-            exit 1
+        if [ -f "$dest_file" ]; then
+            # IPv4 file exists; append IPv6 content
+            cat "$fullpath_ipv6" >> "$dest_file"
+            ok "    📄 Merged ${greenl}${fullpath_ipv6}${greym} › ${greenl}${dest_file}${greym}"
         else
-            ok "    📄 Moved ${greenl}${fullpath_ipv6}${greym} › ${greenl}${path_storage_ipv4}/${file_ipv6}${greym}"
+            # No IPv4 file; move IPv6 file directly
+            mv -- "$fullpath_ipv6" "$dest_file"
+            ok "    📄 Moved ${greenl}${fullpath_ipv6}${greym} › ${greenl}${dest_file}${greym}"
         fi
 
-        rm -rf $fullpath_ipv6
-        if [ ! -d "${fullpath_ipv6}" ]; then
-            ok "    🗑️  Removed folder ${bluel}${fullpath_ipv6}"
-        else
-            error "    ❌ Failed to remove folder ${greenl}${fullpath_ipv6}"
-        fi
+        rm -f "$fullpath_ipv6"
     done
 }
 
