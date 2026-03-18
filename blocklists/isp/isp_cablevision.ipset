@@ -5,10 +5,10 @@
 #   @service        whois.radb.net
 #   @id             isp_cablevision_ipset
 #   @uuid           6de5a872-560e-3446-914e-b3818263d0c9
-#   @updated        Sun Mar 15 02:02:46 UTC 2026
-#   @entries        9,928,337 ips
-#                   970 subnets
-#                   970 lines
+#   @updated        Wed Mar 18 01:56:13 UTC 2026
+#   @entries        9,830,033 ips
+#                   968 subnets
+#                   968 lines
 #   @asn            AS6128, AS13490, AS19720
 #   @expires        7 days
 #   @category       Internet Service Provider (ISP)
@@ -901,13 +901,11 @@
 142.54.64.0/18
 144.62.128.0/17
 148.74.0.0/15
-148.76.0.0/17
 148.76.0.0/18
 148.76.64.0/18
 148.76.128.0/18
 148.76.192.0/19
 148.76.224.0/19
-148.77.0.0/16
 148.77.0.0/17
 148.77.63.0/24
 148.77.128.0/17
