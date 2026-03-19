@@ -777,7 +777,7 @@ jobs:
                   #   Privacy › Google › Bot
                   # #
 
-                  run_google_bot=".github/scripts/bl-json.sh blocklists/privacy/privacy_google_bots.ipset https://developers.google.com/search/apis/ipranges/googlebot.json '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty'"
+                  run_google_bot=".github/scripts/bl-json.sh blocklists/privacy/privacy_google_bots.ipset https://developers.google.com/static/crawling/ipranges/common-crawlers.json '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty'"
                   eval "./$run_google_bot"
 
                   # #
