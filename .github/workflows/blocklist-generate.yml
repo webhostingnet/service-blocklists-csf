@@ -506,7 +506,7 @@ jobs:
             - name: "📦 Set Env Variables"
               id: task_commit_pre
               run: |
-                  useragent="${{ vars.API_USERAGENT }}"
+                  useragent="${{ vars.BL_GENERAL_USERAGENT }}"
                   echo "USERAGENT=$(echo $useragent)" >> $GITHUB_ENV
 
             # #
@@ -557,22 +557,22 @@ jobs:
                   #   Privacy › Activision
                   # #
 
-                  run_activision=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_activision.ipset http://list.iblocklist.com/?list=gfnxlhxsijzrcuxwzebb"
+                  run_activision=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_activision.ipset ${{ vars.BL_PRIVACY_ACTIVISION_SRC }}"
                   eval "./$run_activision"
 
                   # #
                   #   Privacy › Ahrefs
                   # #
 
-                  curl -sSL -A "${{ env.USERAGENT }}" https://api.ahrefs.com/v3/public/crawler-ips | jq -r '.ips[].ip_address | select( . != null )' | .github/scripts/bl-format.sh blocklists/privacy/privacy_ahrefs.ipset
+                  curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_PRIVACY_AHREFS_SRC }} | jq -r '.ips[].ip_address | select( . != null )' | .github/scripts/bl-format.sh blocklists/privacy/privacy_ahrefs.ipset
 
                   # #
                   #   Privacy › Akamai (Cloud / CDN)
                   # #
   
-                  AKAMAI_IPv4=$( curl -sSL -A "${{ env.USERAGENT }}" https://techdocs.akamai.com/property-manager/pdfs/akamai_ipv4_CIDRs.txt \
+                  AKAMAI_IPv4=$( curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_PRIVACY_AKAMAI_SRC }}/akamai_ipv4_CIDRs.txt \
                     | grep -vE '^(#|;|[[:space:]]*$)' )
-                  AKAMAI_IPv6=$( curl -sSL -A "${{ env.USERAGENT }}" https://techdocs.akamai.com/property-manager/pdfs/akamai_ipv6_CIDRs.txt \
+                  AKAMAI_IPv6=$( curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_PRIVACY_AKAMAI_SRC }}/akamai_ipv6_CIDRs.txt \
                     | grep -vE '^(#|;|[[:space:]]*$)' )
                   AKAMAI_LIST=$( echo -e "${AKAMAI_IPv4}\n${AKAMAI_IPv6}" | sort -u )
                   echo "$AKAMAI_LIST" | .github/scripts/bl-format.sh blocklists/privacy/privacy_akamai.ipset
@@ -581,71 +581,71 @@ jobs:
                   #   Privacy › Amazon AWS
                   # #
 
-                  run_amz_aws=".github/scripts/bl-json.sh blocklists/privacy/privacy_amazon_aws.ipset https://ip-ranges.amazonaws.com/ip-ranges.json '.prefixes[] | select(.service==\"AMAZON\") | .ip_prefix'"
+                  run_amz_aws=".github/scripts/bl-json.sh blocklists/privacy/privacy_amazon_aws.ipset ${{ vars.BL_PRIVACY_AMAZON_SRC }} '.prefixes[] | select(.service==\"AMAZON\") | .ip_prefix'"
                   eval "./$run_amz_aws"
 
                   # #
                   #   Privacy › Amazon EC2
                   # #
 
-                  run_amz_ec2=".github/scripts/bl-json.sh blocklists/privacy/privacy_amazon_ec2.ipset https://ip-ranges.amazonaws.com/ip-ranges.json '.prefixes[] | select(.service==\"EC2\") | .ip_prefix'"
+                  run_amz_ec2=".github/scripts/bl-json.sh blocklists/privacy/privacy_amazon_ec2.ipset ${{ vars.BL_PRIVACY_AMAZON_SRC }} '.prefixes[] | select(.service==\"EC2\") | .ip_prefix'"
                   eval "./$run_amz_ec2"
 
                   # #
                   #   Privacy › Apple Bot
                   # #
 
-                  curl -sSL -A "${{ env.USERAGENT }}" https://search.developer.apple.com/applebot.json | jq -r '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty' | .github/scripts/bl-format.sh blocklists/privacy/privacy_apple_bot.ipset
+                  curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_PRIVACY_APPLE_BOT_SRC }} | jq -r '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty' | .github/scripts/bl-format.sh blocklists/privacy/privacy_apple_bot.ipset
 
                   # #
                   #   Privacy › Apple Proxy
                   #   https://developer.apple.com/icloud/prepare-your-network-for-icloud-private-relay/
                   # #
 
-                  curl -sSL -A "${{ env.USERAGENT }}" https://mask-api.icloud.com/egress-ip-ranges.csv | cut -d',' -f1 | .github/scripts/bl-format.sh blocklists/privacy/privacy_apple_icloud.ipset
+                  curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_PRIVACY_APPLE_PROXY_SRC }} | cut -d',' -f1 | .github/scripts/bl-format.sh blocklists/privacy/privacy_apple_icloud.ipset
 
                   # #
                   #   Privacy › Automattic / Tumblr / Wordpress
                   # #
 
-                  run_automattic=".github/scripts/bl-whois.sh blocklists/privacy/privacy_automattic.ipset AS2635"
+                  run_automattic=".github/scripts/bl-whois.sh blocklists/privacy/privacy_automattic.ipset ${{ vars.BL_PRIVACY_AUTOMATTIC_SRC }}"
                   eval "./$run_automattic"
 
                   # #
                   #   Privacy › Alibaba
                   # #
 
-                  run_alibaba=".github/scripts/bl-whois.sh blocklists/privacy/privacy_alibaba.ipset AS37963 AS45102 AS24429 AS134963"
+                  run_alibaba=".github/scripts/bl-whois.sh blocklists/privacy/privacy_alibaba.ipset ${{ vars.BL_PRIVACY_ALIBABA_SRC }}"
                   eval "./$run_alibaba"
                   
                   # #
                   #   Privacy › Baidu
                   # #
 
-                  run_baidu=".github/scripts/bl-whois.sh blocklists/privacy/privacy_baidu.ipset AS38365 AS55967 AS38627"
+                  run_baidu=".github/scripts/bl-whois.sh blocklists/privacy/privacy_baidu.ipset ${{ vars.BL_PRIVACY_BAIDU_SRC }}"
                   eval "./$run_baidu"
 
                   # #
                   #   Privacy › Bing
                   # #
 
-                  run_bing=".github/scripts/bl-json.sh blocklists/privacy/privacy_bing.ipset https://bing.com/toolbox/bingbot.json '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty'"
+                  run_bing=".github/scripts/bl-json.sh blocklists/privacy/privacy_bing.ipset ${{ vars.BL_PRIVACY_BING_SRC }} '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty'"
                   eval "./$run_bing"
 
                   # #
                   #   Privacy › Blizzard
                   # #
 
-                  run_blizzard=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_blizzard.ipset http://list.iblocklist.com/?list=ercbntshuthyykfkmhxc 'at&t'"
+                  run_blizzard=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_blizzard.ipset ${{ vars.BL_PRIVACY_BLIZZARD_SRC }}"
                   eval "./$run_blizzard"
 
                   # #
                   #   Privacy › Bunny CDN
                   # #
 
-                  BUNNYCDN_IPv4=$( curl -sSL https://api.bunny.net/system/edgeserverlist/plain \
+                  BUNNYCDN_IPv4=$( curl -sSL ${{ vars.BL_PRIVACY_BUNNYCDN_SRC }}/plain \
                     | grep -vE '^(#|;|[[:space:]]*$)' )
-                  BUNNYCDN_IPv6=$( curl -sSL https://api.bunny.net/system/edgeserverlist/ipv6 \
+                  BUNNYCDN_IPv6=$( curl -sSL ${{ vars.BL_PRIVACY_BUNNYCDN_SRC }}/ipv6 \
                     | jq -r '.[] | select( . != null )' | grep -vE '^(#|;|[[:space:]]*$)' )
                   BUNNYCDN_LIST=$( echo -e "${BUNNYCDN_IPv4}\n${BUNNYCDN_IPv6}" | sort -u )
                   echo "$BUNNYCDN_LIST" | .github/scripts/bl-format.sh blocklists/privacy/privacy_bunnycdn.ipset
@@ -654,23 +654,23 @@ jobs:
                   #   Privacy › ByteDance / Tiktok
                   # #
 
-                  run_bytedance=".github/scripts/bl-whois.sh blocklists/privacy/privacy_bytedance.ipset AS396986 AS138699 AS150436"
+                  run_bytedance=".github/scripts/bl-whois.sh blocklists/privacy/privacy_bytedance.ipset ${{ vars.BL_PRIVACY_BYTEDANCE_SRC }}"
                   eval "./$run_bytedance"
 
                   # #
                   #   Privacy › Cloudfront
                   # #
 
-                  run_cloudfront=".github/scripts/bl-json.sh blocklists/privacy/privacy_cloudfront.ipset https://d7uri8nf7uskq.cloudfront.net/tools/list-cloudfront-ips 'map(.[]) | sort | .[]'"
+                  run_cloudfront=".github/scripts/bl-json.sh blocklists/privacy/privacy_cloudfront.ipset ${{ vars.BL_PRIVACY_CLOUDFRONT_SRC }} 'map(.[]) | sort | .[]'"
                   eval "./$run_cloudfront"
 
                   # #
                   #   Privacy › Cloudflare CDN
                   # #
 
-                  CLOUDFLARE_IPv4=$( curl -sSL -A "${{ env.USERAGENT }}" https://www.cloudflare.com/ips-v4 \
+                  CLOUDFLARE_IPv4=$( curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_PRIVACY_CLOUDFLARE_SRC }}/ips-v4 \
                     | grep -vE '^(#|;|[[:space:]]*$)' )
-                  CLOUDFLARE_IPv6=$( curl -sSL -A "${{ env.USERAGENT }}" https://www.cloudflare.com/ips-v6 \
+                  CLOUDFLARE_IPv6=$( curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_PRIVACY_CLOUDFLARE_SRC }}/ips-v6 \
                     | grep -vE '^(#|;|[[:space:]]*$)' )
                   CLOUDFLARE_LIST=$( echo -e "${CLOUDFLARE_IPv4}\n${CLOUDFLARE_IPv6}" | sort -u )
                   echo "$CLOUDFLARE_LIST" | .github/scripts/bl-format.sh blocklists/privacy/privacy_cloudflarecdn.ipset
@@ -679,15 +679,14 @@ jobs:
                   #   Privacy › Digital Ocean
                   # #
 
-                  run_digitalocean=".github/scripts/bl-whois.sh blocklists/privacy/privacy_digitalocean_asn.ipset AS14061 AS39690 AS62567 AS133165 AS135340 AS200130 AS201229 AS202018 AS202109 AS205301 AS393406 AS394362"
+                  run_digitalocean=".github/scripts/bl-whois.sh blocklists/privacy/privacy_digitalocean_asn.ipset ${{ vars.BL_PRIVACY_DIGITALOCEAN_ASN_SRC }}"
                   eval "./$run_digitalocean"
 
                   # #
                   #   Privacy › Digital Ocean
-                  #   https://developer.apple.com/icloud/prepare-your-network-for-icloud-private-relay/
                   # #
 
-                  curl -sSL -A "${{ env.USERAGENT }}" https://www.digitalocean.com/geo/google.csv \
+                  curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_PRIVACY_DIGITALOCEAN_URL_SRC }} \
                     | cut -d, -f1 \
                     | grep -vE '^(#|;|[[:space:]]*$)' \
                     | sort -u \
@@ -695,15 +694,22 @@ jobs:
 
                   # #
                   #   Privacy › DuckDuckGo
+                  #   
+                  #   Originally, we crawled DDG's Github docs page. However, it was shut down in 2025.
+                  #       curl -sSL -A "${{ env.USERAGENT }}" https://raw.githubusercontent.com/duckduckgo/duckduckgo-help-pages/master/_docs/results/duckduckbot.md | grep "^\- " | awk '{gsub("-",""); print}' | awk '{gsub(/ /,""); print}' | .github/scripts/bl-format.sh blocklists/privacy/privacy_duckduckgo.ipset
+                  #   
+                  #   Now we use their official json list
+                  #       https://duckduckgo.com/duckduckbot.json
                   # #
 
-                  curl -sSL -A "${{ env.USERAGENT }}" https://raw.githubusercontent.com/duckduckgo/duckduckgo-help-pages/master/_docs/results/duckduckbot.md | grep "^\- " | awk '{gsub("-",""); print}' | awk '{gsub(/ /,""); print}' | .github/scripts/bl-format.sh blocklists/privacy/privacy_duckduckgo.ipset
+                  run_duckduckgo=".github/scripts/bl-json.sh blocklists/privacy/privacy_duckduckgo.ipset ${{ vars.BL_PRIVACY_DUCKDUCKGO_SRC }} '.prefixes[] | select(.ipv4Prefix or .ipv6Prefix) | (.ipv4Prefix // .ipv6Prefix)'"
+                  eval "./$run_duckduckgo"
 
                   # #
                   #   Privacy › Electronic Arts & IGN
                   # #
 
-                  run_ea_ign=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_electronicarts_ign.ipset http://list.iblocklist.com/?list=ejqebpcdmffinaetsvxj"
+                  run_ea_ign=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_electronicarts_ign.ipset ${{ vars.BL_PRIVACY_ELECTRONICARTS_SRC }}"
                   eval "./$run_ea_ign"
 
                   # #
@@ -712,14 +718,14 @@ jobs:
                   #   https://bgp.he.net/search?search%5Bsearch%5D=facebook&commit=Search
                   # #
 
-                  run_facebook=".github/scripts/bl-whois.sh blocklists/privacy/privacy_facebook.ipset AS32934 AS54115 AS63293"
+                  run_facebook=".github/scripts/bl-whois.sh blocklists/privacy/privacy_facebook.ipset ${{ vars.BL_PRIVACY_FACEBOOK_SRC }}"
                   eval "./$run_facebook"
 
                   # #
                   #   Privacy › Fastly
                   # #
 
-                  run_fastly=".github/scripts/bl-json.sh blocklists/privacy/privacy_fastly.ipset https://api.fastly.com/public-ip-list 'map(.[]) | .[]'"
+                  run_fastly=".github/scripts/bl-json.sh blocklists/privacy/privacy_fastly.ipset ${{ vars.BL_PRIVACY_FASTLY_SRC }} 'map(.[]) | .[]'"
                   eval "./$run_fastly"
 
                   # #
@@ -728,7 +734,7 @@ jobs:
                   #   https://api.github.com/meta
                   # #
 
-                  GITHUB_URL="https://api.github.com/meta"
+                  GITHUB_URL="${{ vars.BL_PRIVACY_GITHUB_SRC }}"
 
                   run_github_all=".github/scripts/bl-json.sh blocklists/privacy/privacy_github_all.ipset $GITHUB_URL '..  | strings | select(test(\"^[0-9a-fA-F:.]+/[0-9]+$\"))'"
                   eval "./$run_github_all"
@@ -770,42 +776,41 @@ jobs:
                   #   Privacy › Google › Core
                   # #
 
-                  run_google_core=".github/scripts/bl-json.sh blocklists/privacy/privacy_google_core.ipset https://www.gstatic.com/ipranges/goog.json '.prefixes[] | select(.ipv4Prefix or .ipv6Prefix) | (.ipv4Prefix // .ipv6Prefix)'"
+                  run_google_core=".github/scripts/bl-json.sh blocklists/privacy/privacy_google_core.ipset ${{ vars.BL_PRIVACY_GOOGLE_BOTS_SRC }} '.prefixes[] | select(.ipv4Prefix or .ipv6Prefix) | (.ipv4Prefix // .ipv6Prefix)'"
                   eval "./$run_google_core"
 
                   # #
                   #   Privacy › Google › Bot
                   # #
 
-                  run_google_bot=".github/scripts/bl-json.sh blocklists/privacy/privacy_google_bots.ipset https://developers.google.com/static/crawling/ipranges/common-crawlers.json '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty'"
+                  run_google_bot=".github/scripts/bl-json.sh blocklists/privacy/privacy_google_bots.ipset ${{ vars.BL_PRIVACY_GOOGLE_BOTS_SRC }}'.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty'"
                   eval "./$run_google_bot"
 
                   # #
                   #   Privacy › Google › Cloud
                   # #
 
-                  run_google_cloud=".github/scripts/bl-json.sh blocklists/privacy/privacy_google_cloud.ipset https://www.gstatic.com/ipranges/cloud.json '.prefixes[] | select(.ipv4Prefix or .ipv6Prefix) | (.ipv4Prefix // .ipv6Prefix)'"
+                  run_google_cloud=".github/scripts/bl-json.sh blocklists/privacy/privacy_google_cloud.ipset ${{ vars.BL_PRIVACY_GOOGLE_CLOUD_SRC }} '.prefixes[] | select(.ipv4Prefix or .ipv6Prefix) | (.ipv4Prefix // .ipv6Prefix)'"
                   eval "./$run_google_cloud"
 
                   # #
                   #   Privacy › Huawei
                   # #
 
-                  run_huawei=".github/scripts/bl-whois.sh blocklists/privacy/privacy_huawei.ipset AS55990 AS136907 AS131444 AS141180 AS206204 AS206798 AS265443"
+                  run_huawei=".github/scripts/bl-whois.sh blocklists/privacy/privacy_huawei.ipset ${{ vars.BL_PRIVACY_HUAWEI_SRC }}"
                   eval "./$run_huawei"
 
                   # #
                   #   Privacy › Linode
                   # #
 
-                  LINODE_URL="https://geoip.linode.com/"
-                  curl -fsSL $LINODE_URL | awk -F',' '{print $1}' | sort -u | .github/scripts/bl-format.sh blocklists/privacy/privacy_linode.ipset
+                  curl -fsSL "${{ vars.BL_PRIVACY_LINODE_SRC }}" | awk -F',' '{print $1}' | sort -u | .github/scripts/bl-format.sh blocklists/privacy/privacy_linode.ipset
 
                   # #
                   #   Privacy › Microsoft › 365
                   # #
 
-                  MS_365_URL="https://endpoints.office.com/endpoints/worldwide?clientrequestid=$(uuidgen)"
+                  MS_365_URL="${{ vars.BL_PRIVACY_MICROSOFT_365_SRC }}?clientrequestid=$(uuidgen)"
                   run_microsoft_365=".github/scripts/bl-json.sh blocklists/privacy/privacy_microsoft_365.ipset $MS_AZURE_URL '.[] | .ips[]?'"
                   eval "./$run_microsoft_365"
 
@@ -820,19 +825,19 @@ jobs:
                   #   @ref    https://azservicetags.azurewebsites.net/
                   # #
 
-                  MS_AZURE_URL_PUBLIC=$( curl -fsSL https://www.microsoft.com/en-us/download/details.aspx?id=56519 | grep -o 'https://download.microsoft.com/download[^"]*ServiceTags_Public_[0-9]\+\.json' | head -n1 )
+                  MS_AZURE_URL_PUBLIC=$( curl -fsSL "${{ vars.BL_PRIVACY_MICROSOFT_AZURE_URL_PUBLIC_SRC }}" | grep -o 'https://download.microsoft.com/download[^"]*ServiceTags_Public_[0-9]\+\.json' | head -n1 )
                   run_microsoft_azure_public=".github/scripts/bl-json.sh blocklists/privacy/privacy_microsoft_azure_public.ipset $MS_AZURE_URL_PUBLIC '.values[].properties.addressPrefixes[]'"
                   eval "./$run_microsoft_azure_public"
 
-                  MS_AZURE_URL_USGOV=$( curl -fsSL https://www.microsoft.com/en-us/download/details.aspx?id=57063 | grep -o 'https://download.microsoft.com/download[^"]*ServiceTags_AzureGovernment_[0-9]\+\.json' | head -n1 )
+                  MS_AZURE_URL_USGOV=$( curl -fsSL "${{ vars.BL_PRIVACY_MICROSOFT_AZURE_URL_USGOV_SRC }}" | grep -o 'https://download.microsoft.com/download[^"]*ServiceTags_AzureGovernment_[0-9]\+\.json' | head -n1 )
                   run_microsoft_azure_usgov=".github/scripts/bl-json.sh blocklists/privacy/privacy_microsoft_azure_usgov.ipset $MS_AZURE_URL_USGOV '.values[].properties.addressPrefixes[]'"
                   eval "./$run_microsoft_azure_usgov"
 
-                  MS_AZURE_URL_GERMANY=$( curl -fsSL https://www.microsoft.com/en-us/download/details.aspx?id=57064 | grep -o 'https://download.microsoft.com/download[^"]*ServiceTags_AzureGermany_[0-9]\+\.json' | head -n1 )
+                  MS_AZURE_URL_GERMANY=$( curl -fsSL "${{ vars.BL_PRIVACY_MICROSOFT_AZURE_URL_GERMANY_SRC }}" | grep -o 'https://download.microsoft.com/download[^"]*ServiceTags_AzureGermany_[0-9]\+\.json' | head -n1 )
                   run_microsoft_azure_germany=".github/scripts/bl-json.sh blocklists/privacy/privacy_microsoft_azure_usgov.ipset $MS_AZURE_URL_GERMANY '.values[].properties.addressPrefixes[]'"
                   eval "./$run_microsoft_azure_germany"
 
-                  MS_AZURE_URL_CHINA=$( curl -fsSL https://www.microsoft.com/en-us/download/details.aspx?id=57062 | grep -o 'https://download.microsoft.com/download[^"]*ServiceTags_China_[0-9]\+\.json' | head -n1 )
+                  MS_AZURE_URL_CHINA=$( curl -fsSL "${{ vars.BL_PRIVACY_MICROSOFT_AZURE_URL_CHINA_SRC }}" | grep -o 'https://download.microsoft.com/download[^"]*ServiceTags_China_[0-9]\+\.json' | head -n1 )
                   run_microsoft_azure_china=".github/scripts/bl-json.sh blocklists/privacy/privacy_microsoft_azure_china.ipset $MS_AZURE_URL_CHINA '.values[].properties.addressPrefixes[]'"
                   eval "./$run_microsoft_azure_china"
 
@@ -840,51 +845,51 @@ jobs:
                   #   Privacy › Nintendo
                   # #
 
-                  run_nintendo=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_nintendo.ipset http://list.iblocklist.com/?list=pevkykuhgaegqyayzbnr"
+                  run_nintendo=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_nintendo.ipset ${{ vars.BL_PRIVACY_NINTENDO_SRC }}"
                   eval "./$run_nintendo"
 
                   # #
                   #   Privacy › Oracle › OCI (EC2 / GCP)
                   # #
 
-                  run_oracle_oci=".github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_oci.ipset https://docs.oracle.com/iaas/tools/public_ip_ranges.json '.regions[].cidrs[] | select(.tags[] == \"OCI\") | .cidr'"
+                  run_oracle_oci=".github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_oci.ipset ${{ vars.BL_PRIVACY_ORACLE_OCI_SRC }} '.regions[].cidrs[] | select(.tags[] == \"OCI\") | .cidr'"
                   eval "./$run_oracle_oci"
 
                   # #
                   #   Privacy › Oracle › Oracle services network (OSN)
                   # #
 
-                  run_oracle_osn=".github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_osn.ipset https://docs.oracle.com/iaas/tools/public_ip_ranges.json '.regions[].cidrs[] | select(.tags[] == \"OSN\") | .cidr'"
+                  run_oracle_osn=".github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_osn.ipset ${{ vars.BL_PRIVACY_ORACLE_OSN_SRC }} '.regions[].cidrs[] | select(.tags[] == \"OSN\") | .cidr'"
                   eval "./$run_oracle_osn"
 
                   # #
                   #   Privacy › Oracle › Object Storage
                   # #
 
-                  run_oracle_object_storage=".github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_object_storage.ipset https://docs.oracle.com/iaas/tools/public_ip_ranges.json '.regions[].cidrs[] | select(.tags[] == \"OBJECT_STORAGE\") | .cidr'"
+                  run_oracle_object_storage=".github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_object_storage.ipset ${{ vars.BL_PRIVACY_ORACLE_OBJ_SRC }} '.regions[].cidrs[] | select(.tags[] == \"OBJECT_STORAGE\") | .cidr'"
                   eval "./$run_oracle_object_storage"
 
                   # #
                   #   Privacy › Oracle › All
                   # #
 
-                  run_oracle_all=".github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_all.ipset https://docs.oracle.com/iaas/tools/public_ip_ranges.json '.regions[].cidrs[] | .cidr'"
+                  run_oracle_all=".github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_all.ipset ${{ vars.BL_PRIVACY_ORACLE_ALL_SRC }} '.regions[].cidrs[] | .cidr'"
                   eval "./$run_oracle_all"
 
                   # #
                   #   Privacy › Pandora
                   # #
 
-                  run_pandora=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_pandora.ipset http://list.iblocklist.com/?list=aevzidimyvwybzkletsg"
+                  run_pandora=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_pandora.ipset ${{ vars.BL_PRIVACY_PANDORA_SRC }}"
                   eval "./$run_pandora"
 
                   # #
                   #   Privacy › Pingdom
                   # #
 
-                  PINGDOM_IPv4=$( curl -sSL https://my.pingdom.com/probes/ipv4 \
+                  PINGDOM_IPv4=$( curl -sSL "${{ vars.BL_PRIVACY_PINGDOM_SRC }}/ipv4" \
                     | grep -vE '^(#|;|[[:space:]]*$)')
-                  PINGDOM_IPv6=$( curl -sSL https://my.pingdom.com/probes/ipv6 \
+                  PINGDOM_IPv6=$( curl -sSL "${{ vars.BL_PRIVACY_PINGDOM_SRC }}/ipv6" \
                     | grep -vE '^(#|;|[[:space:]]*$)')
                   PINGDOM_LIST=$( echo -e "${PINGDOM_IPv4}\n${PINGDOM_IPv6}" | sort -u )
                   echo "$PINGDOM_LIST" | .github/scripts/bl-format.sh blocklists/privacy/privacy_pingdom.ipset
@@ -893,7 +898,7 @@ jobs:
                   #   Privacy › Pirate Bay
                   # #
 
-                  run_piratebay=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_piratebay.ipset http://list.iblocklist.com/?list=nzldzlpkgrcncdomnttb"
+                  run_piratebay=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_piratebay.ipset ${{ vars.BL_PRIVACY_PIRATEBAY_SRC }}"
                   eval "./$run_piratebay"
 
                   # #
@@ -908,9 +913,9 @@ jobs:
                     -H 'x-pm-appversion: AndroidVPN_5.5.52' \
                     -H 'x-pm-apiversion: 3' \
                     -H 'x-pm-locale: en_US' \
-                    -H 'x-pm-uid: ${{ secrets.BL_PROTON_VPN_USERID }}' \
-                    -H 'cookie: ${{ secrets.BL_PROTON_VPN_AUTHCOOKIE }}; Session-Id=${{ secrets.BL_PROTON_VPN_SESSIONID }}; Tag=default; Theme=1; Domain=protonvpn.com; st=eyJ0IjoiZiIsImgiOiIwIn0' \
-                    'https://api.protonvpn.ch/vpn/logicals?WithIPv6=1' \
+                    -H 'x-pm-uid: ${{ secrets.BL_PRIVACY_PROTON_VPN_USERID }}' \
+                    -H 'cookie: ${{ secrets.BL_PRIVACY_PROTON_VPN_AUTHCOOKIE }}; Session-Id=${{ secrets.BL_PRIVACY_PROTON_VPN_SESSIONID }}; Tag=default; Theme=1; Domain=protonvpn.com; st=eyJ0IjoiZiIsImgiOiIwIn0' \
+                    '${{ vars.BL_PRIVACY_PROTON_VPN_SRC }}' \
                   | jq -r '.LogicalServers[] | .Servers[]? | .EntryIP, .ExitIP, .ExitIPv6 | select(. != null)' \
                   | sort -u \
                   | .github/scripts/bl-format.sh blocklists/privacy/privacy_proton_vpn.ipset
@@ -919,93 +924,93 @@ jobs:
                   #   Privacy › Punkbuster
                   # #
 
-                  run_punkbuster=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_punkbuster.ipset http://list.iblocklist.com/?list=zvwwndvzulqcltsicwdg"
+                  run_punkbuster=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_punkbuster.ipset ${{ vars.BL_PRIVACY_PUNKBUSTER_SRC }}"
                   eval "./$run_punkbuster"
 
                   # #
                   #   Privacy › Riot Games
                   # #
 
-                  run_riot_games=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_riot_games.ipset http://list.iblocklist.com/?list=sdlvfabdjvrdttfjotcy"
+                  run_riot_games=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_riot_games.ipset ${{ vars.BL_PRIVACY_RIOTGAMES_SRC }}"
                   eval "./$run_riot_games"
 
                   # #
                   #   Privacy › RSS API
                   # #
 
-                  curl -sSL -A "${{ env.USERAGENT }}" https://rssapi.net/ips.txt | .github/scripts/bl-format.sh blocklists/privacy/privacy_rssapi.ipset
+                  curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_PRIVACY_RSSAPI_SRC }} | .github/scripts/bl-format.sh blocklists/privacy/privacy_rssapi.ipset
 
                   # #
                   #   Privacy › Shadow Server
                   # #
 
-                  run_facebook=".github/scripts/bl-whois.sh blocklists/privacy/privacy_shadowserver.ipset AS22168"
+                  run_facebook=".github/scripts/bl-whois.sh blocklists/privacy/privacy_shadowserver.ipset ${{ vars.BL_PRIVACY_SHADOWSERVER_SRC }}"
                   eval "./$run_facebook"
 
                   # #
                   #   Privacy › Steam
                   # #
 
-                  run_steam=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_steam.ipset http://list.iblocklist.com/?list=cnxkgiklecdaihzukrud"
+                  run_steam=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_steam.ipset ${{ vars.BL_PRIVACY_STEAM_SRC }}"
                   eval "./$run_steam"
 
                   # #
                   #   Privacy › Stripe › API
                   # #
 
-                  curl -sSL -A "${{ env.USERAGENT }}" https://stripe.com/files/ips/ips_api.txt | .github/scripts/bl-format.sh blocklists/privacy/privacy_stripe_api.ipset
+                  curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_PRIVACY_STRIPE_API_SRC }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_stripe_api.ipset
 
                   # #
                   #   Privacy › Stripe › Webhooks
                   # #
 
-                  curl -sSL -A "${{ env.USERAGENT }}" https://stripe.com/files/ips/ips_webhooks.txt | .github/scripts/bl-format.sh blocklists/privacy/privacy_stripe_webhooks.ipset
+                  curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_PRIVACY_STRIPE_WEBHOOKS_SRC }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_stripe_webhooks.ipset
 
                   # #
                   #   Privacy › Stripe › Armada Gator
                   # #
 
-                  curl -sSL -A "${{ env.USERAGENT }}" https://stripe.com/files/ips/ips_armada_gator.txt | .github/scripts/bl-format.sh blocklists/privacy/privacy_stripe_armada_gator.ipset
+                  curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_PRIVACY_STRIPE_ARMADA_GATOR_SRC }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_stripe_armada_gator.ipset
 
                   # #
                   #   Privacy › Sony Entertainment
                   # #
 
-                  run_sony=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_sony.ipset http://list.iblocklist.com/?list=tukpvrvlubsputmkmiwg"
+                  run_sony=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_sony.ipset ${{ vars.BL_PRIVACY_SONY_CORE_SRC }}"
                   eval "./$run_sony"
 
                   # #
                   #   Privacy › Telegram
                   # #
 
-                  curl -sSL -A "${{ env.USERAGENT }}" https://core.telegram.org/resources/cidr.txt | .github/scripts/bl-format.sh blocklists/privacy/privacy_telegram.ipset
+                  curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_PRIVACY_TELEGRAM_SRC }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_telegram.ipset
 
                   # #
                   #   Privacy › Tencent
                   # #
 
-                  run_tencent=".github/scripts/bl-whois.sh blocklists/privacy/privacy_tencent.ipset AS132203 AS45090 AS132591 AS139341"
+                  run_tencent=".github/scripts/bl-whois.sh blocklists/privacy/privacy_tencent.ipset ${{ vars.BL_PRIVACY_TENCENT_SRC }}"
                   eval "./$run_tencent"
 
                   # #
                   #   Privacy › Twitter / X
                   # #
 
-                  run_twitter_x=".github/scripts/bl-whois.sh blocklists/privacy/privacy_twitter_x.ipset AS13414 AS35995"
+                  run_twitter_x=".github/scripts/bl-whois.sh blocklists/privacy/privacy_twitter_x.ipset ${{ vars.BL_PRIVACY_TWITTER_X_SRC }}"
                   eval "./$run_twitter_x"
 
                   # #
-                  #   Privacy › Unisoft
+                  #   Privacy › Ubisoft
                   # #
 
-                  run_ubisoft=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_ubisoft.ipset http://list.iblocklist.com/?list=etmcrglomupyxtaebzht"
+                  run_ubisoft=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_ubisoft.ipset ${{ vars.BL_PRIVACY_UBISOFT_SRC }}"
                   eval "./$run_ubisoft"
 
                   # #
                   #   Privacy › Uptime Robot
                   # #
 
-                  curl -sSL -A "${{ env.USERAGENT }}" https://uptimerobot.com/inc/files/ips/IPv4andIPv6.txt | .github/scripts/bl-format.sh blocklists/privacy/privacy_uptimerobot.ipset
+                  curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_PRIVACY_UPTIMEROBOT_SRC }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_uptimerobot.ipset
 
                   # #
                   #   Privacy › WebPageTest
@@ -1017,7 +1022,7 @@ jobs:
                   #   Privacy › Xfire
                   # #
 
-                  run_xfire=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_xfire.ipset http://list.iblocklist.com/?list=ppqqnyihmcrryraaqsjo"
+                  run_xfire=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_xfire.ipset ${{ vars.BL_PRIVACY_XFIRE_SRC }}"
                   eval "./$run_xfire"
 
             # #
@@ -1027,7 +1032,7 @@ jobs:
             - name: '🧱 Generate › Spam'
               id: task_blocklist_generate_spam
               run: |
-                  run_spamhaus=".github/scripts/bl-plain.sh blocklists/spam/spam_spamhaus.ipset ${{ vars.BL_SPAM_SPAMHAUS_URL }}"
+                  run_spamhaus=".github/scripts/bl-plain.sh blocklists/spam/spam_spamhaus.ipset ${{ vars.BL_SPAM_SPAMHAUS_SRC }}"
                   eval "./$run_spamhaus"
 
             # #
@@ -1043,7 +1048,7 @@ jobs:
                   hour=$(date +'%H')
                   if [ "$hour" = "00" ]; then
                       chmod +x ".github/scripts/bl-plain.sh"
-                      run_forums=".github/scripts/bl-plain.sh blocklists/spam/spam_forums.ipset ${{ vars.BL_SPAM_FORUMS_URL }}"
+                      run_forums=".github/scripts/bl-plain.sh blocklists/spam/spam_forums.ipset ${{ vars.BL_SPAM_FORUMS_SRC }}"
                       eval "./$run_forums"
                   else
                       echo "Skipping daily-only task; not midnight"
