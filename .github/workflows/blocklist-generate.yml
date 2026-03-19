@@ -1232,6 +1232,17 @@ jobs:
                   eval "./$run_bt"
 
             # #
+            #   Delete Leftover Temps
+            # #
+
+            - name: '🧱 Generate › Cleanup Temps'
+              id: task_blocklist_generate_cleanup
+              run: |
+                  echo "🧹 Cleaning up leftover .tmp files..."
+                  find ./blocklists -type f -name '*.tmp' -print -delete
+                  echo "✅ Cleanup complete."
+
+            # #
             #   Generate › Verbose › List Tree
             # #
 
