@@ -730,7 +730,7 @@ jobs:
 
                   GITHUB_URL="https://api.github.com/meta"
 
-                  run_github_all=".github/scripts/bl-json.sh blocklists/privacy/privacy_github_all.ipset $GITHUB_URL '..  | strings | select(test("^[0-9a-fA-F:.]+/[0-9]+$"))'"
+                  run_github_all=".github/scripts/bl-json.sh blocklists/privacy/privacy_github_all.ipset $GITHUB_URL '..  | strings | select(test(\"^[0-9a-fA-F:.]+/[0-9]+$\"))'"
                   eval "./$run_github_all"
 
                   run_github_hooks=".github/scripts/bl-json.sh blocklists/privacy/privacy_github_hooks.ipset $GITHUB_URL '.hooks[]'"
