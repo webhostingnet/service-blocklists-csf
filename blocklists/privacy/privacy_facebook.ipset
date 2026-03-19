@@ -5,10 +5,10 @@
 #   @service        https://developers.facebook.com/docs/sharing/webmasters/web-crawlers/
 #   @id             privacy_facebook_ipset
 #   @uuid           79b67631-cfc1-3ad8-afab-92ac9e78061a
-#   @updated        Thu Mar 19 01:56:34 UTC 2026
-#   @entries        831,070 ips
-#                   1,280 subnets
-#                   1,280 lines
+#   @updated        Thu Mar 19 12:58:45 UTC 2026
+#   @entries        831,583 ips
+#                   1,282 subnets
+#                   1,282 lines
 #   @asn            AS32934, AS54115, AS63293
 #   @expires        6 hours
 #   @category       Privacy
@@ -223,6 +223,7 @@
 57.145.8.0/23
 57.145.10.0/23
 57.145.12.0/23
+57.145.14.0/23
 66.220.144.0/20
 66.220.144.0/21
 66.220.152.0/21
@@ -1124,6 +1125,7 @@
 2a03:2880:f384::/48
 2a03:2880:f385::/48
 2a03:2880:f386::/48
+2a03:2880:f387::/48
 2a03:2880:f800::/48
 2a03:2880:f801::/48
 2a03:2880:f802::/48
