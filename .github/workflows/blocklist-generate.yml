@@ -847,21 +847,21 @@ jobs:
                   #   Privacy › Oracle › OCI (EC2 / GCP)
                   # #
 
-                  run_oracle_oci=".github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_oci.ipset https://docs.oracle.com/iaas/tools/public_ip_ranges.json '.regions[].cidrs[] | select(.tags[] == "OCI") | .cidr'"
+                  run_oracle_oci=".github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_oci.ipset https://docs.oracle.com/iaas/tools/public_ip_ranges.json '.regions[].cidrs[] | select(.tags[] == \"OCI\") | .cidr'"
                   eval "./$run_oracle_oci"
 
                   # #
                   #   Privacy › Oracle › Oracle services network (OSN)
                   # #
 
-                  run_oracle_osn=".github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_osn.ipset https://docs.oracle.com/iaas/tools/public_ip_ranges.json '.regions[].cidrs[] | select(.tags[] == "OSN") | .cidr'"
+                  run_oracle_osn=".github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_osn.ipset https://docs.oracle.com/iaas/tools/public_ip_ranges.json '.regions[].cidrs[] | select(.tags[] == \"OSN\") | .cidr'"
                   eval "./$run_oracle_osn"
 
                   # #
                   #   Privacy › Oracle › Object Storage
                   # #
 
-                  run_oracle_object_storage=".github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_object_storage.ipset https://docs.oracle.com/iaas/tools/public_ip_ranges.json '.regions[].cidrs[] | select(.tags[] == "OBJECT_STORAGE") | .cidr'"
+                  run_oracle_object_storage=".github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_object_storage.ipset https://docs.oracle.com/iaas/tools/public_ip_ranges.json '.regions[].cidrs[] | select(.tags[] == \"OBJECT_STORAGE\") | .cidr'"
                   eval "./$run_oracle_object_storage"
 
                   # #
