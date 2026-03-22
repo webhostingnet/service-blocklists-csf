@@ -5,10 +5,10 @@
 #   @service        None
 #   @id             privacy_google_cloud_ipset
 #   @uuid           d57ca9de-34c3-3fc9-8953-8d2616d68279
-#   @updated        Sun Mar 22 03:08:18 UTC 2026
-#   @entries        16,471,216 ips
-#                   896 subnets
-#                   896 lines
+#   @updated        Sun Mar 22 12:46:17 UTC 2026
+#   @entries        16,479,408 ips
+#                   897 subnets
+#                   897 lines
 #   @expires        6 hours
 #   @category       Uncategorized
 #
@@ -32,6 +32,7 @@
 8.230.0.0/19
 8.230.32.0/19
 8.230.64.0/19
+8.230.96.0/19
 23.236.48.0/20
 23.251.128.0/20
 23.251.144.0/20
