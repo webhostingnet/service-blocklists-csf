@@ -1055,6 +1055,123 @@ download_list()
 }
 
 # #
+#   Download Static Fallback List
+#   
+#   If we cannot download from the source website, revert to a fallback list to 
+#   ensure our blocklist is not pushed empty.
+# #
+
+download_list_fallback()
+{
+    _fnArgLocalFile=$1
+    _fnArgFile=$2
+    _fnListNum=$3
+    _fnFileTemp="${_fnArgFile}.tmp"
+    _count_total_ips=0
+    _count_total_subnets=0
+
+    prinp "📄[-1] Using fallback list"
+
+    if [ ! -f "${_fnFileTemp}" ]; then
+        touch "${_fnFileTemp}"
+
+        if [ -f "${_fnFileTemp}" ]; then
+            ok "    📄 Created temp file ${greenl}${PWD}/${_fnFileTemp}${greym}"
+        else
+            error "    ⭕ Failed to create temp file ${bluel}${PWD}/${_fnFileTemp}${greym}"
+            exit 1
+        fi
+    fi
+
+    info "    📒 Reading fallback static block ${bluel}${PWD}/${_fnArgLocalFile}${greym}"
+    cat "${_fnArgLocalFile}" > "${_fnFileTemp}"
+
+    # normalize CRLF
+    sed -i 's/\r$//' "${_fnFileTemp}"
+
+    # remove hyphens from IP ranges (if format is "1.2.3.4 - 1.2.3.5" take left side)
+    sed -i 's/-.*//' "${_fnFileTemp}"
+
+    # remove inline comments (strip ' # comment' or ' ; comment' from end of lines ; collapse whitespace, trim)
+    sed -i 's/[[:space:]]*[#;].*$//' "${_fnFileTemp}"
+
+    # collapse multiple whitespace into a single space
+    sed -i 's/[[:space:]]\+/ /g' "${_fnFileTemp}"
+
+    # trim leading and trailing whitespace
+    sed -i 's/^[[:space:]]*//;s/[[:space:]]*$//' "${_fnFileTemp}"
+
+    # remove empty lines (after trimming/comment removal)
+    sed -i '/^$/d' "${_fnFileTemp}"
+
+    # #
+    #   Dedupe, Sort: Move from .tmp to .sort
+    # #
+
+    info "    🔃 Sorting and deduplicating results"
+    grep -vE '^[[:space:]]*(#|;|$)' "${_fnFileTemp}" | sort_results > "${_fnFileTemp}.sort"
+
+    # #
+    #   Move from .sort to .tmp
+    # #
+
+    mv "${_fnFileTemp}.sort" "${_fnFileTemp}"
+
+    # #
+    #   IPSET › Filter BOGON
+    #       - Optional
+    #       - Run before count_ip_stats for accurate totals
+    # #
+
+    filter_bogon_ips "${_fnFileTemp}"
+
+    # #
+    #   Calculate list statistics
+    #       - local only (global totals are calculated after final dedupe)
+    # #
+
+    info "    📊 Fetching statistics for clean file ${bluel}${PWD}/${_fnFileTemp}${greym}"
+
+    count_ip_stats "${_fnFileTemp}"
+    _count_total_ips=$total_ips
+    _count_total_subnets=$total_subnets
+
+    _count_total_ips=$(printf "%'d" "$_count_total_ips")
+    _count_total_subnets=$(printf "%'d" "$_count_total_subnets")
+
+    # #
+    #   Move to target
+    # #
+
+    info "    🚛 Move ${bluel}${_fnFileTemp}${greym} to ${bluel}${_fnArgFile}${greym}"
+
+    # #
+    #   Ensure dest file ends with newline before append
+    # #
+
+    if [ -s "${_fnArgFile}" ] && [ "$(tail -c1 "${_fnArgFile}")" != "" ]; then
+        echo >> "${_fnArgFile}"
+    fi
+
+    cat "${_fnFileTemp}" >> "${_fnArgFile}"
+    rm -f "${_fnFileTemp}"
+
+    if [ ! -f "${_fnFileTemp}" ]; then
+        ok "    📄 Removed temp file ${greenl}${PWD}/${_fnFileTemp}${greym}"
+    else
+        error "    ⭕  Unable to delete temp file ${redl}${PWD}/${_fnFileTemp}${greym}"
+    fi
+
+    ok "    ➕ Added ${greenl}${_count_total_ips}${greym} IP addresses and ${greenl}${_count_total_subnets}${greym} subnets to ${greenl}${PWD}/${_fnArgFile}${greym}"
+
+    # #
+    #   Unset
+    # #
+
+    unset _fnArgLocalFile _fnArgFile _fnFileTemp _fnListNum _count_total_ips _count_total_subnets
+}
+
+# #
 #   Check if file contains valid IP entries
 # #
 
@@ -1081,11 +1198,13 @@ has_valid_ip_entries()
 #       eval "./$run_mip_anthropic"
 # #
 
-load_fallback_blocklists()
+load_list_fallback()
 {
     _fnArgFile=$1
     _fnCategory=$2
     _fnListNum=$3
+    _fnResolvedCategory="${_fnCategory}"
+    _fnTargetParent=""
 
     if [ -z "${_fnCategory}" ]; then
         warn "    ⚠️  Stdin did not return any valid IP entries, and no fallback category was provided"
@@ -1097,9 +1216,25 @@ load_fallback_blocklists()
         return 1
     fi
 
-    APP_BLOCK_TARGET=".github/blocks/${_fnCategory}/*.ipset"
-    if [[ "${_fnCategory}" == *ipset ]]; then
-        APP_BLOCK_TARGET=".github/blocks/${_fnCategory}"
+    # #
+    #   Resolve fallback category from target path when only leaf category is given.
+    #   
+    #   @example        target      :   blocklists/privacy/privacy_proton_vpn.ipset
+    #                   category    :   proton_vpn
+    #                   resolved    :   privacy/proton_vpn
+    # #
+
+    if [[ "${_fnCategory}" != */* ]] && [[ "${_fnCategory}" != *ipset ]]; then
+        _fnTargetParent="$(dirname "${_fnArgFile}")"
+        _fnTargetParent="${_fnTargetParent#blocklists/}"
+        if [ -n "${_fnTargetParent}" ] && [ "${_fnTargetParent}" != "." ] && [ "${_fnTargetParent}" != "blocklists" ]; then
+            _fnResolvedCategory="${_fnTargetParent}/${_fnCategory}"
+        fi
+    fi
+
+    APP_BLOCK_TARGET=".github/blocks/${_fnResolvedCategory}/*.ipset"
+    if [[ "${_fnResolvedCategory}" == *ipset ]]; then
+        APP_BLOCK_TARGET=".github/blocks/${_fnResolvedCategory}"
     fi
 
     shopt -s nullglob
@@ -1112,9 +1247,9 @@ load_fallback_blocklists()
         return 1
     fi
 
-    info "    📦 Stdin list is empty, using fallback category ${bluel}${_fnCategory}${greym}"
+    info "    📦 Stdin list is empty, using fallback category ${bluel}${_fnResolvedCategory}${greym}"
     for APP_FILE_TEMP in "${_fnBlockFiles[@]}"; do
-        download_list "${APP_FILE_TEMP}" "${_fnArgFile}" "${_fnListNum}"
+        download_list_fallback "${APP_FILE_TEMP}" "${_fnArgFile}" "${_fnListNum}"
         _fnListNum=$(( _fnListNum + 1 ))
     done
 
@@ -1122,7 +1257,8 @@ load_fallback_blocklists()
     #   Unset
     # #
 
-    unset   _fnArgFile _fnCategory _fnListNum APP_BLOCK_TARGET APP_FILE_TEMP _fnBlockFiles
+    unset   _fnArgFile _fnCategory _fnResolvedCategory _fnTargetParent \
+            _fnListNum APP_BLOCK_TARGET APP_FILE_TEMP _fnBlockFiles
 }
 
 # #
@@ -1221,7 +1357,7 @@ download_list "${file_ipset_target}" "$i"
 
 if ! has_valid_ip_entries "${file_ipset_target}"; then
      warn "    ⚠️  Using local IP block fallback ${yellowl}${argBlockCategory}${greym} for ${yellowl}${file_ipset_target}${greym}"
-    load_fallback_blocklists "${file_ipset_target}" "${argBlockCategory}" "2"
+    load_list_fallback "${file_ipset_target}" "${argBlockCategory}" "2"
 fi
 
 # #
