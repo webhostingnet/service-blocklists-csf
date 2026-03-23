@@ -85,9 +85,11 @@ app_dir_github="${app_dir_this_dir}/.github"                                    
 #   This bash script has the following arguments:
 #   
 #   @param  argFileSaveto       str         File to save IP addresses into
+#           argBlockCategory    str         Static block folder
 # #
 
 argFileSaveto=$1
+argBlockCategory=$2
 
 # #
 #   Define › Colors
@@ -139,7 +141,7 @@ bgError="${esc}[1;38;5;15;48;5;160m"
 #   Define › App
 # #
 
-app_name="Blocklist ›  Formatter"                                               # name of app
+app_name="Blocklist › Formatter"                                                # name of app
 app_desc="Fetch list of IP addresses utilizing whois binary"                    # desc
 app_ver="1.2.0.0"                                                               # current script version
 app_repo="configserver-software/service-blocklists"                             # repository
@@ -255,7 +257,6 @@ if [ -z "${argFileSaveto}" ]; then
     error "    ⭕  No target file specified ${yellowd}${app_file_this}${greym}; aborting${end}"
     exit 0
 fi
-
 
 # #
 #   Print › Demo Notifications
@@ -1054,6 +1055,77 @@ download_list()
 }
 
 # #
+#   Check if file contains valid IP entries
+# #
+
+has_valid_ip_entries()
+{
+    _fnArgFile=$1
+
+    if [ ! -f "${_fnArgFile}" ]; then
+        return 1
+    fi
+
+    if grep -Eq "^(${regex_ipv4}|${regex_ipv4_cidr}|${regex_ipv6}|${regex_ipv6_cidr})$" "${_fnArgFile}"; then
+        return 0
+    fi
+
+    return 1
+}
+
+# #
+#   Load fallback static blocks from .github/blocks/<category>.
+#   
+#   Must define the category when calling this script with something such as:
+#       run_mip_anthropic=".github/scripts/bl-mip.sh blocklists/privacy/privacy_anthropic.ipset '${{ vars.BL_PRIVACY_MIP_ANTHROPIC_SRC }}' privacy/anthropic"
+#       eval "./$run_mip_anthropic"
+# #
+
+load_fallback_blocklists()
+{
+    _fnArgFile=$1
+    _fnCategory=$2
+    _fnListNum=$3
+
+    if [ -z "${_fnCategory}" ]; then
+        warn "    ⚠️  Stdin did not return any valid IP entries, and no fallback category was provided"
+        return 1
+    fi
+
+    if [ ! -d ".github/blocks/" ]; then
+        warn "    ❌ No static blocklist folder found at ${orangel}.github/blocks/${greym}"
+        return 1
+    fi
+
+    APP_BLOCK_TARGET=".github/blocks/${_fnCategory}/*.ipset"
+    if [[ "${_fnCategory}" == *ipset ]]; then
+        APP_BLOCK_TARGET=".github/blocks/${_fnCategory}"
+    fi
+
+    shopt -s nullglob
+    _fnBlockFiles=( ${APP_BLOCK_TARGET} )
+    shopt -u nullglob
+
+    if [ ${#_fnBlockFiles[@]} -eq 0 ]; then
+        warn "    ❌ No fallback static blocklist found at ${yellowl}${APP_BLOCK_TARGET}${greym}"
+        unset _fnArgFile _fnCategory _fnListNum APP_BLOCK_TARGET _fnBlockFiles
+        return 1
+    fi
+
+    info "    📦 Stdin list is empty, using fallback category ${bluel}${_fnCategory}${greym}"
+    for APP_FILE_TEMP in "${_fnBlockFiles[@]}"; do
+        download_list "${APP_FILE_TEMP}" "${_fnArgFile}" "${_fnListNum}"
+        _fnListNum=$(( _fnListNum + 1 ))
+    done
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnArgFile _fnCategory _fnListNum APP_BLOCK_TARGET APP_FILE_TEMP _fnBlockFiles
+}
+
+# #
 #   Define › App
 # #
 
@@ -1147,6 +1219,11 @@ fi
 i=1
 download_list "${file_ipset_target}" "$i"
 
+if ! has_valid_ip_entries "${file_ipset_target}"; then
+     warn "    ⚠️  Using local IP block fallback ${yellowl}${argBlockCategory}${greym} for ${yellowl}${file_ipset_target}${greym}"
+    load_fallback_blocklists "${file_ipset_target}" "${argBlockCategory}" "2"
+fi
+
 # #
 #   Sort
 #       - Remove downloaded comment/blank lines
@@ -1173,7 +1250,7 @@ if [ -f "${file_ipset_target}" ]; then
     total_ips=$total_ips
     total_subnets=$total_subnets
 
-    total_lines=$(wc -l < "${file_ipset_target}")                               # count ip lines
+    total_lines=$(wc -l < "${file_ipset_target}")                               # Count ip lines
     total_lines=$(printf "%'d" "$total_lines")                                  # GLOBAL add commas to thousands
     total_subnets=$(printf "%'d" "$total_subnets")                              # GLOBAL add commas to thousands
     total_ips=$(printf "%'d" "$total_ips")                                      # GLOBAL add commas to thousands
