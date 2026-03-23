@@ -1,0 +1,23 @@
+# #
+#   🧱 Firewall Blocklist - blocklists/privacy/privacy_ai_claude_official.ipset
+#
+#   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/privacy/privacy_ai_claude_official.ipset
+#   @service        None
+#   @id             privacy_ai_claude_official_ipset
+#   @uuid           8acc71c8-3f03-3818-840e-d233021be1cd
+#   @updated        Mon Mar 23 20:37:29 UTC 2026
+#   @entries        2,564 ips
+#                   6 subnets
+#                   6 lines
+#   @expires        6 hours
+#   @category       Uncategorized
+#
+#   No description provided
+# #
+
+000/0
+000/20
+1/2
+160.79.104.0/21
+160.79.104.0/23
+2607:6bc0::/48
