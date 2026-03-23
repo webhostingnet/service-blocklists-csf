@@ -424,7 +424,7 @@ jobs:
 
             # #
             #   Generate › Configure
-            #
+            #   
             #   this step installs packages we need to manage ipsets.
             #       - iprange
             #         this package allows us to convert ip ranges into a CIDR formatted ip
@@ -567,6 +567,35 @@ jobs:
                   curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_PRIVACY_AHREFS_SRC }} | jq -r '.ips[].ip_address | select( . != null )' | .github/scripts/bl-format.sh blocklists/privacy/privacy_ahrefs.ipset
 
                   # #
+                  #   Privacy › AI › ChatGPT
+                  # #
+
+                  curl -sSL "${{ vars.BL_PRIVACY_AI_OPENAI_GPTBOT_SRC }}" \
+                    | jq -r '.prefixes[] | .ipv4Prefix // .ipv6Prefix' \
+                    | sort -u \
+                    | .github/scripts/bl-format.sh blocklists/privacy/privacy_ai_openai_gpt_bot.ipset
+
+                  curl -sSL "${{ vars.BL_PRIVACY_AI_OPENAI_GPTCHAT_SRC }}" \
+                    | jq -r '.prefixes[] | .ipv4Prefix // .ipv6Prefix' \
+                    | sort -u \
+                    | .github/scripts/bl-format.sh blocklists/privacy/privacy_ai_openai_gpt_chat.ipset
+
+                  curl -sSL "${{ vars.BL_PRIVACY_AI_OPENAI_SEARCHBOT_SRC }}" \
+                    | jq -r '.prefixes[] | .ipv4Prefix // .ipv6Prefix' \
+                    | sort -u \
+                    | .github/scripts/bl-format.sh blocklists/privacy/privacy_ai_openai_gpt_searchbot.ipset
+
+                  # #
+                  #   Privacy › AI › Claude
+                  # #
+
+                  curl -sSL "${{ vars.BL_PRIVACY_AI_CLAUDE_SRC }}" \
+                    | sed '/Phased out IP addresses/,$d' \
+                    | grep -oE '[0-9a-fA-F:.]+/[0-9]+' \
+                    | sort -u \
+                    | .github/scripts/bl-format.sh blocklists/privacy/privacy_ai_claude_official.ipset
+
+                  # #
                   #   Privacy › Akamai (Cloud / CDN)
                   # #
   
@@ -590,6 +619,13 @@ jobs:
 
                   run_amz_ec2=".github/scripts/bl-json.sh blocklists/privacy/privacy_amazon_ec2.ipset ${{ vars.BL_PRIVACY_AMAZON_SRC }} '.prefixes[] | select(.service==\"EC2\") | .ip_prefix'"
                   eval "./$run_amz_ec2"
+
+                  # #
+                  #   Privacy › Anthropic
+                  # #
+
+                  run_mip_anthropic=".github/scripts/bl-mip.sh blocklists/privacy/privacy_anthropic.ipset '${{ vars.BL_PRIVACY_MIP_ANTHROPIC_SRC }}' privacy/anthropic"
+                  eval "./$run_mip_anthropic"
 
                   # #
                   #   Privacy › Apple Bot
@@ -811,7 +847,7 @@ jobs:
                   # #
 
                   MS_365_URL="${{ vars.BL_PRIVACY_MICROSOFT_365_SRC }}?clientrequestid=$(uuidgen)"
-                  run_microsoft_365=".github/scripts/bl-json.sh blocklists/privacy/privacy_microsoft_365.ipset $MS_AZURE_URL '.[] | .ips[]?'"
+                  run_microsoft_365=".github/scripts/bl-json.sh blocklists/privacy/privacy_microsoft_365.ipset $MS_365_URL '.[] | .ips[]?'"
                   eval "./$run_microsoft_365"
 
                   # #
@@ -905,8 +941,9 @@ jobs:
                   #   Privacy › ProtonVPN
                   #   
                   #   Gathering these are tricky. Requires the authentication COOKIE / session_id to access API.
-                  #     Cookie      =>    BL_PROTON_VPN_AUTHCOOKIE
-                  #     Session id  =>    BL_PROTON_VPN_SESSIONID
+                  #     User Id     =>    secrets.BL_PRIVACY_PROTON_VPN_USERID
+                  #     Cookie      =>    secrets.BL_PRIVACY_PROTON_VPN_AUTHCOOKIE
+                  #     Session id  =>    secrets.BL_PRIVACY_PROTON_VPN_SESSIONID
                   # #
 
                   curl -s \
