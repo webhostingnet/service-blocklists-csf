@@ -1084,7 +1084,16 @@ download_list_fallback()
     fi
 
     info "    📒 Reading fallback static block ${bluel}${PWD}/${_fnArgLocalFile}${greym}"
+
+    # #
+    #   Read stdin into temp file
+    # #
+
     cat "${_fnArgLocalFile}" > "${_fnFileTemp}"
+
+    # #
+    #   Perform sed actions on downloaded file.
+    # #
 
     # normalize CRLF
     sed -i 's/\r$//' "${_fnFileTemp}"

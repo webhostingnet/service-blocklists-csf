@@ -269,7 +269,7 @@ time_elapsed( )
 # #
 
 folder_source_local="local/geo-country"                                         # local mode enabled: place geoip country .zip and .zip.md5 here.
-folder_target_storage="blocklists/country/geolite"                              # path to save compiled ipsets
+folder_target_storage="blocklists/geolite/country"                              # path to save compiled ipsets
 folder_target_temp="temp"                                                       # local mode disabled: where csv will be downloaded to
 folder_target_logs=".logs"                                                      # path to store logs
 folder_target_cache="cache"                                                     # location where countries and continents are stored as array to file
@@ -1559,6 +1559,19 @@ maxmind_Database_Download( )
     local URL_MD5="${URL_CSV}.md5" # take URL_CSV value and add .md5 to end for hash file
 
     # #
+    #   Ensure download output paths are always defined.
+    #   If no local wildcard match was found earlier, default to filenames in TEMPDIR.
+    # #
+
+    if [ -z "${file_source_csv_zip:-}" ]; then
+        file_source_csv_zip="GeoLite2-Country-CSV.zip"
+    fi
+
+    if [ -z "${file_source_csv_zip_md5:-}" ]; then
+        file_source_csv_zip_md5="${file_source_csv_zip}.md5"
+    fi
+
+    # #
     #   download files
     #       - will not download if --dryrun specified
     #       - will not download if --local specified
@@ -1741,12 +1754,12 @@ maxmind_Database_Load( )
 #   ip addresses will be thrown in that file.
 #   
 #   Continents will be placed in:
-#       blocklists/country/geolite/ipv4/AN.tmp
-#       blocklists/country/geolite/ipv4/AF.tmp
+#       blocklists/geolite/country/ipv4/AN.tmp
+#       blocklists/geolite/country/ipv4/AF.tmp
 #   
 #   Countries will be placed in:
-#       blocklists/country/geolite/ipv4/AD.tmp
-#       blocklists/country/geolite/ipv4/AE.tmp
+#       blocklists/geolite/country/ipv4/AD.tmp
+#       blocklists/geolite/country/ipv4/AE.tmp
 #       [ ... ]
 #   
 #   CSV Structure [ GeoLite2-Blocks-IPv4.csv ]
@@ -1767,7 +1780,7 @@ generate_IPv4( )
 
     # #
     #   remove existing ipv4 folder:
-    #       blocklists/country/geolite2/ipv4/
+    #       blocklists/geolite/country2/ipv4/
     # #
 
     rm -rf "${path_storage_ipv4}"
@@ -1779,7 +1792,7 @@ generate_IPv4( )
 
     # #
     #   Create new ipv4 folder:
-    #       blocklists/country/geolite2/ipv4/
+    #       blocklists/geolite/country2/ipv4/
     # #
 
     if [ ! -d "${path_storage_ipv4}" ]; then
@@ -1843,7 +1856,7 @@ generate_IPv4( )
         #   Generate › IPv4 › Define Iptables/Ipsets file
         # #
 
-        IPSET_FILE="${path_storage_ipv4}/${SET_NAME}"                           # blocklists/country/geolite/ipv4/AU.tmp
+        IPSET_FILE="${path_storage_ipv4}/${SET_NAME}"                           # blocklists/geolite/country/ipv4/AU.tmp
 
         # #
         #   Generate › IPv4 › Add Continent
@@ -1871,7 +1884,7 @@ generate_IPv4( )
         #   Generate › IPv4 › Add IP to Ipset File
         # #
 
-        echo "${subnet}" >> $IPSET_FILE                                         # blocklists/country/geolite/ipv4/AU.tmp
+        echo "${subnet}" >> $IPSET_FILE                                         # blocklists/geolite/country/ipv4/AU.tmp
 
     done < <(sed -e 1d "${TEMPDIR}/${file_source_csv_ipv4}")
     IFS=$OIFS
@@ -1895,12 +1908,12 @@ generate_IPv4( )
 #   ip addresses will be thrown in that file.
 #   
 #   Continents will be placed in:
-#       blocklists/country/geolite/ipv6/AN.tmp
-#       blocklists/country/geolite/ipv6/AF.tmp
+#       blocklists/geolite/country/ipv6/AN.tmp
+#       blocklists/geolite/country/ipv6/AF.tmp
 #   
 #   Countries will be placed in:
-#       blocklists/country/geolite/ipv6/AD.tmp
-#       blocklists/country/geolite/ipv6/AE.tmp
+#       blocklists/geolite/country/ipv6/AD.tmp
+#       blocklists/geolite/country/ipv6/AE.tmp
 #       [ ... ]
 # #
 
@@ -1911,7 +1924,7 @@ generate_IPv6( )
 
     # #
     #   Remove existing ipv4 folder:
-    #       blocklists/country/geolite2/ipv4/
+    #       blocklists/geolite/country2/ipv4/
     # #
 
     rm -rf "${path_storage_ipv6}"
@@ -1923,7 +1936,7 @@ generate_IPv6( )
 
     # #
     #   Create new ipv6 folder:
-    #       blocklists/country/geolite2/ipv6/
+    #       blocklists/geolite/country2/ipv6/
     # #
 
     if [ ! -d "${path_storage_ipv6}" ]; then
@@ -1987,7 +2000,7 @@ generate_IPv6( )
         #   Generate › IPv6 › Define Iptables/Ipsets file
         # #
   
-        IPSET_FILE="${path_storage_ipv6}/${SET_NAME}"                           # blocklists/country/geolite/ipv6/AU.tmp
+        IPSET_FILE="${path_storage_ipv6}/${SET_NAME}"                           # blocklists/geolite/country/ipv6/AU.tmp
 
         # #
         #   Generate › IPv6 › Add Continent
@@ -2015,7 +2028,7 @@ generate_IPv6( )
         #   Generate › IPv6 › Add IP to Ipset File
         # #
 
-        echo "${subnet}" >> $IPSET_FILE                                         # blocklists/country/geolite/ipv6/AU.tmp
+        echo "${subnet}" >> $IPSET_FILE                                         # blocklists/geolite/country/ipv6/AU.tmp
 
     done < <(sed -e 1d "${TEMPDIR}/${file_source_csv_ipv6}")
     IFS=$OIFS
@@ -2091,7 +2104,7 @@ maxmind_Map_Build( )
 #   Merge IPv4 and IPv6 Files
 #   
 #   Takes all of the ipv6 addresses and merges them with the ipv4 file.
-#       blocklists/country/geolite/ipv6/AD.tmp  =>  blocklists/country/geolite/ipv4/AD.tmp
+#       blocklists/geolite/country/ipv6/AD.tmp  =>  blocklists/geolite/country/ipv4/AD.tmp
 #       [ DELETED ]                             =>                         [ MERGED WITH ]
 #   
 #   Removes the ipv6 file after the merge is done.
@@ -2131,7 +2144,7 @@ gcc( )
     echo
     info "    🗑️  Starting ${bluel}GCC${greym} cleanup"
 
-    # remove blocklists/country/geolite/ipv4
+    # remove blocklists/geolite/country/ipv4
     if [ -d $path_storage_ipv4 ]; then
         rm -rf ${path_storage_ipv4}
         if [ ! -d "${path_storage_ipv4}" ]; then
@@ -2141,7 +2154,7 @@ gcc( )
         fi
     fi
 
-    # remove blocklists/country/geolite/ipv6
+    # remove blocklists/geolite/country/ipv6
     if [ -d $path_storage_ipv6 ]; then
        rm -rf ${path_storage_ipv6}
         if [ ! -d "${path_storage_ipv6}" ]; then
@@ -2167,29 +2180,29 @@ gcc( )
 #   Within each loop, the other country arrays will be checked to see if that parent continent has any countries within it to list under that continent name.
 #   
 #   CONTINENT files will be created in:
-#       blocklists/country/geolite/ipv4/AN.tmp
-#       blocklists/country/geolite/ipv4/AF.tmp
-#       blocklists/country/geolite/ipv4/EU.tmp
-#       blocklists/country/geolite/ipv4/AS.tmp
-#       blocklists/country/geolite/ipv4/SA.tmp
-#       blocklists/country/geolite/ipv4/NA.tmp
-#       blocklists/country/geolite/ipv4/OC.tmp
+#       blocklists/geolite/country/ipv4/AN.tmp
+#       blocklists/geolite/country/ipv4/AF.tmp
+#       blocklists/geolite/country/ipv4/EU.tmp
+#       blocklists/geolite/country/ipv4/AS.tmp
+#       blocklists/geolite/country/ipv4/SA.tmp
+#       blocklists/geolite/country/ipv4/NA.tmp
+#       blocklists/geolite/country/ipv4/OC.tmp
 #   
 #   COUNTRY files will be created in:
-#       blocklists/country/geolite/ipv4/AD.tmp
-#       blocklists/country/geolite/ipv4/AE.tmp
-#       blocklists/country/geolite/ipv4/AF.tmp
+#       blocklists/geolite/country/ipv4/AD.tmp
+#       blocklists/geolite/country/ipv4/AE.tmp
+#       blocklists/geolite/country/ipv4/AF.tmp
 #       [ ... ]
 #   
 #   If a country exists within a continent, a new file will be created:
-#       blocklists/country/geolite/ipv4/AD.tmp
+#       blocklists/geolite/country/ipv4/AD.tmp
 #   
 #   If there are IP addresses with NO country specified, and are continent only, those IPs will be moved to
 #   a base (parent) continent file:
-#       blocklists/country/geolite/ipv4/EU.tmp
+#       blocklists/geolite/country/ipv4/EU.tmp
 #   
 #   After all IPs are added for a continent, the .tmp file will be moved to its final spot:
-#       blocklists/country/geolite/ipv4/EU.tmp => blocklists/country/geolite/EU.ipset
+#       blocklists/geolite/country/ipv4/EU.tmp => blocklists/geolite/country/EU.ipset
 # #
 
 generate_Continents( )
@@ -2207,8 +2220,8 @@ generate_Continents( )
     #   
     #       _continent_name         = South America
     #       _continent_id           = south_america
-    #       FILE_CONTINENT_TEMP     = blocklists/country/geolite/ipv4/continent_europe.tmp
-    #       _continent_file_perm    = blocklists/country/geolite/ipv4/continent_europe.ipset
+    #       FILE_CONTINENT_TEMP     = blocklists/geolite/country/ipv4/continent_europe.tmp
+    #       _continent_file_perm    = blocklists/geolite/country/ipv4/continent_europe.ipset
     # #
 
     # loop continents, antartica, europe, north america
@@ -2224,8 +2237,8 @@ generate_Continents( )
         _continent_name=${continents[$key]}
         _continent_id=$( echo "$_continent_name" | sed 's/ /_/g' | tr -d "[.,/\\-\=\+\{\[\]\}\!\@\#\$\%\^\*\'\\\(\)]" | tr '[:upper:]' '[:lower:]')
 
-        _continent_file_temp="$path_storage_ipv4/continent_$_continent_id.$file_target_ext_tmp"             # blocklists/country/geolite/ipv4/continent_europe.tmp
-        _continent_file_perm="$folder_target_storage/continent_$_continent_id.$file_target_ext_ipset"       # blocklists/country/geolite/ipv4/continent_europe.ipset
+        _continent_file_temp="$path_storage_ipv4/continent_$_continent_id.$file_target_ext_tmp"             # blocklists/geolite/country/ipv4/continent_europe.tmp
+        _continent_file_perm="$folder_target_storage/continent_$_continent_id.$file_target_ext_ipset"       # blocklists/geolite/country/ipv4/continent_europe.ipset
 
         info "       🗺️  Generating ${bluel}${_continent_name}${end} ${greyl}(${_continent_id})${end}"
 
@@ -2248,11 +2261,11 @@ generate_Continents( )
 
             info "          New country ${dim}${bluel}${_continent_name}${greym} › ${bluel}${CONTINENT_COUNTRY_NAME}${greym}(${country})${end}"
 
-            _file_target="$path_storage_ipv4/$country.$file_target_ext_tmp"     # blocklists/country/geolite/ipv4/JE.tmp
+            _file_target="$path_storage_ipv4/$country.$file_target_ext_tmp"     # blocklists/geolite/country/ipv4/JE.tmp
 
             # check if a specific country file exists, if so, open and grab all the IPs in the list. They need to be copied to $_continent_file_temp
             if [ -f "$_file_target" ]; then
-                # ./blocklists/country/geolite/ipv4/VU.tmp to ./blocklists/country/geolite/ipv4/continent_oceania.tmp
+                # ./blocklists/geolite/country/ipv4/VU.tmp to ./blocklists/geolite/country/ipv4/continent_oceania.tmp
                 mkdir -p "$(dirname "${_continent_file_temp}")"                 # ensure directory exists
                 touch "${_continent_file_temp}"                                 # ensure file exists
                 cat "$_file_target" | sort_results | awk '{if (++dup[$0] == 1) print $0;}' >> "${_continent_file_temp}"
@@ -2292,10 +2305,10 @@ generate_Continents( )
         #   Looks for the continent file that contains all non-country assigned IPs. Not all continents will have one.
         #   
         #   _continent_base_target
-        #       blocklists/country/geolite/ipv4/AN.tmp
-        #       blocklists/country/geolite/ipv4/AF.tmp
-        #       blocklists/country/geolite/ipv4/EU.tmp
-        #       blocklists/country/geolite/ipv4/continent_oceania.tmp
+        #       blocklists/geolite/country/ipv4/AN.tmp
+        #       blocklists/geolite/country/ipv4/AF.tmp
+        #       blocklists/geolite/country/ipv4/EU.tmp
+        #       blocklists/geolite/country/ipv4/continent_oceania.tmp
         # #
 
         _continent_base_target="$path_storage_ipv4/$key.$file_target_ext_tmp"
@@ -2504,7 +2517,7 @@ END_ED
 # #
 #   Generate Countries
 #   
-#   Loops through each file in blocklists/country/geolite/ipv4/*
+#   Loops through each file in blocklists/geolite/country/ipv4/*
 #   Counts the statistics:
 #       - Number of lines in file
 #       - Number of normal IPs
@@ -2513,7 +2526,7 @@ END_ED
 #   Header will be added to the top of the file which statistics and other info.
 #   
 #   File will be re-named / moved:
-#       blocklists/country/geolite/ipv4/AE.tmp => blocklists/country/geolite/AE.ipset
+#       blocklists/geolite/country/ipv4/AE.tmp => blocklists/geolite/country/AE.ipset
 # #
 
 generate_Countries( )
@@ -2532,8 +2545,8 @@ generate_Countries( )
     grand_total_subnets=0
     grand_total_lines=0
 
-    #   country_file blocklists/country/geolite/ipv4/SG.tmp
-    #   country_file blocklists/country/geolite/ipv4/TH.tmp
+    #   country_file blocklists/geolite/country/ipv4/SG.tmp
+    #   country_file blocklists/geolite/country/ipv4/TH.tmp
     for country_file in ${path_storage_ipv4}/*.${file_target_ext_tmp}; do
         time_start_task=$( date +%s )                                                               # record start time of script
         file_temp_base=$(basename -- ${country_file})                                               # get two letter country code

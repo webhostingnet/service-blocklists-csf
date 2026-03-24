@@ -659,7 +659,6 @@ run()
 
 sort_results()
 {
-
     # Temp files for IPv4 and IPv6
     _ipv4_tmp=$(mktemp) || exit 1
     _ipv6_tmp=$(mktemp) || exit 1
@@ -699,7 +698,6 @@ sort_results()
 # #
 
 if [ "$argDevMode" = true ]; then
-
 sort_results <<'EOF'
 192.168.1.5
 10.0.0.1
@@ -709,7 +707,6 @@ fe80::1
 2001:db8::1
 10.0.0.2
 EOF
-
 fi
 
 # #
@@ -906,7 +903,7 @@ filter_bogon_ips( )
 
     _fnBogonAfter=$(wc -l < "${_fnBogonFile}")
 
-    ok "    🚫 Removed ${greenl}${_fnBogonRemoved}${greym} bogon entries from ${bluel}${PWD}/${_fnBogonFile}${greym}"
+    ok "    🚫 Removed ${greenl}${_fnBogonRemoved}${greym} bogon entries from ${greenl}${PWD}/${_fnBogonFile}${greym}"
 
     # #
     #   Unset
@@ -924,6 +921,9 @@ fetch_page()
     _fnFetchUrl=$1
     _fnFetchAttempt=1
     _fnFetchMaxAttempts="${MIP_FETCH_RETRIES:-5}"
+    _fnFetchConnectTimeout="${MIP_CONNECT_TIMEOUT:-10}"
+    _fnFetchMaxTime="${MIP_MAX_TIME:-30}"
+    _fnFetchExit=0
     _fnFetchContent=""
     _fnFetchUA="${MIP_UA:-Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0}"
     _fnFetchCookie="${MIP_COOKIE:-}"
@@ -934,42 +934,72 @@ fetch_page()
             ;;
     esac
     [ "${_fnFetchMaxAttempts}" -lt 1 ] && _fnFetchMaxAttempts=1
+    case "${_fnFetchConnectTimeout}" in
+        ''|*[!0-9]*) _fnFetchConnectTimeout=10 ;;
+    esac
+    [ "${_fnFetchConnectTimeout}" -lt 1 ] && _fnFetchConnectTimeout=10
+    case "${_fnFetchMaxTime}" in
+        ''|*[!0-9]*) _fnFetchMaxTime=30 ;;
+    esac
+    [ "${_fnFetchMaxTime}" -lt 1 ] && _fnFetchMaxTime=30
 
     while [ "${_fnFetchAttempt}" -le "${_fnFetchMaxAttempts}" ]; do
+        info "    🌐 MIP fetch attempt ${bluel}${_fnFetchAttempt}/${_fnFetchMaxAttempts}${greym}: ${bluel}${_fnFetchUrl}${greym}" >&2
         sleep $(( RANDOM % 3 + 3 ))
 
         if [ -n "${_fnFetchCookie}" ]; then
             _fnFetchContent=$( curl -ksSL \
                 --compressed \
+                --connect-timeout "${_fnFetchConnectTimeout}" \
+                --max-time "${_fnFetchMaxTime}" \
                 -A "${_fnFetchUA}" \
                 -b "${_fnFetchCookie}" \
                 -H "Referer: ${_fnFetchUrl}" \
                 -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
                 -H "Accept-Language: en-US,en;q=0.9" \
                 "${_fnFetchUrl}" )
+            _fnFetchExit=$?
         else
             _fnFetchContent=$( curl -ksSL \
                 --compressed \
+                --connect-timeout "${_fnFetchConnectTimeout}" \
+                --max-time "${_fnFetchMaxTime}" \
                 -A "${_fnFetchUA}" \
                 -H "Referer: ${_fnFetchUrl}" \
                 -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
                 -H "Accept-Language: en-US,en;q=0.9" \
                 "${_fnFetchUrl}" )
+            _fnFetchExit=$?
         fi
 
-        if echo "${_fnFetchContent}" | grep -qiE "prove you.?re not a robot|/images/robots\.png"; then
-            printf '    ⚠️  Robot challenge detected from MIP (attempt %s), retrying\n' "${_fnFetchAttempt}" >&2
+        # #
+        #   Re-try
+        # #
+
+        if [ "${_fnFetchExit}" -ne 0 ]; then
+            warn "    ⚠️  MIP request failed with curl exit ${yellowl}${_fnFetchExit}${greym} (attempt ${yellowl}${_fnFetchAttempt}${greym})" >&2
             _fnFetchAttempt=$(( _fnFetchAttempt + 1 ))
             continue
         fi
 
+        if echo "${_fnFetchContent}" | grep -qiE "prove you.?re not a robot|/images/robots\.png"; then
+            warn "    ⚠️  Robot challenge detected from MIP (attempt ${yellowl}${_fnFetchAttempt}${greym}), retrying" >&2
+            _fnFetchAttempt=$(( _fnFetchAttempt + 1 ))
+            continue
+        elif echo "${_fnFetchContent}" | grep -qiE "You do not have permission to access this document"; then
+            warn "    ⚠️  Rejected permission (attempt ${yellowl}${_fnFetchAttempt}${greym}), using fallback" >&2
+            unset   _fnFetchUrl _fnFetchAttempt _fnFetchMaxAttempts _fnFetchConnectTimeout _fnFetchMaxTime _fnFetchExit _fnFetchContent _fnFetchUA _fnFetchCookie
+            return 2
+        fi
+
         printf '%s\n' "${_fnFetchContent}"
-        unset _fnFetchUrl _fnFetchAttempt _fnFetchContent _fnFetchUA _fnFetchCookie
+        unset   _fnFetchUrl _fnFetchAttempt _fnFetchMaxAttempts _fnFetchConnectTimeout _fnFetchMaxTime _fnFetchExit _fnFetchContent _fnFetchUA _fnFetchCookie
         return 0
     done
 
-    printf '    ❌ Failed to fetch valid MIP page after %s attempts: %s\n' "${_fnFetchMaxAttempts}" "${_fnFetchUrl}" >&2
-    unset   _fnFetchUrl _fnFetchAttempt _fnFetchMaxAttempts _fnFetchContent _fnFetchUA _fnFetchCookie
+    error "    ⭕ Failed to fetch valid MIP page ${redl}${_fnFetchUrl}${greym} after ${redl}${_fnFetchMaxAttempts}${greym} attempts${greym}" >&2
+
+    unset   _fnFetchUrl _fnFetchAttempt _fnFetchMaxAttempts _fnFetchConnectTimeout _fnFetchMaxTime _fnFetchExit _fnFetchContent _fnFetchUA _fnFetchCookie
 
     return 1
 }
@@ -987,6 +1017,15 @@ expand_mip_url()
     _fnPageNum=$2
     _fnUrlExpanded="${_fnUrlTemplate//\$\{i\}/${_fnPageNum}}"
     _fnUrlExpanded="${_fnUrlExpanded//\{i\}/${_fnPageNum}}"
+
+    # #
+    #   If placeholder got stripped before reaching script (e.g. .../comp_ip//ownerID/...),
+    #   inject the page number into the empty comp_ip segment.
+    # #
+
+    if [[ "${_fnUrlExpanded}" == *"/comp_ip//"* ]]; then
+        _fnUrlExpanded="${_fnUrlExpanded/\/comp_ip\/\//\/comp_ip\/${_fnPageNum}\/}"
+    fi
 
     if [ "${_fnUrlExpanded}" = "${_fnUrlTemplate}" ] && [[ "${_fnUrlTemplate}" == *%d* ]]; then
         printf "${_fnUrlTemplate}" "${_fnPageNum}"
@@ -1042,6 +1081,14 @@ download_list()
     _fnFirstPageUrl="$(expand_mip_url "${argSourceUrl}" "${_fnPageStart}")"
     info "    🌐 Fetching MIP page ${yellowl}${_fnPageStart}${greym}: ${bluel}${_fnFirstPageUrl}${greym}"
     _fnFirstPageContent="$(fetch_page "${_fnFirstPageUrl}")"
+    _fnFetchStatus=$?
+    if [ "${_fnFetchStatus}" -ne 0 ]; then
+        warn "    ⚠️  Unable to fetch first MIP page (status ${yellowl}${_fnFetchStatus}${greym}); using fallback"
+        rm -f "${_fnRawTemp}"
+        unset   _fnArgFile _fnFileTemp _fnListNum _count_total_ips _count_total_subnets \
+                _fnPageStart _fnRawTemp _fnFirstPageUrl _fnFirstPageContent _fnFetchStatus
+        return 1
+    fi
     printf '%s\n' "${_fnFirstPageContent}" >> "${_fnRawTemp}"
 
     _fnDetectedPageEnd=$(printf '%s\n' "${_fnFirstPageContent}" | grep -oP '(?<=href="#)[0-9]+' | sort -n | tail -1)
@@ -1065,10 +1112,21 @@ download_list()
     _fnPageNum=$(( _fnPageStart + 1 ))
     while [ "${_fnPageNum}" -le "${_fnPageEnd}" ]; do
         _fnPageUrl="$(expand_mip_url "${argSourceUrl}" "${_fnPageNum}")"
+
         info "    🌐 Fetching MIP page ${yellowl}${_fnPageNum}${greym}: ${bluel}${_fnPageUrl}${greym}"
+
         _fnPageContent="$(fetch_page "${_fnPageUrl}")"
+        _fnFetchStatus=$?
+        if [ "${_fnFetchStatus}" -ne 0 ]; then
+            warn "    ⚠️  Unable to fetch MIP page ${yellowl}${_fnPageNum}${greym} (status ${yellowl}${_fnFetchStatus}${greym}); using fallback"
+            rm -f "${_fnRawTemp}"
+            unset   _fnArgFile _fnFileTemp _fnListNum _count_total_ips _count_total_subnets \
+                    _fnPageStart _fnDetectedPageEnd _fnPageEnd _fnPageNum _fnPageUrl _fnRawTemp \
+                    _fnFirstPageUrl _fnFirstPageContent _fnPageContent _fnFetchStatus
+            return 1
+        fi
         [ -n "${_fnPageContent}" ] && printf '%s\n' "${_fnPageContent}" >> "${_fnRawTemp}"
-        fetch_page "${_fnPageUrl}" >> "${_fnRawTemp}"
+
         _fnPageNum=$(( _fnPageNum + 1 ))
     done
 
@@ -1173,7 +1231,7 @@ download_list()
 
     unset   _fnArgFile _fnFileTemp _fnListNum _count_total_ips _count_total_subnets \
             _fnPageStart _fnDetectedPageEnd _fnPageEnd _fnPageNum _fnPageUrl _fnRawTemp \
-            _fnFirstPageUrl _fnFirstPageContent _fnPageContent
+            _fnFirstPageUrl _fnFirstPageContent _fnPageContent _fnFetchStatus
 }
 
 # #
@@ -1434,9 +1492,9 @@ else
     mkdir -p "$(dirname "${file_ipset_target}")"
 
     if [ -d "$(dirname "${file_ipset_target}")" ]; then
-        ok "    📁 Created ${greenl}$(dirname "${file_ipset_target}")${greym}"
+        ok "    📁 Created ${greenl}$( dirname "${file_ipset_target}" )${greym}"
     else
-        error "    ⭕  Failed to create directory ${redl}$(dirname "${file_ipset_target}")${greym}; aborting${greym}"
+        error "    ⭕  Failed to create directory ${redl}$( dirname "${file_ipset_target}" )${greym}; aborting${greym}"
         exit 1
     fi
 

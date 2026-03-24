@@ -6,8 +6,8 @@
 #   @type               bash script
 #   @summary            Blocklists › GeoLite2 ASN IPsets
 #                       Generates a set of IPSET files by reading the GeoLite2 csv file and splitting the IPs up into their associated ASN.
-#                           blocklists/asn/geolite2/3000/asn_3598_microsoft_corp_as.ipset
-#                           blocklists/asn/geolite2/5000/asn_5761_microsoft_corp_msn_as_saturn.ipset
+#                           blocklists/geolite/asn2/3000/asn_3598_microsoft_corp_as.ipset
+#                           blocklists/geolite/asn2/5000/asn_5761_microsoft_corp_msn_as_saturn.ipset
 #                           [...]
 #   
 #   @command            ./.github/scripts/bl-geolite2_asn.sh --license <LICENSE_KEY>                Download MaxMind DB from website and process
@@ -17,7 +17,8 @@
 #                       ./.github/scripts/bl-geolite2_asn.sh --local --dev                          Use local copy of MM database but doesn't run final steps
 #                       ./.github/scripts/bl-geolite2_asn.sh --dry
 #   
-#                       ./.github/scripts/bl-geolite2_asn.sh --license <LICENSE_KEY> --folder C --file Cloudflare       custom folder and filename
+#                       ./.github/scripts/bl-geolite2_asn.sh --license <LICENSE_KEY> --folder C --file contabo_gmbh     download database from MaxMind; custom file/folder
+#                       ./.github/scripts/bl-geolite2_asn.sh --local --folder C --file contabo_gmbh --asn AS51167       Local source database; custom file/folder
 # #
 
 # #
@@ -58,12 +59,12 @@
 #   
 #   The DB will be opened, and each ASN will be grouped into subfolders. 
 #       ASNs are grouped into thousands; if downloading AS7, entry will be placed in folder `/0/`:
-#       ./blocklists/asn/geolite/ipv4/0/asn_7_the_defence_science_and_technology_laboratory.tmp
-#       ./blocklists/asn/geolite/ipv6/0/asn_7_the_defence_science_and_technology_laboratory.tmp
+#       ./blocklists/geolite/asn/ipv4/0/asn_7_the_defence_science_and_technology_laboratory.tmp
+#       ./blocklists/geolite/asn/ipv6/0/asn_7_the_defence_science_and_technology_laboratory.tmp
 #   
 #   Once it finishes generating all the .tmp files for each ipv4 and ipv6, it will move them out of the ipv4 and ipv6
 #   subfolder and bring them two sub-folders back, with the filename .ipset
-#       ./blocklists/asn/geolite/asn_7_the_defence_science_and_technology_laboratory.ipset
+#       ./blocklists/geolite/asn/asn_7_the_defence_science_and_technology_laboratory.ipset
 # #
 
 # #
@@ -73,7 +74,7 @@
 #       --folder c --file cloudflare
 #   
 #   Places all IPSETs in the path:
-#       ./blocklists/asn/geolite/c/cloudflare.ipset
+#       ./blocklists/geolite/asn/c/cloudflare.ipset
 #   
 #   Store all ASNs to a single file (database download):
 #       ./.github/scripts/bl-geolite2_asn.sh --license <LICENSE_KEY> --folder c --file cloudflare --asn 13335,209242,202623,132892,395747,14789,203898
@@ -263,10 +264,11 @@ total_ips=0                                                                     
 #   define variables
 # #
 
-folder_target_storage="blocklists/asn/geolite2"                                 # path to save ipsets
+folder_target_storage="blocklists/geolite/asn"                                  # path to save ipsets
 folder_target_ext_tmp="tmp"                                                     # temp extension for ipsets before work is done
 folder_source_local="local"                                                     # local mode enabled: where to fetch local csv from
 folder_source_temp=".temp"                                                      # local mode disabled: where csv will be downloaded to
+folder_source_cache=".daily/geolite2"                                           # cache folder shared across repeated workflow invocations
 folder_target_aggressive="@general"                                             # aggressive subfolder
 path_storage_ipv4="./${folder_target_storage}/ipv4"                             # folder to store .tmp ipv4 files
 path_storage_ipv6="./${folder_target_storage}/ipv6"                             # folder to store .tmp ipv6 files
@@ -368,31 +370,31 @@ opt_usage( )
     printf '  %-5s %-30s %-40s\n' "    " "${greyd}${end}                  " "${fuchsiad}$app_file_this${end} ${greyd}[ ${greym}--help${greyd} | ${greym}-h${greyd} | ${greym}/?${greyd} ]${end}" 1>&2
     echo
     printf '  %-5s %-40s\n' "${greyd}Options:${end}" "" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}-l${greyd},${blued}  --license ${yellowd}<string>${end}            " "specifies MaxMind license to download databases ${navy}<default> ${peach}${argMMLicense:-"XXXX-0000-XXXXX"} ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}-o${greyd},${blued}  --local ${yellowd}${end}                      " "install local MaxMind database from zip + md5 or .csv ${navy}<default> ${peach}${argUseLocalDB:-"disabled"} ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}  ${greyd} ${blued}           ${yellowd}${end}                     " "    ${greyd}does not require Maxmind license key ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}  ${greyd} ${blued}           ${yellowd}${end}                     " "    ${greyd}local files must be placed within: ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}  ${greyd} ${blued}           ${yellowd}${end}                     " "    ${greym}1.  Using CSVs: ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}  ${greyd} ${blued}           ${yellowd}${end}                     " "    ${greyd}        ${app_dir_this_dir}/${folder_source_local}/GeoLite2-ASN-Blocks-IPv4.csv ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}  ${greyd} ${blued}           ${yellowd}${end}                     " "    ${greyd}        ${app_dir_this_dir}/${folder_source_local}/GeoLite2-ASN-Blocks-IPv6.csv ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}  ${greyd} ${blued}           ${yellowd}${end}                     " "    ${greym}2.  Using ZIPs: ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}  ${greyd} ${blued}           ${yellowd}${end}                     " "    ${greyd}        ${app_dir_this_dir}/${folder_source_local}/GeoLite2-ASN-CSV.zip ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}  ${greyd} ${blued}           ${yellowd}${end}                     " "    ${greyd}        ${app_dir_this_dir}/${folder_source_local}/GeoLite2-ASN-CSV.zip.md5 ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}-a${greyd},${blued}  --asn ${yellowd}<string>${end}                " "process database and only look for ips with specific ASN ${navy}<default> ${peach}${argASN:-"empty"} ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}-p${greyd},${blued}  --limit ${yellowd}<string>${end}              " "limit number of entries to process and stop ${navy}<default> ${peach}${argLimitEntries:-"0"} ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}  ${greyd} ${blued}           ${yellowd}${end}                     " "    ${greyd}set limit ${fuchsiad}0${end} for no limit ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}-F${greyd},${blued}  --folder ${yellowd}<string>${end}             " "puts ipsets in custom folder; instead of folder using ASN ${navy}<default> ${peach}${argFolder:-"empty"} ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}  ${greyd} ${blued}           ${yellowd}${end}                     " "    ${greyd}must be used with ${olive}--file, -f${end} arg ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}-f${greyd},${blued}  --file ${yellowd}<string>${end}               " "puts ipsets in custom file ${navy}<default> ${peach}${argFile:-"empty"} ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}  ${greyd} ${blued}           ${yellowd}${end}                     " "    ${greyd}must be used with ${olive}--folder, -F${end} arg ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}-a${greyd},${blued}  --aggressive ${yellowd}${end}                 " "specified list will be placed in two files; one being ${fuchsiad}${folder_target_storage}${end} before generating new ipsets ${navy}<default> ${peach}${argClean:-"disabled"} ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}-c${greyd},${blued}  --clean ${yellowd}${end}                      " "wipes all existing files in ${fuchsiad}${folder_target_storage}${end} before generating new ipsets ${navy}<default> ${peach}${argClean:-"disabled"} ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}-u${greyd},${blued}  --usage ${yellowd}${end}                      " "explains how to use this script ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}-p${greyd},${blued}  --paths ${yellowd}${end}                      " "displays the paths that are important to this script ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}-D${greyd},${blued}  --dryrun ${yellowd}${end}                     " "pass dryrun to csf installer script, does not install ${end} ${navy}<default> ${peach}${argDryrun:-"disabled"} ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}-V${greyd},${blued}  --version ${yellowd}${end}                    " "current version of this utilty ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}-d${greyd},${blued}  --dev ${yellowd}${end}                        " "developer mode; verbose logging ${end}" 1>&2
-    printf '  %-5s %-81s %-40s\n' "    " "${blued}-h${greyd},${blued}  --help ${yellowd}${end}                       " "show this help menu ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}-l${greyd},${bluel}  --license ${yellowd}<string>${end}            " "specifies MaxMind license to download databases ${navy}<default> ${peach}${argMMLicense:-"XXXX-0000-XXXXX"} ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}-o${greyd},${bluel}  --local ${yellowd}${end}                      " "install local MaxMind database from zip + md5 or .csv ${navy}<default> ${peach}${argUseLocalDB:-"disabled"} ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}  ${greyd} ${bluel}           ${yellowd}${end}                     " "    ${greyd}does not require Maxmind license key ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}  ${greyd} ${bluel}           ${yellowd}${end}                     " "    ${greyd}local files must be placed within: ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}  ${greyd} ${bluel}           ${yellowd}${end}                     " "    ${greym}1.  Using CSVs: ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}  ${greyd} ${bluel}           ${yellowd}${end}                     " "    ${greyd}        ${app_dir_this_dir}/${folder_source_local}/GeoLite2-ASN-Blocks-IPv4.csv ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}  ${greyd} ${bluel}           ${yellowd}${end}                     " "    ${greyd}        ${app_dir_this_dir}/${folder_source_local}/GeoLite2-ASN-Blocks-IPv6.csv ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}  ${greyd} ${bluel}           ${yellowd}${end}                     " "    ${greym}2.  Using ZIPs: ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}  ${greyd} ${bluel}           ${yellowd}${end}                     " "    ${greyd}        ${app_dir_this_dir}/${folder_source_local}/GeoLite2-ASN-CSV.zip ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}  ${greyd} ${bluel}           ${yellowd}${end}                     " "    ${greyd}        ${app_dir_this_dir}/${folder_source_local}/GeoLite2-ASN-CSV.zip.md5 ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}-a${greyd},${bluel}  --asn ${yellowd}<string>${end}                " "process database and only look for ips with specific ASN ${navy}<default> ${peach}${argASN:-"empty"} ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}-p${greyd},${bluel}  --limit ${yellowd}<string>${end}              " "limit number of entries to process and stop ${navy}<default> ${peach}${argLimitEntries:-"0"} ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}  ${greyd} ${bluel}           ${yellowd}${end}                     " "    ${greyd}set limit ${fuchsiad}0${end} for no limit ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}-F${greyd},${bluel}  --folder ${yellowd}<string>${end}             " "puts ipsets in custom folder; instead of folder using ASN ${navy}<default> ${peach}${argFolder:-"empty"} ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}  ${greyd} ${bluel}           ${yellowd}${end}                     " "    ${greyd}must be used with ${olive}--file, -f${end} arg ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}-f${greyd},${bluel}  --file ${yellowd}<string>${end}               " "puts ipsets in custom file ${navy}<default> ${peach}${argFile:-"empty"} ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}  ${greyd} ${bluel}           ${yellowd}${end}                     " "    ${greyd}must be used with ${olive}--folder, -F${end} arg ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}-a${greyd},${bluel}  --aggressive ${yellowd}${end}                 " "specified list will be placed in two files; one being ${fuchsiad}${folder_target_storage}${end} before generating new ipsets ${navy}<default> ${peach}${argClean:-"disabled"} ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}-c${greyd},${bluel}  --clean ${yellowd}${end}                      " "wipes all existing files in ${fuchsiad}${folder_target_storage}${end} before generating new ipsets ${navy}<default> ${peach}${argClean:-"disabled"} ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}-u${greyd},${bluel}  --usage ${yellowd}${end}                      " "explains how to use this script ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}-p${greyd},${bluel}  --paths ${yellowd}${end}                      " "displays the paths that are important to this script ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}-D${greyd},${bluel}  --dryrun ${yellowd}${end}                     " "pass dryrun to csf installer script, does not install ${end} ${navy}<default> ${peach}${argDryrun:-"disabled"} ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}-V${greyd},${bluel}  --version ${yellowd}${end}                    " "current version of this utilty ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}-d${greyd},${bluel}  --dev ${yellowd}${end}                        " "developer mode; verbose logging ${end}" 1>&2
+    printf '  %-5s %-81s %-40s\n' "    " "${bluel}-h${greyd},${bluel}  --help ${yellowd}${end}                       " "show this help menu ${end}" 1>&2
     echo
     echo
 }
@@ -409,8 +411,8 @@ while [ $# -gt 0 ]; do
             echo "  ${greenl}${bold}   License Key / Normal Mode ${end}"
             echo "  ${greym}${bold}   This method requires no files to be added. The asn files will be downloaded from the ${end}"
             echo "  ${greym}${bold}   MaxMind website / servers. ${end}"
-            echo "  ${blued}         ./${app_file_this} -l ABCDEF1234567-01234 ${end}"
-            echo "  ${blued}         ./${app_file_this} -l ABCDEF1234567-01234 ${end}"
+            echo "  ${bluel}         ./${app_file_this} -l ABCDEF1234567-01234 ${end}"
+            echo "  ${bluel}         ./${app_file_this} -l ABCDEF1234567-01234 ${end}"
             echo
             echo
             echo "  ${greenl}${bold}   Local Mode .................................................................................................. ${dim}[ Option 1 ] ${end}"
@@ -419,19 +421,19 @@ while [ $# -gt 0 ]; do
             echo "  ${greym}   place the .ZIP, and .ZIP.MD5 file in the folder ${oranged}${app_dir_github}/${folder_source_local} ${end}"
             echo
             echo "  ${greym}${bold}   Download the following files from the MaxMind website: ${end}"
-            echo "  ${blued}         https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-ASN-CSV&license_key=LICENSE_KEY&suffix=zip ${end}"
-            echo "  ${blued}         https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-ASN-CSV&license_key=LICENSE_KEY&suffix=zip.md5 ${end}"
+            echo "  ${bluel}         https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-ASN-CSV&license_key=LICENSE_KEY&suffix=zip ${end}"
+            echo "  ${bluel}         https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-ASN-CSV&license_key=LICENSE_KEY&suffix=zip.md5 ${end}"
             echo
             echo "  ${greym}${bold}   Place the ${greend}.ZIP${end} and ${greend}.ZIP.MD5${end} files in: ${end}"
-            echo "  ${blued}         ${app_dir_github}/${folder_source_local} ${end}"
+            echo "  ${bluel}         ${app_dir_github}/${folder_source_local} ${end}"
             echo
             echo "  ${greym}${bold}   The filenames MUST be: ${end}"
-            echo "  ${blued}         ${app_dir_github}/${folder_source_local}/GeoLite2-ASN-CSV.zip ${end}"
-            echo "  ${blued}         ${app_dir_github}/${folder_source_local}/GeoLite2-ASN-CSV.zip.md5 ${end}"
+            echo "  ${bluel}         ${app_dir_github}/${folder_source_local}/GeoLite2-ASN-CSV.zip ${end}"
+            echo "  ${bluel}         ${app_dir_github}/${folder_source_local}/GeoLite2-ASN-CSV.zip.md5 ${end}"
             echo
             echo "  ${greym}${bold}   Run the following command: ${end}"
-            echo "  ${blued}         ./${app_file_this} --local ${end}"
-            echo "  ${blued}         ./${app_file_this} -o ${end}"
+            echo "  ${bluel}         ./${app_file_this} --local ${end}"
+            echo "  ${bluel}         ./${app_file_this} -o ${end}"
             echo
             echo
             echo "  ${greenl}${bold}   Local Mode .................................................................................................. ${dim}[ Option 2 ] ${end}"
@@ -440,15 +442,15 @@ while [ $# -gt 0 ]; do
             echo "  ${greym}   the .ZIP and place the .CSV files in the folder ${oranged}${app_dir_github}/${folder_source_local} ${end}"
             echo
             echo "  ${greym}${bold}   Download the following file from the MaxMind website: ${end}"
-            echo "  ${blued}         https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-ASN-CSV&license_key=LICENSE_KEY&suffix=zip ${end}"
+            echo "  ${bluel}         https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-ASN-CSV&license_key=LICENSE_KEY&suffix=zip ${end}"
             echo
             echo "  ${greym}${bold}   Open the .ZIP and extract the following files to the folder ${oranged}${app_dir_github}/${folder_source_local} ${end}"
-            echo "  ${blued}         ${app_dir_github}/${folder_source_local}/GeoLite2-ASN-Blocks-IPv4.csv ${end}"
-            echo "  ${blued}         ${app_dir_github}/${folder_source_local}/GeoLite2-ASN-Blocks-IPv6.csv ${end}"
+            echo "  ${bluel}         ${app_dir_github}/${folder_source_local}/GeoLite2-ASN-Blocks-IPv4.csv ${end}"
+            echo "  ${bluel}         ${app_dir_github}/${folder_source_local}/GeoLite2-ASN-Blocks-IPv6.csv ${end}"
             echo
             echo "  ${greym}${bold}   Run the following command: ${end}"
-            echo "  ${blued}         ./${app_file_this} --local ${end}"
-            echo "  ${blued}         ./${app_file_this} -o ${end}"
+            echo "  ${bluel}         ./${app_file_this} --local ${end}"
+            echo "  ${bluel}         ./${app_file_this} -o ${end}"
             echo
             echo
             echo "  ${greenl}${bold}   Dry Run ..................................................................................................... ${end}"
@@ -458,15 +460,15 @@ while [ $# -gt 0 ]; do
             echo "  ${greym}   in the folder ${oranged}${app_dir_github}/${folder_source_temp} ${end}"
             echo
             echo "  ${greym}${bold}   Place the .ZIP & .MD5 file, OR the .CSV files in the folder ${oranged}${app_dir_github}/${folder_source_temp} ${end}"
-            echo "  ${blued}         ${app_dir_github}/${folder_source_temp}/GeoLite2-ASN-Blocks-IPv4.csv ${end}"
-            echo "  ${blued}         ${app_dir_github}/${folder_source_temp}/GeoLite2-ASN-Blocks-IPv6.csv ${end}"
+            echo "  ${bluel}         ${app_dir_github}/${folder_source_temp}/GeoLite2-ASN-Blocks-IPv4.csv ${end}"
+            echo "  ${bluel}         ${app_dir_github}/${folder_source_temp}/GeoLite2-ASN-Blocks-IPv6.csv ${end}"
             echo
-            echo "  ${blued}         ${app_dir_github}/${folder_source_temp}/GeoLite2-ASN-CSV.zip ${end}"
-            echo "  ${blued}         ${app_dir_github}/${folder_source_temp}/GeoLite2-ASN-CSV.zip.md5 ${end}"
+            echo "  ${bluel}         ${app_dir_github}/${folder_source_temp}/GeoLite2-ASN-CSV.zip ${end}"
+            echo "  ${bluel}         ${app_dir_github}/${folder_source_temp}/GeoLite2-ASN-CSV.zip.md5 ${end}"
             echo
             echo "  ${greym}${bold}   Run the following command: ${end}"
-            echo "  ${blued}         ./${app_file_this} --dry${end}"
-            echo "  ${blued}         ./${app_file_this} -d${end}"
+            echo "  ${bluel}         ./${app_file_this} --dry${end}"
+            echo "  ${bluel}         ./${app_file_this} -d${end}"
             echo
             exit 1
             ;;
@@ -476,14 +478,14 @@ while [ $# -gt 0 ]; do
             echo "  ${white}List of paths important to this script:"
             echo "  ${greenl}📁 ${bold}${oranged}${app_dir_github}/${folder_source_local} ${end}"
             echo "  ${greym}    Folder used when Local Mode enabled ${greend}(--local) ${end}"
-            echo "  ${greym}        Can detect GeoLite2 ${blued}.ZIP${greym} and ${blued}.ZIP.MD5${greym} files ${end}"
-            echo "  ${greym}        Can detect GeoLite2 ${blued}.CSV${greym} location and IPv4/IPv6 files ${end}"
+            echo "  ${greym}        Can detect GeoLite2 ${bluel}.ZIP${greym} and ${bluel}.ZIP.MD5${greym} files ${end}"
+            echo "  ${greym}        Can detect GeoLite2 ${bluel}.CSV${greym} location and IPv4/IPv6 files ${end}"
             echo
             echo
             echo "  ${greenl}📁 ${bold}${oranged}${app_dir_github}/${folder_source_temp} ${end}"
             echo "  ${greym}    Folder used when Dry Run enabled ${greend}(--dry) ${end}"
-            echo "  ${greym}        Can detect GeoLite2 ${blued}.ZIP${greym} and ${blued}.ZIP.MD5${greym} files ${end}"
-            echo "  ${greym}        Can detect GeoLite2 ${blued}.CSV${greym} location and IPv4/IPv6 files ${end}"
+            echo "  ${greym}        Can detect GeoLite2 ${bluel}.ZIP${greym} and ${bluel}.ZIP.MD5${greym} files ${end}"
+            echo "  ${greym}        Can detect GeoLite2 ${bluel}.CSV${greym} location and IPv4/IPv6 files ${end}"
             echo
             echo
             exit 1
@@ -617,7 +619,7 @@ while [ $# -gt 0 ]; do
 
         -v|--version)
             echo
-            echo "  ${blued}${bold}${app_name}${end} - v${app_ver} ${end}"
+            echo "  ${bluel}${bold}${app_name}${end} - v${app_ver} ${end}"
             echo "  ${greenl}${bold}https://github.com/${app_repo} ${end}"
             echo
             exit 1
@@ -660,33 +662,33 @@ done
 
 info( )
 {
-    printf '\033[0m\r%-41s %-65s\n' "   ${bgInfo} INFO ${end}" "${greym} $1 ${end}"
+    printf '\033[0m%-41s %-65s\n' "   ${bgInfo} INFO ${end}" "${greym} $1 ${end}"
 }
 
 ok( )
 {
-    printf '\033[0m\r%-41s %-65s\n' "   ${bgOk} PASS ${end}" "${greym} $1 ${end}"
+    printf '\033[0m%-41s %-65s\n' "   ${bgOk} PASS ${end}" "${greym} $1 ${end}"
 }
 
 warn( )
 {
-    printf '\033[0m\r%-42s %-65s\n' "   ${bgWarn} WARN ${end}" "${greym} $1 ${end}"
+    printf '\033[0m%-42s %-65s\n' "   ${bgWarn} WARN ${end}" "${greym} $1 ${end}"
 }
 
 danger( )
 {
-    printf '\033[0m\r%-42s %-65s\n' "   ${bgDanger} DNGR ${end}" "${greym} $1 ${end}"
+    printf '\033[0m%-42s %-65s\n' "   ${bgDanger} DNGR ${end}" "${greym} $1 ${end}"
 }
 
 error( )
 {
-    printf '\033[0m\r%-42s %-65s\n' "   ${bgError} FAIL ${end}" "${greym} $1 ${end}"
+    printf '\033[0m%-42s %-65s\n' "   ${bgError} FAIL ${end}" "${greym} $1 ${end}"
 }
 
 debug( )
 {
     if [ "$argDevMode" = "true" ] || [ "$argDryrun" = "true" ]; then
-        printf '\033[0m\r%-42s %-65s\n' "   ${bgDebug} DBUG ${end}" "${greym} $1 ${end}"
+        printf '\033[0m%-42s %-65s\n' "   ${bgDebug} DBUG ${end}" "${greym} $1 ${end}"
     fi
 }
 
@@ -694,14 +696,14 @@ verbose( )
 {
     case "${argVerbose:-0}" in
         1|true|TRUE|yes|YES)
-            printf '\033[0m\r%-42s %-65s\n' "   ${bgVerbose} VRBO ${end}" "${greym} $1 ${end}"
+            printf '\033[0m%-42s %-65s\n' "   ${bgVerbose} VRBO ${end}" "${greym} $1 ${end}"
             ;;
     esac
 }
 
 label( )
 {
-    printf '\033[0m\r%-31s %-65s\n' "   ${greyd}        ${end}" "${greyd} $1 ${end}"
+    printf '\033[0m%-31s %-65s\n' "   ${greyd}        ${end}" "${greyd} $1 ${end}"
 }
 
 print( )
@@ -1012,6 +1014,7 @@ prinp()
                 ;;
         esac
 
+
         _out=""
         for word in $line; do
 
@@ -1175,6 +1178,19 @@ sort_results()
 #   Developer › Test IP Sorting
 # #
 
+if [ "$argDevMode" = true ]; then
+
+sort_results <<'EOF'
+192.168.1.5
+10.0.0.1
+192.168.1.10
+fe80::1
+::1
+2001:db8::1
+10.0.0.2
+EOF
+
+fi
 
 # #
 #   Count file statistics
@@ -1243,6 +1259,136 @@ count_ip_stats( )
 }
 
 # #
+#   IPSET › Filter BOGON › IPv4
+#   
+#   Check if IPv4 matches known bogon ranges
+# #
+
+is_bogon_ipv4( )
+{
+    _fnBogonIp=$1
+
+    case "${_fnBogonIp}" in
+        0.*|10.*|127.*|127.0.53.53|169.254.*|192.168.*|255.255.255.255)
+            return 0
+            ;;
+        100.6[4-9].*|100.[7-9][0-9].*|100.1[01][0-9].*|100.12[0-7].*)           # 100.64.0.0/10
+            return 0
+            ;;
+        172.1[6-9].*|172.2[0-9].*|172.3[0-1].*)                                 # 172.16.0.0/12
+            return 0
+            ;;
+        192.0.0.*|192.0.2.*|198.18.*|198.19.*|198.51.100.*|203.0.113.*)
+            return 0
+            ;;
+        22[4-9].*|23[0-9].*|24[0-9].*|25[0-5].*)                                # 224.0.0.0/4 + 240.0.0.0/4
+            return 0
+            ;;
+    esac
+
+    return 1
+}
+
+# #
+#   IPSET › Filter BOGON › IPv6
+#   
+#   Check if IPv6 matches known bogon ranges
+# #
+
+is_bogon_ipv6( )
+{
+    _fnBogonIp="${1,,}"
+    _fnBogonIp="${_fnBogonIp%%/*}"
+
+    case "${_fnBogonIp}" in
+        ::|::1|::ffff:*|::*)                                                        # ::/128 ::1/128 ::ffff:0:0/96 ::/96
+            return 0
+            ;;
+        100:*|100::*)                                                               # 100::/64
+            return 0
+            ;;
+        2001:1[0-9a-f]:*|2001:01[0-9a-f]:*|2001:001[0-9a-f]:*|2001:0001[0-9a-f]:*)  # 2001:10::/28
+            return 0
+            ;;
+        2001:db8:*|3fff:*|fc*|fd*|fe8*|fe9*|fea*|feb*|fec*|fed*|fee*|fef*|ff*)
+            return 0
+            ;;
+    esac
+
+    return 1
+}
+
+# #
+#   IPSET › Filter BOGON Addresses
+#   
+#   Some of our IPSETs will include BOGON addresses which may cause issues with
+#   users who are not expecting such IPs to be included.
+#   
+#   This functionality removes the BOGON addresses completely before the list is
+#   counted.
+#   
+#       - Runs only when argIncludeBogon=false
+#       - Run before count_ip_stats to ensure count accuracy
+# #
+
+filter_bogon_ips( )
+{
+    _fnBogonFile=$1
+    _fnBogonTemp="${1}.bogon"
+    _fnBogonLine=""
+    _fnBogonBase=""
+    _fnBogonBefore=0
+    _fnBogonAfter=0
+    _fnBogonRemoved=0
+
+    case "${argIncludeBogon:-true}" in
+        1|true|TRUE|yes|YES)
+            return 0
+            ;;
+    esac
+
+    if [ ! -f "${_fnBogonFile}" ]; then
+        warn "    ⚠️  Bogon filter skipped; file not found ${yellowl}${_fnBogonFile}${greym}"
+        return 0
+    fi
+
+    info "    🚫 Filtering bogon IP ranges from ${bluel}${PWD}/${_fnBogonFile}${greym}"
+    _fnBogonBefore=$(wc -l < "${_fnBogonFile}")
+    > "${_fnBogonTemp}"
+
+    while IFS= read -r _fnBogonLine || [ -n "${_fnBogonLine}" ]; do
+        [ -z "${_fnBogonLine}" ] && continue
+        _fnBogonBase="${_fnBogonLine%%/*}"
+
+        if [[ "${_fnBogonBase}" == *:* ]]; then
+            if is_bogon_ipv6 "${_fnBogonLine}"; then
+                _fnBogonRemoved=$(( _fnBogonRemoved + 1 ))
+                continue
+            fi
+        elif [[ "${_fnBogonBase}" == *.* ]]; then
+            if is_bogon_ipv4 "${_fnBogonBase}"; then
+                _fnBogonRemoved=$(( _fnBogonRemoved + 1 ))
+                continue
+            fi
+        fi
+
+        printf '%s\n' "${_fnBogonLine}" >> "${_fnBogonTemp}"
+    done < "${_fnBogonFile}"
+
+    mv "${_fnBogonTemp}" "${_fnBogonFile}"
+
+    _fnBogonAfter=$(wc -l < "${_fnBogonFile}")
+
+    ok "    🚫 Removed ${greenl}${_fnBogonRemoved}${greym} bogon entries from ${bluel}${PWD}/${_fnBogonFile}${greym}"
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnBogonFile _fnBogonTemp _fnBogonLine _fnBogonBase _fnBogonBefore _fnBogonAfter _fnBogonRemoved _fnBogonIp
+}
+
+# #
 #   Ensure the programs needed to execute are available
 # #
 
@@ -1273,6 +1419,9 @@ maxmind_Database_Download( )
 
     local URL_CSV="https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-ASN-CSV&license_key=${argMMLicense}&suffix=zip"
     local URL_MD5="${URL_CSV}.md5" # take URL_CSV value and add .md5 to end for hash file
+    local PATH_CACHE_DIR="${app_dir_github}/${folder_source_cache}"
+    local CACHE_ZIP="${PATH_CACHE_DIR}/${file_source_csv_zip}"
+    local CACHE_MD5="${PATH_CACHE_DIR}/${file_source_csv_zip_md5}"
 
     # #
     #   download files
@@ -1281,23 +1430,43 @@ maxmind_Database_Download( )
     # #
 
     if [ "${argDryrun}" != "true" ] && [ "${argUseLocalDB}" != "true" ]; then
-        URL_HIDDEN_CSV=$(printf '%s\n' "${URL_CSV}" | sed "s/${argMMLicense}/HIDDEN/g")
-        URL_HIDDEN_MD5=$(printf '%s\n' "${URL_MD5}" | sed "s/${argMMLicense}/HIDDEN/g")
+        mkdir -p "${PATH_CACHE_DIR}"
 
-        info "    🌎 Downloading ${bluel}${file_source_csv_zip}${end} from ${bluel}${URL_HIDDEN_CSV}"
-        if ! curl --silent --show-error --location \
-                --user-agent "${app_agent}" \
-                --output "${file_source_csv_zip}" "${URL_CSV}"
-        then
-            error "    ❌ Failed to curl database files from ${redl}${URL_HIDDEN_CSV}${greym}"
-        fi
+        if [ -f "${file_source_csv_zip}" ] && [ -f "${file_source_csv_zip_md5}" ]; then
+            info "    📦 Reusing existing ASN files in ${bluel}${TEMPDIR}${greym}"
+        elif [ -f "${CACHE_ZIP}" ] && [ -f "${CACHE_MD5}" ]; then
+            info "    📦 Restoring cached ASN files from ${bluel}${PATH_CACHE_DIR}${greym}"
+            cp -f "${CACHE_ZIP}" "${file_source_csv_zip}"
+            cp -f "${CACHE_MD5}" "${file_source_csv_zip_md5}"
+        else
+            if [ -n "${argMMLicense}" ]; then
+                URL_HIDDEN_CSV=$(printf '%s\n' "${URL_CSV}" | sed "s/${argMMLicense}/HIDDEN/g")
+                URL_HIDDEN_MD5=$(printf '%s\n' "${URL_MD5}" | sed "s/${argMMLicense}/HIDDEN/g")
+            else
+                URL_HIDDEN_CSV="${URL_CSV}"
+                URL_HIDDEN_MD5="${URL_MD5}"
+            fi
 
-        info "    🌎 Downloading ${bluel}${file_source_csv_zip_md5}${end} from ${bluel}${URL_HIDDEN_MD5}"
-        if ! curl --silent --show-error --location \
-                --user-agent "${app_agent}" \
-                --output "${file_source_csv_zip_md5}" "${URL_MD5}"
-        then
-            error "    ❌ Failed to curl database files from ${redl}${URL_HIDDEN_MD5}${greym}"
+            info "    🌎 Downloading ${bluel}${file_source_csv_zip}${end} from ${bluel}${URL_HIDDEN_CSV}"
+            if ! curl --silent --show-error --location \
+                    --user-agent "${app_agent}" \
+                    --output "${file_source_csv_zip}" "${URL_CSV}"
+            then
+                error "    ❌ Failed to curl database files from ${redl}${URL_HIDDEN_CSV}${greym}"
+                exit 1
+            fi
+
+            info "    🌎 Downloading ${bluel}${file_source_csv_zip_md5}${end} from ${bluel}${URL_HIDDEN_MD5}"
+            if ! curl --silent --show-error --location \
+                    --user-agent "${app_agent}" \
+                    --output "${file_source_csv_zip_md5}" "${URL_MD5}"
+            then
+                error "    ❌ Failed to curl database files from ${redl}${URL_HIDDEN_MD5}${greym}"
+                exit 1
+            fi
+
+            cp -f "${file_source_csv_zip}" "${CACHE_ZIP}"
+            cp -f "${file_source_csv_zip_md5}" "${CACHE_MD5}"
         fi
     fi
 
@@ -1307,6 +1476,7 @@ maxmind_Database_Download( )
 
     if [ ! -f "${file_source_csv_zip}" ]; then
         error "    ❌ Must supply zip ${redl}${file_source_csv_zip}${greym} + md5 ${redl}${file_source_csv_zip_md5}${greym}; cannot locate"
+        exit 1
     fi
 
     # #
@@ -1315,6 +1485,7 @@ maxmind_Database_Download( )
 
     if [ -f "${file_source_csv_zip}" ] && [ ! -f "${file_source_csv_zip_md5}" ]; then
         error "    ❌ You supplied zip ${redl}${file_source_csv_zip}${greym}, but did not provide the md5 file ${redl}${file_source_csv_zip_md5}${greym}; cannot continue"
+        exit 1
     fi
 
     # #
@@ -1349,12 +1520,22 @@ maxmind_Database_Download( )
         #   Check for download limit reached
         # #
 
-        md5Response=$(cat "${file_source_csv_zip_md5}")
+        md5Response=$(tr -d '[:space:]' < "${file_source_csv_zip_md5}")
         case "$md5Response" in
             *"download limit reached"*)
                 error "    ❌ MaxMind: Daily API download limit reached"
+                exit 1
                 ;;
         esac
+
+        if ! unzip -tq "${file_source_csv_zip}" >/dev/null 2>&1; then
+            if grep -qi "download limit reached" "${file_source_csv_zip}"; then
+                error "    ❌ MaxMind: API download limit reached; received a non-zip response"
+            else
+                error "    ❌ Downloaded file is not a valid ZIP archive (${redl}${file_source_csv_zip}${greym})"
+            fi
+            exit 1
+        fi
 
         # #
         #   Validate checksum
@@ -1364,6 +1545,7 @@ maxmind_Database_Download( )
         md5_local=$(md5sum "${TEMPDIR}/${file_source_csv_zip}" | awk '{print $1}')
         if [ "$md5Response" != "$md5_local" ]; then
             error "    ❌ GeoLite2 MD5 downloaded checksum does not match local md5 checksum"
+            exit 1
         fi
 
         # #
@@ -1409,7 +1591,7 @@ maxmind_Database_Load( )
     local configs=(${CONFIGS_LIST})
     for f in ${configs[@]}; do
 
-        info "    📄 Mounting ASN file ${blued}${TEMPDIR}/${f}"
+        info "    📄 Mounting ASN file ${bluel}${TEMPDIR}/${f}"
         if [ ! -f "$f" ]; then
             error "    ❌ Missing ASN database: ${redl}${TEMPDIR}/${f}${greym}"
         fi
@@ -1426,7 +1608,7 @@ generate_IPv4()
 
     # #
     #   remove existing ipv4 folder:
-    #       blocklists/asn/geolite2/ipv4/
+    #       blocklists/geolite/asn/ipv4/
     # #
 
     rm -rf "${path_storage_ipv4}"
@@ -1438,7 +1620,7 @@ generate_IPv4()
 
     # #
     #   Create new ipv4 folder:
-    #       blocklists/asn/geolite2/ipv4/
+    #       blocklists/geolite/asn/ipv4/
     # #
 
     if [ ! -d "${path_storage_ipv4}" ]; then
@@ -1532,7 +1714,7 @@ generate_IPv4()
 
             # #
             #   Create top-level folder
-            #       blocklists/asn/geolite2/ipv4/FOLDERNAME
+            #       blocklists/geolite/asn/ipv4/FOLDERNAME
             # #
         
             top_folder="${argFolder}"
@@ -1635,7 +1817,7 @@ generate_IPv6()
 
     # #
     #   Remove existing ipv4 folder:
-    #       blocklists/asn/geolite2/ipv4/
+    #       blocklists/geolite/asn/ipv4/
     # #
 
     rm -rf "${path_storage_ipv6}"
@@ -1647,7 +1829,7 @@ generate_IPv6()
 
     # #
     #   Create new ipv6 folder:
-    #       blocklists/asn/geolite2/ipv6/
+    #       blocklists/geolite/asn/ipv6/
     # #
 
     if [ ! -d "${path_storage_ipv6}" ]; then
@@ -1741,7 +1923,7 @@ generate_IPv6()
 
             # #
             #   Create top-level folder
-            #       blocklists/asn/geolite2/ipv4/FOLDERNAME
+            #       blocklists/geolite/asn/ipv4/FOLDERNAME
             # #
         
             top_folder="${argFolder}"
@@ -1849,7 +2031,6 @@ generate_IPv6()
 ipsets_Merge()
 {
     echo
-
     info "    🔀 Merge › Start"
 
     # #
@@ -1902,12 +2083,11 @@ ipsets_Finalize()
     echo
 
     info "    🚛 Finalize › Start"
-    label "       Moving staged .tmp files to final ${bluel}.${ext_target_ipset}${greym} files"
 
     # #
     #   Ensure permanent storage directory exists.
     #   Location where finalized ipset files are written to.
-    #       blocklists/asn/geolite2
+    #       blocklists/geolite/asn
     # #
 
     if [ ! -d "${folder_target_storage}" ]; then
@@ -1971,23 +2151,14 @@ ipsets_Finalize()
                 #   Strips .tmp extension and replaces with .ipset
                 #   
                 #   basename_tmp    asn_212513_osnet_telekomunikasyon_dis_ticaret_limited_sirketi
-                #   tmpfile         ./blocklists/asn/geolite2/ipv4/212000/asn_212513_osnet_telekomunikasyon_dis_ticaret_limited_sirketi.tmp
-                #   target_file     blocklists/asn/geolite2/212000/asn_212513_osnet_telekomunikasyon_dis_ticaret_limited_sirketi.ipset
-                #   target_dir      blocklists/asn/geolite2/212000
+                #   tmpfile         ./blocklists/geolite/asn/ipv4/212000/asn_212513_osnet_telekomunikasyon_dis_ticaret_limited_sirketi.tmp
+                #   target_file     blocklists/geolite/asn/212000/asn_212513_osnet_telekomunikasyon_dis_ticaret_limited_sirketi.ipset
+                #   target_dir      blocklists/geolite/asn/212000
                 # #
 
                 basename_tmp=$(basename "${tmpfile}" .${folder_target_ext_tmp})             # asn_212513_osnet_telekomunikasyon_dis_ticaret_limited_sirketi
-                target_file="${target_dir}/${basename_tmp}.${ext_target_ipset}"             # blocklists/asn/geolite2/212000/asn_212513_osnet_telekomunikasyon_dis_ticaret_limited_sirketi.ipset
+                target_file="${target_dir}/${basename_tmp}.${ext_target_ipset}"             # blocklists/geolite/asn/212000/asn_212513_osnet_telekomunikasyon_dis_ticaret_limited_sirketi.ipset
 
-                # #
-                #   Count statistics for header metadata
-                #       › total_lines       non-comment entries
-                #       › total_subnets     number of CIDR entries
-                #       › total_ips         estimated IP count
-                # #
-
-                total_lines=$(grep -vE '^[[:space:]]*(#|;|$)' "${tmpfile}" | wc -l)
-                count_ip_stats "${tmpfile}"
 
                 # #
                 #   Determine ASN and organization name
@@ -2048,6 +2219,50 @@ ipsets_Finalize()
                 fi
 
                 # #
+                #   Formatter-style cleanup:
+                #       - match bl-format.sh normalization rules exactly
+                #       - sort and deduplicate with IPv4/IPv6 awareness
+                #       - filter bogon addresses
+                #       - compute stats from cleaned data
+                # #
+
+                tmp_clean="${tmpfile}.clean"
+                cat "${tmpfile}" > "${tmp_clean}"
+
+                # normalize CRLF
+                sed -i 's/\r$//' "${tmp_clean}"
+
+                # remove hyphens from IP ranges (if format is "1.2.3.4 - 1.2.3.5" take left side)
+                sed -i 's/-.*//' "${tmp_clean}"
+
+                # remove inline comments (strip ' # comment' or ' ; comment' from end of lines ; collapse whitespace, trim)
+                sed -i 's/[[:space:]]*[#;].*$//' "${tmp_clean}"
+
+                # collapse multiple whitespace into a single space
+                sed -i 's/[[:space:]]\+/ /g' "${tmp_clean}"
+
+                # trim leading and trailing whitespace
+                sed -i 's/^[[:space:]]*//;s/[[:space:]]*$//' "${tmp_clean}"
+
+                # remove empty lines (after trimming/comment removal)
+                sed -i '/^$/d' "${tmp_clean}"
+                sort_results < "${tmp_clean}" > "${tmp_clean}.sort"
+                mv "${tmp_clean}.sort" "${tmp_clean}"
+                filter_bogon_ips "${tmp_clean}"
+
+                count_ip_stats "${tmp_clean}"
+                _count_total_ips=$total_ips
+                _count_total_subnets=$total_subnets
+
+                _count_total_ips=$(printf "%'d" "$_count_total_ips")                        # LOCAL add commas to thousands
+                _count_total_subnets=$(printf "%'d" "$_count_total_subnets")                # LOCAL add commas to thousands
+
+                total_lines=$(wc -l < "${tmp_clean}")
+                total_lines=$(printf "%'d" "$total_lines")
+                total_ips=${_count_total_ips}
+                total_subnets=${_count_total_subnets}
+
+                # #
                 #   Generate metadata for header
                 # #
 
@@ -2084,6 +2299,73 @@ ipsets_Finalize()
                 case "$templ_url_service" in *"404: Not Found"*) templ_url_service="None";; esac
 
                 # #
+                #   Output › Header
+                # #
+
+                echo
+                prinp "📄[-1] ${target_file}" \
+                "${greym}File: 	    ${greyd}.............${yellowl} ${target_file} \
+                ${greyd}\n${greym}Id: 	    ${greyd}...............${yellowl} ${templ_id}${greyd} \
+                ${greyd}\n${greym}UUID:	        ${greyd}.............${yellowl} ${templ_uuid}${greyd} \
+                ${greyd}\n${greym}Category:	        ${greyd}.........${yellowl} ${templ_cat}${greyd} \
+                ${greyd}\n${greym}Script:	       ${greyd}...........${yellowl} ${app_file_this}${greyd} \
+                ${greyd}\n${greym}Service:	        ${greyd}..........${yellowl} ${templ_url_service}${greyd}"
+
+                # #
+                #   Build ASN header block:
+                #       - 5 ASNs per line
+                #       - wrapped lines end in comma except final ASN line
+                #       - final line appends organization and period
+                # #
+
+                _asn_source="${ipset_read_asn}"
+                _asn_source=$(printf '%s' "${_asn_source}" | sed 's/[[:space:]]*,[[:space:]]*/,/g; s/[[:space:]]\+/,/g; s/,,*/,/g; s/^,//; s/,$//')
+                IFS=',' read -r -a _asn_parts <<< "${_asn_source}"
+                _asn_lines=()
+                _asn_line=""
+                _asn_line_count=0
+                _asn_total=${#_asn_parts[@]}
+
+                for _asn_idx in "${!_asn_parts[@]}"; do
+                    _asn_val="${_asn_parts[$_asn_idx]}"
+                    [ -z "${_asn_val}" ] && continue
+
+                    if [ -z "${_asn_line}" ]; then
+                        _asn_line="${_asn_val}"
+                    else
+                        _asn_line="${_asn_line}, ${_asn_val}"
+                    fi
+
+                    _asn_line_count=$(( _asn_line_count + 1 ))
+                    _asn_is_last=$(( _asn_idx + 1 ))
+
+                    if [ "${_asn_line_count}" -ge 5 ] && [ "${_asn_is_last}" -lt "${_asn_total}" ]; then
+                        _asn_line="${_asn_line},"
+                        _asn_lines+=( "${_asn_line}" )
+                        _asn_line=""
+                        _asn_line_count=0
+                    fi
+                done
+
+                if [ -n "${_asn_line}" ]; then
+                    _asn_lines+=( "${_asn_line}" )
+                fi
+
+                _asn_header_block=""
+                if [ "${#_asn_lines[@]}" -eq 0 ]; then
+                    _asn_header_block="#   All IP ranges registered to ASN ${ipset_read_asn} (${ipset_read_orgname})."
+                elif [ "${#_asn_lines[@]}" -eq 1 ]; then
+                    _asn_header_block="#   All IP ranges registered to ASN ${_asn_lines[0]} (${ipset_read_orgname})."
+                else
+                    _asn_header_block="#   All IP ranges registered to ASN ${_asn_lines[0]}"
+                    _asn_last_index=$(( ${#_asn_lines[@]} - 1 ))
+                    for (( _asn_i=1; _asn_i< _asn_last_index; _asn_i++ )); do
+                        _asn_header_block="${_asn_header_block}\n#   ${_asn_lines[$_asn_i]}"
+                    done
+                    _asn_header_block="${_asn_header_block}\n#   ${_asn_lines[$_asn_last_index]} (${ipset_read_orgname})."
+                fi
+
+                # #
                 #   Write ipset header and metadata block
                 # #
 
@@ -2102,17 +2384,18 @@ ipsets_Finalize()
                     echo "#   @expires        ${templ_exp}"
                     echo "#   @category       ${templ_cat}"
                     echo "#"
-                    echo "#   All IP ranges registered to ASN ${ipset_read_asn} (${ipset_read_orgname})."
+                    printf "%b\n" "${_asn_header_block}"
+                    echo "#"
                     echo "#   Includes both IPv4 and IPv6 networks merged"
                     echo "# #"
                     echo
                 } > "${target_file}"
 
                 # #
-                #   Append actual IP ranges + strip comments
+                #   Append cleaned IP ranges
                 # #
 
-                grep -vE '^[#;]' "${tmpfile}" >> "${target_file}"
+                cat "${tmp_clean}" >> "${target_file}"
 
                 # #
                 #   Aggressive mode
@@ -2121,7 +2404,7 @@ ipsets_Finalize()
 
                 if [ "${argAggressive}" = "true" ]; then
                     mkdir -p "$(dirname "${aggressive_raw}")"
-                    grep -vE '^[#;]' "${tmpfile}" >> "${aggressive_raw}"
+                    cat "${tmp_clean}" >> "${aggressive_raw}"
                 fi
 
                 # #
@@ -2129,9 +2412,11 @@ ipsets_Finalize()
                 # #
 
                 rm -f "${tmpfile}"
+                rm -f "${tmp_clean}"
                 ok "    🚛 Moved ${bluel}${tmpfile}${greym} › ${bluel}${target_file}${greym}"
-                label "       ${greyd}› IPs: ${total_ips} › Subnets: ${total_subnets} › Lines: ${total_lines}${greym}"
-                
+
+                unset   _asn_source _asn_parts _asn_lines _asn_line _asn_line_count _asn_total \
+                        _asn_idx _asn_val _asn_is_last _asn_header_block _asn_last_index _asn_i
             done < <(find "${DIR}" -type f -name "*.${folder_target_ext_tmp}" -print0)
         fi
     done
@@ -2146,17 +2431,73 @@ ipsets_Finalize()
         mkdir -p "${aggressive_dir}"
 
         # #
-        #   Remove duplicate IPs while preserving order
+        #   Formatter-style cleanup for aggressive output
         # #
 
         dedup_file="${aggressive_raw}.dedup"
-        awk '!seen[$0]++' "${aggressive_raw}" > "${dedup_file}"
+        cat "${aggressive_raw}" > "${dedup_file}"
+
+        # normalize CRLF
+        sed -i 's/\r$//' "${dedup_file}"
+
+        # remove hyphens from IP ranges (if format is "1.2.3.4 - 1.2.3.5" take left side)
+        sed -i 's/-.*//' "${dedup_file}"
+
+        # remove inline comments (strip ' # comment' or ' ; comment' from end of lines ; collapse whitespace, trim)
+        sed -i 's/[[:space:]]*[#;].*$//' "${dedup_file}"
+
+        # collapse multiple whitespace into a single space
+        sed -i 's/[[:space:]]\+/ /g' "${dedup_file}"
+
+        # trim leading and trailing whitespace
+        sed -i 's/^[[:space:]]*//;s/[[:space:]]*$//' "${dedup_file}"
+
+        # remove empty lines (after trimming/comment removal)
+        sed -i '/^$/d' "${dedup_file}"
+
+        # #
+        #   Dedupe, Sort: Move from .tmp to .sort
+        # #
+
+        info "    🔃 Sorting and deduplicating results"
+        grep -vE '^[[:space:]]*(#|;|$)' "${dedup_file}" | sort_results > "${dedup_file}.sort"
+
+        # #
+        #   Move from .sort to .tmp
+        # #
+
+        mv "${dedup_file}.sort" "${dedup_file}"
+
+        # #
+        #   IPSET › Filter BOGON
+        #       - Optional
+        #       - Run before count_ip_stats for accurate totals
+        # #
+
+        filter_bogon_ips "${dedup_file}"
+
+        # #
+        #   Calculate list statistics
+        #       - local only (global totals are calculated after final dedupe)
+        # #
+
+        info "    📊 Fetching statistics for clean file ${bluel}${dedup_file}${greym}"
 
         # #
         #   Recalculate totals for merged list
         # #
-        total_lines=$(grep -vE '^[[:space:]]*(#|;|$)' "${dedup_file}" | wc -l)
+
         count_ip_stats "${dedup_file}"
+        _count_total_ips=$total_ips
+        _count_total_subnets=$total_subnets
+
+        _count_total_ips=$(printf "%'d" "$_count_total_ips")                        # LOCAL add commas to thousands
+        _count_total_subnets=$(printf "%'d" "$_count_total_subnets")                # LOCAL add commas to thousands
+
+        total_lines=$(wc -l < "${dedup_file}")
+        total_lines=$(printf "%'d" "$total_lines")
+        total_ips=${_count_total_ips}
+        total_subnets=${_count_total_subnets}
 
         # #
         #   Write final aggressive ipset header
@@ -2184,6 +2525,19 @@ ipsets_Finalize()
         templ_exp=$(<exp.txt)
         templ_url_service=$(<src.txt)
         rm -f desc.txt cat.txt exp.txt src.txt
+
+        # #
+        #   Output › Header
+        # #
+
+        echo
+        prinp "📄[-1] ${file_target_aggressive}.${ext_target_ipset}" \
+        "${greym}File: 	    ${greyd}.............${yellowl} ${file_target_aggressive}.${ext_target_ipset}${greyd} \
+        ${greyd}\n${greym}Id: 	    ${greyd}...............${yellowl} ${templ_id}${greyd} \
+        ${greyd}\n${greym}UUID:	        ${greyd}.............${yellowl} ${templ_uuid}${greyd} \
+        ${greyd}\n${greym}Category:	        ${greyd}.........${yellowl} ${templ_cat}${greyd} \
+        ${greyd}\n${greym}Script:	       ${greyd}...........${yellowl} ${app_file_this}${greyd} \
+        ${greyd}\n${greym}Service:	        ${greyd}..........${yellowl} ${templ_url_service}${greyd}"
 
         # #
         #   Define › Template › Default Values
@@ -2246,6 +2600,65 @@ ipsets_Finalize()
 }
 
 # #
+#   Summary › Final Totals
+#   
+#   Calculates totals across all generated .ipset files and prints a footer
+#   consistent with other blocklist scripts.
+# #
+
+summary_PrintFooter( )
+{
+    _fnTargetFile=$1
+    _fnTotalIps=0
+    _fnTotalSubnets=0
+    _fnTotalLines=0
+    _fnFileLines=0
+    if [ -n "${_fnTargetFile}" ] && [ -f "${_fnTargetFile}" ]; then
+        _fnFileLines=$(grep -vE '^[[:space:]]*(#|;|$)' "${_fnTargetFile}" | wc -l)
+        _fnTotalLines=$(( _fnTotalLines + _fnFileLines ))
+
+        count_ip_stats "${_fnTargetFile}"
+        _fnTotalIps=$(( _fnTotalIps + total_ips ))
+        _fnTotalSubnets=$(( _fnTotalSubnets + total_subnets ))
+
+        label "       Created file: ${bluel}${_fnTargetFile}${greym}"
+    else
+        while IFS= read -r -d '' _fnIpsetFile; do
+            _fnFileLines=$(grep -vE '^[[:space:]]*(#|;|$)' "${_fnIpsetFile}" | wc -l)
+            _fnTotalLines=$(( _fnTotalLines + _fnFileLines ))
+
+            count_ip_stats "${_fnIpsetFile}"
+            _fnTotalIps=$(( _fnTotalIps + total_ips ))
+            _fnTotalSubnets=$(( _fnTotalSubnets + total_subnets ))
+        done < <(find "${folder_target_storage}" -type f -name "*.${ext_target_ipset}" -print0)
+    fi
+
+    total_lines=$(printf "%'d" "${_fnTotalLines}")
+    total_subnets=$(printf "%'d" "${_fnTotalSubnets}")
+    total_ips=$(printf "%'d" "${_fnTotalIps}")
+
+    # #
+    #   Finished
+    #       - Capture end time
+    #       - Calculate elapsed time
+    #       - Calculate days, hours, etc.
+    #       - Output to console
+    # #
+
+    time_end=$( date +%s )
+    T=$(( time_end - time_start ))
+    D=$(( T / 86400 ))
+    H=$(( (T % 86400) / 3600 ))
+    M=$(( (T % 3600) / 60 ))
+    S=$(( T % 60 ))
+
+    prinp "🎌[41] Finished!   ${fuchsiad}IPs: ${yellowl}${total_ips}${fuchsiad}   Subnets: ${yellowl}${total_subnets}${greyd}${fuchsiad}   Duration: ${yellowl}${D} days ${H} hrs ${M} mins ${S} secs${greyd}" false
+
+    unset   _fnTargetFile _fnTotalIps _fnTotalSubnets _fnTotalLines _fnFileLines _fnIpsetFile \
+            time_end T D H M S
+}
+
+# #
 #   Cleanup Garbage
 #   
 #   Removes old ipv4 and ipv5 folders
@@ -2258,7 +2671,7 @@ gcc( )
 
     # #
     #   Remove temp
-    #       ./blocklists/asn/geolite2/ipv4
+    #       ./blocklists/geolite/asn/ipv4
     # #
 
     if [ -d ${path_storage_ipv4} ]; then
@@ -2272,11 +2685,11 @@ gcc( )
 
     # #
     #   Remove temp
-    #       ./blocklists/asn/geolite2/ipv6
+    #       ./blocklists/geolite/asn/ipv6
     # #
 
     if [ -d ${path_storage_ipv6} ]; then
-        rm -rf ${path_storage_ipv6}
+        rm -rf "${path_storage_ipv6}"
         if [ ! -d "${path_storage_ipv6}" ]; then
             ok "    🗑️  Removed folder ${greenl}${path_storage_ipv6}"
         else
@@ -2326,9 +2739,27 @@ main()
         # shellcheck disable=SC1090
         . "${app_dir_this_dir}/${file_cfg}" >/dev/null 2>&1
     fi
+    # #
+    #   License fallback order:
+    #       1) --license / -l argument
+    #       2) MAXMIND_LICENSE_KEY env var
+    #       3) API_GEOLITE2_KEY env var
+    #       4) LICENSE_KEY from geolite2.conf
+    # #
 
-    if [ -z "${argUseLocalDB}" ] && [ -z "${argMMLicense}" ]; then
+    if [ -z "${argMMLicense}" ]; then
+        if [ -n "${MAXMIND_LICENSE_KEY:-}" ]; then
+            argMMLicense="${MAXMIND_LICENSE_KEY}"
+        elif [ -n "${API_GEOLITE2_KEY:-}" ]; then
+            argMMLicense="${API_GEOLITE2_KEY}"
+        elif [ -n "${LICENSE_KEY:-}" ]; then
+            argMMLicense="${LICENSE_KEY}"
+        fi
+    fi
+
+    if [ "${argUseLocalDB}" != "true" ] && [ -z "${argMMLicense}" ]; then
         error "    ❌ Must supply valid MaxMind license key. Aborting ..."
+        exit 1
     fi
 
     # #
@@ -2455,6 +2886,7 @@ main()
     ipsets_Merge
     ipsets_Finalize
     gcc
+    summary_PrintFooter "${target_file}"
 }
 
 main "$@"
