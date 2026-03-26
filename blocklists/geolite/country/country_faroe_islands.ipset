@@ -5,7 +5,7 @@
 #   @service        None
 #   @id             country_faroe_islands_ipset
 #   @uuid           fe41ff40-f9e5-3c51-8116-e00a97c34fb3
-#   @updated        Thu Mar 26 05:49:05 UTC 2026
+#   @updated        Thu Mar 26 09:07:12 UTC 2026
 #   @entries        45,273 ips
 #                   124 subnets
 #                   124 lines
@@ -13,7 +13,8 @@
 #   @expires        6 hours
 #   @category       Uncategorized
 #
-#   No description provided
+429: Too Many Requests
+For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
 # #
 
 5.62.60.133/32

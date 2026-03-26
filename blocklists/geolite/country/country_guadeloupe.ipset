@@ -5,13 +5,14 @@
 #   @service        None
 #   @id             country_guadeloupe_ipset
 #   @uuid           f97a66b7-47ac-3650-88e2-4b03e9f401fc
-#   @updated        Thu Mar 26 05:49:13 UTC 2026
+#   @updated        Thu Mar 26 09:07:53 UTC 2026
 #   @entries        283,972 ips
 #                   324 subnets
 #                   324 lines
 #   @country        Guadeloupe (GP)
 #   @expires        6 hours
-#   @category       Uncategorized
+#   @category       429: Too Many Requests
+For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
 #
 #   No description provided
 # #

@@ -5,7 +5,7 @@
 #   @service        None
 #   @id             country_micronesia_ipset
 #   @uuid           41e48b8a-0631-3bc7-8a9a-42a72db4774b
-#   @updated        Thu Mar 26 05:49:04 UTC 2026
+#   @updated        Thu Mar 26 09:07:09 UTC 2026
 #   @entries        12,511 ips
 #                   169 subnets
 #                   169 lines
@@ -13,7 +13,8 @@
 #   @expires        6 hours
 #   @category       Uncategorized
 #
-#   No description provided
+429: Too Many Requests
+For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
 # #
 
 43.248.156.0/22

@@ -2,10 +2,11 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_gibraltar.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_gibraltar.ipset
-#   @service        None
+#   @service        429: Too Many Requests
+For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
 #   @id             country_gibraltar_ipset
 #   @uuid           3871faa6-6178-3e51-9a3e-4daf3337198a
-#   @updated        Thu Mar 26 05:49:12 UTC 2026
+#   @updated        Thu Mar 26 09:07:40 UTC 2026
 #   @entries        103,171 ips
 #                   230 subnets
 #                   230 lines

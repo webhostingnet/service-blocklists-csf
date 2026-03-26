@@ -2,18 +2,21 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_uruguay.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_uruguay.ipset
-#   @service        None
+#   @service        429: Too Many Requests
+For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
 #   @id             country_uruguay_ipset
 #   @uuid           c4d5d814-f1eb-380f-acbe-c98f4030f44f
-#   @updated        Thu Mar 26 05:50:36 UTC 2026
+#   @updated        Thu Mar 26 09:09:35 UTC 2026
 #   @entries        2,547,485 ips
 #                   434 subnets
 #                   434 lines
 #   @country        Uruguay (UY)
-#   @expires        6 hours
+#   @expires        429: Too Many Requests
+For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
 #   @category       Uncategorized
 #
-#   No description provided
+429: Too Many Requests
+For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
 # #
 
 5.62.56.245/32

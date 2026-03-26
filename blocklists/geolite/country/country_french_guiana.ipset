@@ -2,16 +2,18 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_french_guiana.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_french_guiana.ipset
-#   @service        None
+#   @service        429: Too Many Requests
+For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
 #   @id             country_french_guiana_ipset
 #   @uuid           063f08b4-2ac3-31da-bf2c-2ff3e7a9b3e5
-#   @updated        Thu Mar 26 05:49:12 UTC 2026
+#   @updated        Thu Mar 26 09:07:31 UTC 2026
 #   @entries        155,396 ips
 #                   189 subnets
 #                   189 lines
 #   @country        French Guiana (GF)
 #   @expires        6 hours
-#   @category       Uncategorized
+#   @category       429: Too Many Requests
+For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
 #
 #   No description provided
 # #

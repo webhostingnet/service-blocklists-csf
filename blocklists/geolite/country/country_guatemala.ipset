@@ -5,12 +5,13 @@
 #   @service        None
 #   @id             country_guatemala_ipset
 #   @uuid           bf3a0112-a689-3c9e-8edc-abd284b3121d
-#   @updated        Thu Mar 26 05:49:14 UTC 2026
+#   @updated        Thu Mar 26 09:08:02 UTC 2026
 #   @entries        703,103 ips
 #                   746 subnets
 #                   746 lines
 #   @country        Guatemala (GT)
-#   @expires        6 hours
+#   @expires        429: Too Many Requests
+For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
 #   @category       Uncategorized
 #
 #   No description provided

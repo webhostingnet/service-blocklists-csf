@@ -2,10 +2,11 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_finland.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_finland.ipset
-#   @service        None
+#   @service        429: Too Many Requests
+For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
 #   @id             country_finland_ipset
 #   @uuid           25e72cd6-ea8d-395e-8335-d27d18945779
-#   @updated        Thu Mar 26 05:49:04 UTC 2026
+#   @updated        Thu Mar 26 09:07:02 UTC 2026
 #   @entries        14,900,370 ips
 #                   46,143 subnets
 #                   46,143 lines
@@ -13,7 +14,8 @@
 #   @expires        6 hours
 #   @category       Uncategorized
 #
-#   No description provided
+429: Too Many Requests
+For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
 # #
 
 2.16.171.0/24

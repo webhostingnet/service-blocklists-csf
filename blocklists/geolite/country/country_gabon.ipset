@@ -5,13 +5,14 @@
 #   @service        None
 #   @id             country_gabon_ipset
 #   @uuid           b1fb9988-aeda-3423-b9a4-0cb5297908bf
-#   @updated        Thu Mar 26 05:49:08 UTC 2026
+#   @updated        Thu Mar 26 09:07:21 UTC 2026
 #   @entries        389,692 ips
 #                   178 subnets
 #                   178 lines
 #   @country        Gabon (GA)
 #   @expires        6 hours
-#   @category       Uncategorized
+#   @category       429: Too Many Requests
+For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
 #
 #   No description provided
 # #

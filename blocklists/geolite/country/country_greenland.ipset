@@ -2,16 +2,18 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_greenland.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_greenland.ipset
-#   @service        None
+#   @service        429: Too Many Requests
+For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
 #   @id             country_greenland_ipset
 #   @uuid           23850ec9-0384-3828-a795-c7d8b5f1c64b
-#   @updated        Thu Mar 26 05:49:12 UTC 2026
+#   @updated        Thu Mar 26 09:07:43 UTC 2026
 #   @entries        35,866 ips
 #                   248 subnets
 #                   248 lines
 #   @country        Greenland (GL)
 #   @expires        6 hours
-#   @category       Uncategorized
+#   @category       429: Too Many Requests
+For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
 #
 #   No description provided
 # #
