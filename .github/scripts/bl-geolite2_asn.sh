@@ -2702,12 +2702,19 @@ gcc( )
     #       .github/temp
     # #
 
-    rm -rf "${app_dir_github}/${folder_source_temp}"
-    if [ ! -d "${app_dir_github}/${folder_source_temp}" ]; then
-        ok "    🗑️  Removed folder ${greenl}${app_dir_github}/${folder_source_temp}"
-    else
-        error "    ❌ Failed to remove folder ${redl}${app_dir_github}/${folder_source_temp}"
-    fi
+    case "${BL_GEOLITE2_REUSE_TEMP:-false}" in
+        1|true|TRUE|yes|YES)
+            info "    ♻️  Skipping temp cleanup for reuse ${bluel}${app_dir_github}/${folder_source_temp}${greym}"
+            ;;
+        *)
+            rm -rf "${app_dir_github}/${folder_source_temp}"
+            if [ ! -d "${app_dir_github}/${folder_source_temp}" ]; then
+                ok "    🗑️  Removed folder ${greenl}${app_dir_github}/${folder_source_temp}"
+            else
+                error "    ❌ Failed to remove folder ${redl}${app_dir_github}/${folder_source_temp}"
+            fi
+            ;;
+    esac
 
 }
 
