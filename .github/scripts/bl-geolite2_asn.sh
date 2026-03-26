@@ -214,6 +214,7 @@ app_desc="Uses the MaxMind geo database to generate ipsets for specified ASNs." 
 app_ver="1.2.0.0"                                                               # current script version
 app_repo="configserver-software/service-blocklists"                             # repository
 app_repo_branch="main"                                                          # repository branch
+app_repo_curl_storage="https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github"
 app_agent="Mozilla/5.0 (Windows NT 10.0; WOW64) "\
 "AppleWebKit/537.36 (KHTML, like Gecko) "\
 "Chrome/51.0.2704.103 Safari/537.36 "\
@@ -2268,8 +2269,8 @@ ipsets_Finalize()
 
                 templ_url="https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/${folder_target_storage}/${relative_subfolder}/${basename_tmp}.${ext_target_ipset}"
                 templ_now="$(date -u)"                                                          # Get current date in utc format
-                templ_group_id="asn"                                                            # Group ID for ASN IPSETs. Keeps us from having hundreds of files.
-                templ_id=$(basename -- "${basename_tmp}.${ext_target_ipset}")                   # Ipset id, get base filename
+                templ_id='asn'                                                                  # Ipset id, get base filename
+                # templ_id=$(basename -- "${basename_tmp}.${ext_target_ipset}")                 # Ipset id, get base filename
                 templ_id="${templ_id//[^[:alnum:]]/_}"                                          # Ipset id, only allow alphanum and underscore, /description/* and /category/* files must match this value
                 templ_uuid="$(uuidgen -m -N "${templ_id}" -n @url)"                             # UUID associated to each release
                 templ_curl_opts=(-sSL -A "$app_agent")                                          # cUrl command
@@ -2278,10 +2279,10 @@ ipsets_Finalize()
                 #   Define › Template › External Sources
                 # #
 
-                curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/descriptions/${templ_group_id}.txt" > desc.txt &
-                curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/categories/${templ_group_id}.txt" > cat.txt &
-                curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/expires/${templ_group_id}.txt" > exp.txt &
-                curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/url-source/${templ_group_id}.txt" > src.txt &
+                curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/descriptions/geolite2/${templ_id}.txt" > desc.txt &
+                curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/categories/geolite2/${templ_id}.txt" > cat.txt &
+                curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/expires/geolite2/${templ_id}.txt" > exp.txt &
+                curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/url-source/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/src.txt &
                 wait
                 templ_desc=$(<desc.txt)
                 templ_cat=$(<cat.txt)
@@ -2505,8 +2506,8 @@ ipsets_Finalize()
 
         templ_url="https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/${folder_target_storage}/${folder_target_aggressive}/${file_target_aggressive}.${ext_target_ipset}"
         templ_now="$(date -u)"                                                          # Get current date in utc format
-        templ_group_id="asn"                                                            # Group ID for ASN IPSETs. Keeps us from having hundreds of files.
-        templ_id=$(basename -- "${file_target_aggressive}.${ext_target_ipset}")         # Ipset id, get base filename
+        templ_id='asn'                                                                  # Ipset id, get base filename
+        # templ_id=$(basename -- "${file_target_aggressive}.${ext_target_ipset}")       # Ipset id, get base filename
         templ_id="${templ_id//[^[:alnum:]]/_}"                                          # Ipset id, only allow alphanum and underscore, /description/* and /category/* files must match this value
         templ_uuid="$(uuidgen -m -N "${templ_id}" -n @url)"                             # UUID associated to each release
         templ_curl_opts=(-sSL -A "$app_agent")                                          # cUrl command
@@ -2515,10 +2516,10 @@ ipsets_Finalize()
         #   Define › Template › External Sources
         # #
 
-        curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/descriptions/${templ_group_id}.txt" > desc.txt &
-        curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/categories/${templ_group_id}.txt" > cat.txt &
-        curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/expires/${templ_group_id}.txt" > exp.txt &
-        curl "${templ_curl_opts[@]}" "https://raw.githubusercontent.com/${app_repo}/${app_repo_branch}/.github/url-source/${templ_group_id}.txt" > src.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/descriptions/geolite2/${templ_id}.txt" > desc.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/categories/geolite2/${templ_id}.txt" > cat.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/expires/geolite2/${templ_id}.txt" > exp.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/url-source/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/src.txt &
         wait
         templ_desc=$(<desc.txt)
         templ_cat=$(<cat.txt)

@@ -2415,7 +2415,8 @@ generate_Continents( )
         # #
 
         templ_now="$(date -u)"                                                  # Get current date in utc format
-        templ_id=$(basename -- "${_continent_file_perm}")                       # Ipset id, get base filename
+        templ_id='countries'                                                    # Ipset id, get base filename
+        # templ_id=$(basename -- "${_continent_file_perm}")                     # Ipset id, get base filename
         templ_id="${templ_id//[^[:alnum:]]/_}"                                  # Ipset id, only allow alphanum and underscore, /description/* and /category/* files must match this value
         templ_uuid="$(uuidgen -m -N "${templ_id}" -n @url)"                     # UUID associated to each release
         templ_curl_opts=(-sSL -A "$app_agent")                                  # cUrl command
@@ -2426,10 +2427,10 @@ generate_Continents( )
         #   Continents › Template › External Sources
         # #
 
-        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/descriptions/countries/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/desc.txt &
-        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/categories/countries/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/cat.txt &
-        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/expires/countries/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/exp.txt &
-        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/url-source/geolite2/countries.txt" > ${app_dir_github}/${folder_target_temp}/src.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/descriptions/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/desc.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/categories/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/cat.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/expires/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/exp.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/url-source/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/src.txt &
         wait
 
         # #
@@ -2594,7 +2595,8 @@ generate_Countries( )
         # #
 
         templ_now="$(date -u)"                                                  # Get current date in utc format
-        templ_id=$(basename -- "${APP_FILE_PERM}")                              # Ipset id, get base filename
+        templ_id='countries'                                                    # Ipset id, get base filename
+        # templ_id=$(basename -- "${APP_FILE_PERM}")                            # Ipset id, get base filename
         templ_id="${templ_id//[^[:alnum:]]/_}"                                  # Ipset id, only allow alphanum and underscore, /description/* and /category/* files must match this value
         templ_uuid="$(uuidgen -m -N "${templ_id}" -n @url)"                     # UUID associated to each release
         templ_curl_opts=(-sSL -A "$app_agent")                                  # cUrl command
@@ -2605,10 +2607,10 @@ generate_Countries( )
         #   Countries › Template › External Sources
         # #
 
-        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/descriptions/countries/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/desc.txt &
-        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/categories/countries/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/cat.txt &
-        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/expires/countries/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/exp.txt &
-        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/url-source/geolite2/countries.txt" > ${app_dir_github}/${folder_target_temp}/src.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/descriptions/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/desc.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/categories/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/cat.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/expires/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/exp.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/url-source/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/src.txt &
         wait
 
         # #
