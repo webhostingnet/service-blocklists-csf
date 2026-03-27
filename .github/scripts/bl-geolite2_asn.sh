@@ -2284,11 +2284,26 @@ ipsets_Finalize()
                 curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/expires/geolite2/${templ_id}.txt" > exp.txt &
                 curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/url-source/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/src.txt &
                 wait
-                templ_desc=$(<desc.txt)
-                templ_cat=$(<cat.txt)
-                templ_exp=$(<exp.txt)
-                templ_url_service=$(<src.txt)
-                rm -f desc.txt cat.txt exp.txt src.txt
+
+                # #
+                #   ASN › Template › Get Details
+                # #
+
+                templ_desc=$(<"${app_dir_github}/${folder_target_temp}/desc.txt")
+                templ_cat=$(<"${app_dir_github}/${folder_target_temp}/cat.txt")
+                templ_exp=$(<"${app_dir_github}/${folder_target_temp}/exp.txt")
+                templ_url_service=$(<"${app_dir_github}/${folder_target_temp}/src.txt")
+
+                if rm -f "${app_dir_github}/${folder_target_temp}/desc.txt" \
+                        "${app_dir_github}/${folder_target_temp}/cat.txt" \
+                        "${app_dir_github}/${folder_target_temp}/exp.txt" \
+                        "${app_dir_github}/${folder_target_temp}/src.txt"
+                then
+                    ok "          Removed temp files from ${greenl}${folder_target_temp}${greym}: ${greend}${folder_target_temp}/desc.txt${greym}, ${greend}${folder_target_temp}/cat.txt${greym}, ${greend}${folder_target_temp}/exp.txt${greym}, ${greend}${folder_target_temp}/src.txt${greym}"
+                else
+                    error "          Could not remove temp files from ${redd}${app_dir_github}/${folder_target_temp}${end}"
+                    exit 1
+                fi
 
                 # #
                 #   Define › Template › Default Values
