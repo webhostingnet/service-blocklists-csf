@@ -2304,9 +2304,9 @@ ipsets_Finalize()
                 #   Define › Template › External Sources
                 # #
 
-                curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/descriptions/geolite2/${templ_id}.txt" > desc.txt &
-                curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/categories/geolite2/${templ_id}.txt" > cat.txt &
-                curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/expires/geolite2/${templ_id}.txt" > exp.txt &
+                curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/descriptions/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/desc.txt &
+                curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/categories/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/cat.txt &
+                curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/expires/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/exp.txt &
                 curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/url-source/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/src.txt &
                 wait
 
