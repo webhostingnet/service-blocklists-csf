@@ -174,8 +174,8 @@ SECONDS=0                                                                       
 regex_url='^(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]\.[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]$'
 regex_ipv4='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
 regex_ipv4_cidr='^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]{1,2})$'
-regex_ipv6='^[0-9A-Fa-f:.]+$'
-regex_ipv6_cidr='^[0-9A-Fa-f:.]+/[0-9]{1,3}$'
+regex_ipv6='^[0-9A-Fa-f:.]*:[0-9A-Fa-f:.]*$'
+regex_ipv6_cidr='^[0-9A-Fa-f:.]*:[0-9A-Fa-f:.]*/([0-9]{1,3})$'
 regex_ipv4_range='([0-9]{1,3}\.){3}[0-9]{1,3}[[:space:]]*-[[:space:]]*([0-9]{1,3}\.){3}[0-9]{1,3}'
 
 # #
@@ -715,6 +715,151 @@ sort_results()
 }
 
 # #
+#   Validate › IPv4
+# #
+
+is_valid_ipv4()
+{
+    _fnIp=$1
+
+    [[ ${_fnIp} =~ ${regex_ipv4} ]] || return 1
+
+    IFS='.' read -r _fnO1 _fnO2 _fnO3 _fnO4 <<< "${_fnIp}"
+    for _fnOctet in "${_fnO1}" "${_fnO2}" "${_fnO3}" "${_fnO4}"; do
+        [ "${_fnOctet}" -ge 0 ] 2>/dev/null || return 1
+        [ "${_fnOctet}" -le 255 ] || return 1
+    done
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnIp _fnO1 _fnO2 _fnO3 _fnO4 _fnOctet
+    return 0
+}
+
+# #
+#   Validate › IPv4 CIDR
+# #
+
+is_valid_ipv4_cidr()
+{
+    _fnIpCidr=$1
+    _fnIp="${_fnIpCidr%/*}"
+    _fnCidr="${_fnIpCidr#*/}"
+
+    [[ ${_fnIpCidr} =~ ${regex_ipv4_cidr} ]] || return 1
+    is_valid_ipv4 "${_fnIp}" || return 1
+    [ "${_fnCidr}" -ge 0 ] 2>/dev/null || return 1
+    [ "${_fnCidr}" -le 32 ] || return 1
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnIpCidr _fnIp _fnCidr
+    return 0
+}
+
+# #
+#   Validate › IPv6
+# #
+
+is_valid_ipv6()
+{
+    _fnIp=$1
+
+    [[ ${_fnIp} =~ ${regex_ipv6} ]] || return 1
+    printf '%s' "${_fnIp}" | grep -Eq '^[0-9A-Fa-f:.]+$' || return 1
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnIp
+    return 0
+}
+
+# #
+#   Validate › IPv6 CIDR
+# #
+
+is_valid_ipv6_cidr()
+{
+    _fnIpCidr=$1
+    _fnIp="${_fnIpCidr%/*}"
+    _fnCidr="${_fnIpCidr#*/}"
+
+    [[ ${_fnIpCidr} =~ ${regex_ipv6_cidr} ]] || return 1
+    is_valid_ipv6 "${_fnIp}" || return 1
+    [ "${_fnCidr}" -ge 0 ] 2>/dev/null || return 1
+    [ "${_fnCidr}" -le 128 ] || return 1
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnIpCidr _fnIp _fnCidr
+    return 0
+}
+
+# #
+#   Validate › Generic IP Entry
+# #
+
+is_valid_ip_entry()
+{
+    _fnEntry=$1
+
+    is_valid_ipv4 "${_fnEntry}" && return 0
+    is_valid_ipv4_cidr "${_fnEntry}" && return 0
+    is_valid_ipv6 "${_fnEntry}" && return 0
+    is_valid_ipv6_cidr "${_fnEntry}" && return 0
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnEntry
+    return 1
+}
+
+# #
+#   Filter invalid IP entries from file
+# #
+
+filter_valid_ip_entries()
+{
+    _fnValidateFile=$1
+    _fnValidateTemp="${_fnValidateFile}.valid"
+    _fnValidateRemoved=0
+
+    > "${_fnValidateTemp}"
+
+    while IFS= read -r _fnValidateLine || [ -n "${_fnValidateLine}" ]; do
+        [ -z "${_fnValidateLine}" ] && continue
+
+        if is_valid_ip_entry "${_fnValidateLine}"; then
+            printf '%s\n' "${_fnValidateLine}" >> "${_fnValidateTemp}"
+        else
+            _fnValidateRemoved=$(( _fnValidateRemoved + 1 ))
+        fi
+    done < "${_fnValidateFile}"
+
+    mv "${_fnValidateTemp}" "${_fnValidateFile}"
+
+    if [ "${_fnValidateRemoved}" -gt 0 ]; then
+        warn "    ⚠️  Removed ${orangel}${_fnValidateRemoved}${greym} invalid IP/CIDR entries"
+    fi
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnValidateFile _fnValidateTemp _fnValidateRemoved _fnValidateLine
+}
+
+# #
 #   Developer › Test IP Sorting
 # #
 
@@ -987,6 +1132,10 @@ download_list()
     # remove empty lines (after trimming/comment removal)
     sed -i '/^$/d' "${_fnFileTemp}"
 
+
+    # drop malformed entries before sorting
+    filter_valid_ip_entries "${_fnFileTemp}"
+
     # #
     #   Dedupe, Sort: Move from .tmp to .sort
     # #
@@ -1112,6 +1261,9 @@ download_list_fallback()
 
     # remove empty lines (after trimming/comment removal)
     sed -i '/^$/d' "${_fnFileTemp}"
+
+    # drop malformed entries before sorting
+    filter_valid_ip_entries "${_fnFileTemp}"
 
     # #
     #   Dedupe, Sort: Move from .tmp to .sort
