@@ -616,6 +616,11 @@ jobs:
                 ./.github/scripts/bl-geolite2_asn.sh --folder A --file akamai_linode --asn ${{ vars.BL_GL2_ASN_AKAMAI_LINODE_SRC }}
                 ./.github/scripts/bl-geolite2_asn.sh --folder A --file amazon_inc --asn ${{ vars.BL_GL2_ASN_AMAZON_INC_SRC }}
                 ./.github/scripts/bl-geolite2_asn.sh --folder B --file bluehost_eig --asn ${{ vars.BL_GL2_ASN_BLUEHOST_EIG_SRC }}
+                ./.github/scripts/bl-geolite2_asn.sh --folder C --file charter_communications --asn ${{ vars.BL_GL2_ASN_CHARTER_COMMUNICATIONS_SRC }}
+                ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_telecom --asn ${{ vars.BL_GL2_ASN_CHINA_TELECOM_SRC }}
+                ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_unicorn --asn ${{ vars.BL_GL2_ASN_CHINA_UNICORN_SRC }}
+                ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_mobile --asn ${{ vars.BL_GL2_ASN_CHINA_MOBILE_SRC }}
+                ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_tencent_net --asn ${{ vars.BL_GL2_ASN_TENCENT_NET_SRC }}
 
                 rm -rf .github/.temp
 
