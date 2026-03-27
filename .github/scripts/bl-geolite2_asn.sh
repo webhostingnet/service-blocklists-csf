@@ -1639,7 +1639,7 @@ generate_IPv4()
 
     rm -rf "${path_storage_ipv4}"
     if [ ! -d "${path_storage_ipv4}" ]; then
-        ok "    🗑️  Removed folder ${bluel}${path_storage_ipv4}"
+        ok "    🗑️ Removed folder ${bluel}${path_storage_ipv4}"
     else
         error "    ❌ Failed to remove folder ${greenl}${path_storage_ipv4}"
     fi
@@ -1848,7 +1848,7 @@ generate_IPv6()
 
     rm -rf "${path_storage_ipv6}"
     if [ ! -d "${path_storage_ipv6}" ]; then
-        ok "    🗑️  Removed folder ${bluel}${path_storage_ipv6}"
+        ok "    🗑️ Removed folder ${bluel}${path_storage_ipv6}"
     else
         error "    ❌ Failed to remove folder ${greenl}${path_storage_ipv6}"
     fi
@@ -2090,7 +2090,7 @@ ipsets_Merge()
 
         rm -f "${fullpath_ipv6}"
         if [ ! -d "${fullpath_ipv6}" ]; then
-            ok "    🗑️  Removed folder ${greenl}${fullpath_ipv6}"
+            ok "    🗑️ Removed folder ${greenl}${fullpath_ipv6}"
         else
             error "    ❌ Failed to remove folder ${redl}${fullpath_ipv6}"
         fi
@@ -2143,7 +2143,7 @@ ipsets_Finalize()
     if [ -f "${aggressive_file}" ]; then
         rm -f "${aggressive_file}"
         if [ ! -d "${aggressive_file}" ]; then
-            ok "    🗑️  Removed folder ${greenl}${aggressive_file}"
+            ok "    🗑️ Removed folder ${greenl}${aggressive_file}"
         else
             error "    ❌ Failed to remove folder ${redl}${aggressive_file}"
         fi
@@ -2638,13 +2638,13 @@ ipsets_Finalize()
 
         rm -f "${aggressive_raw}" "${dedup_file}"
         if [ ! -d "${aggressive_raw}" ]; then
-            ok "    🗑️  Removed folder ${greenl}${aggressive_raw}"
+            ok "    🗑️ Removed folder ${greenl}${aggressive_raw}"
         else
             error "    ❌ Failed to remove folder ${redl}${aggressive_raw}"
         fi
         
         if [ ! -d "${dedup_file}" ]; then
-            ok "    🗑️  Removed folder ${greenl}${dedup_file}"
+            ok "    🗑️ Removed folder ${greenl}${dedup_file}"
         else
             error "    ❌ Failed to remove folder ${redl}${dedup_file}"
         fi
@@ -2723,7 +2723,7 @@ summary_PrintFooter( )
 gcc( )
 {
     echo
-    info "    🗑️  Starting ${bluel}GCC${greym} cleanup"
+    info "    🗑️ Starting ${bluel}GCC${greym} cleanup"
 
     # #
     #   Remove temp
@@ -2733,7 +2733,7 @@ gcc( )
     if [ -d ${path_storage_ipv4} ]; then
         rm -rf "${path_storage_ipv4}"
         if [ ! -d "${path_storage_ipv4}" ]; then
-            ok "    🗑️  Removed folder ${greenl}${path_storage_ipv4}"
+            ok "    🗑️ Removed folder ${greenl}${path_storage_ipv4}"
         else
             error "    ❌ Failed to remove folder ${redl}${path_storage_ipv4}"
         fi
@@ -2747,7 +2747,7 @@ gcc( )
     if [ -d ${path_storage_ipv6} ]; then
         rm -rf "${path_storage_ipv6}"
         if [ ! -d "${path_storage_ipv6}" ]; then
-            ok "    🗑️  Removed folder ${greenl}${path_storage_ipv6}"
+            ok "    🗑️ Removed folder ${greenl}${path_storage_ipv6}"
         else
             error "    ❌ Failed to remove folder ${redl}${path_storage_ipv6}"
         fi
@@ -2765,7 +2765,7 @@ gcc( )
         *)
             rm -rf "${app_dir_github}/${folder_target_temp}"
             if [ ! -d "${app_dir_github}/${folder_target_temp}" ]; then
-                ok "    🗑️  Removed folder ${greenl}${app_dir_github}/${folder_target_temp}"
+                ok "    🗑️ Removed folder ${greenl}${app_dir_github}/${folder_target_temp}"
             else
                 error "    ❌ Failed to remove folder ${redl}${app_dir_github}/${folder_target_temp}"
             fi
@@ -2892,7 +2892,7 @@ main()
         info "    🗑️ Cleaning ${bluel}${folder_target_storage}"
         rm -rf "${folder_target_storage}"/*
         if [ ! -d "${folder_target_storage}" ]; then
-            ok "    🗑️  Removed folder ${greenl}${folder_target_storage}"
+            ok "    🗑️ Removed folder ${greenl}${folder_target_storage}"
         else
             error "    ❌ Failed to remove folder ${redl}${folder_target_storage}"
         fi
@@ -2904,7 +2904,7 @@ main()
 
     rm -rf "${path_storage_ipv4}"
     if [ ! -d "${path_storage_ipv4}" ]; then
-        ok "    🗑️  Removed folder ${greenl}${path_storage_ipv4}"
+        ok "    🗑️ Removed folder ${greenl}${path_storage_ipv4}"
     else
         error "    ❌ Failed to remove folder ${redl}${path_storage_ipv4}"
     fi
@@ -2925,7 +2925,7 @@ main()
 
     rm -rf "${path_storage_ipv6}"
     if [ ! -d "${path_storage_ipv6}" ]; then
-        ok "    🗑️  Removed folder ${greenl}${path_storage_ipv6}"
+        ok "    🗑️ Removed folder ${greenl}${path_storage_ipv6}"
     else
         error "    ❌ Failed to remove folder ${redl}${path_storage_ipv6}"
     fi
