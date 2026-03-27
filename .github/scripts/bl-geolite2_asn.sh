@@ -284,6 +284,28 @@ file_target_aggressive="aggressive"                                             
 file_cfg="geolite2.conf"                                                        # Optional config file for license key / settings
 
 # #
+#   Define › GeoLite2 Database Zip / Md5
+#   
+#   Search for CSV database archive zip and md5 using wildcard for the date.
+#       GeoLite2-Country-CSV_*.zip
+#   
+#   Downloaded databases usually come with the filename:
+#       GeoLite2-Country-CSV_20260313.zip
+#       GeoLite2-Country-CSV_20260313.zip.md5
+# #
+
+shopt -s nullglob
+for f in "${app_dir_github}/${folder_source_local}"/GeoLite2-ASN-CSV*.zip; do
+    file_source_csv_zip="$f"
+    break
+done
+for f in "${app_dir_github}/${folder_source_local}"/GeoLite2-ASN-CSV*.zip.md5; do
+    file_source_csv_zip_md5="$f"
+    break
+done
+shopt -u nullglob
+
+# #
 #   Color Code Test
 #   
 #   @usage      .github/scripts/bl-geolite2_asn.sh --color
@@ -1477,6 +1499,7 @@ maxmind_Database_Download( )
     #   .CSV missing, warn user to provide one or the other
     # #
 
+
     if [ ! -f "${file_source_csv_zip}" ]; then
         error "    ❌ Must supply zip ${redl}${file_source_csv_zip}${greym} + md5 ${redl}${file_source_csv_zip_md5}${greym}; cannot locate"
         exit 1
@@ -1523,7 +1546,7 @@ maxmind_Database_Download( )
         #   Check for download limit reached
         # #
 
-        md5Response=$(tr -d '[:space:]' < "${file_source_csv_zip_md5}")
+        md5Response=$(cat "${file_source_csv_zip_md5}")
         case "$md5Response" in
             *"download limit reached"*)
                 error "    ❌ MaxMind: Daily API download limit reached"
@@ -1545,7 +1568,7 @@ maxmind_Database_Download( )
         #   .md5 file is not in expected format; 'md5sum --check' won't work
         # #
 
-        md5_local=$(md5sum "${TEMPDIR}/${file_source_csv_zip}" | awk '{print $1}')
+        md5_local=$(md5sum "${file_source_csv_zip}" | awk '{print $1}')
         if [ "$md5Response" != "$md5_local" ]; then
             error "    ❌ GeoLite2 MD5 downloaded checksum does not match local md5 checksum"
             exit 1
