@@ -265,21 +265,23 @@ total_ips=0                                                                     
 #   define variables
 # #
 
-folder_target_storage="blocklists/geolite/asn"                                  # path to save ipsets
-folder_target_ext_tmp="tmp"                                                     # temp extension for ipsets before work is done
 folder_source_local="local"                                                     # local mode enabled: where to fetch local csv from
-folder_source_temp=".temp"                                                      # local mode disabled: where csv will be downloaded to
-folder_source_cache=".daily/geolite2"                                           # cache folder shared across repeated workflow invocations
-folder_target_aggressive="@general"                                             # aggressive subfolder
+folder_target_storage="blocklists/geolite/asn"                                  # path to save ipsets
+folder_target_temp="temp"                                                       # local mode disabled: where csv will be downloaded to
+folder_target_logs=".logs"                                                      # path to store logs
+folder_target_cache="cache"                                                     # location where countries and continents are stored as array to file
 path_storage_ipv4="./${folder_target_storage}/ipv4"                             # folder to store .tmp ipv4 files
 path_storage_ipv6="./${folder_target_storage}/ipv6"                             # folder to store .tmp ipv6 files
-file_cfg="geolite2.conf"                                                        # Optional config file for license key / settings
+file_target_ext_tmp="tmp"                                                       # temp extension for ipsets before work is done
+ext_target_ipset="ipset"                                                        # extension for ipsets
+folder_source_cache=".daily/geolite2"                                           # cache folder shared across repeated workflow invocations
+folder_target_aggressive="@general"                                             # aggressive subfolder
 file_source_csv_ipv4="GeoLite2-ASN-Blocks-IPv4.csv"                             # Geolite2 ASN CSV IPv4
 file_source_csv_ipv6="GeoLite2-ASN-Blocks-IPv6.csv"                             # Geolite2 ASN CSV IPv6
 file_source_csv_zip="GeoLite2-ASN-CSV.zip"                                      # Geolite2 ASN CSV Zip
 file_source_csv_zip_md5="${file_source_csv_zip}.md5"                            # Geolite2 ASN CSV Zip MD5 hash file
 file_target_aggressive="aggressive"                                             # filename to store aggressive list
-ext_target_ipset="ipset"                                                        # extension for ipsets
+file_cfg="geolite2.conf"                                                        # Optional config file for license key / settings
 
 # #
 #   Color Code Test
@@ -457,15 +459,15 @@ while [ $# -gt 0 ]; do
             echo "  ${greenl}${bold}   Dry Run ..................................................................................................... ${end}"
             echo "  ${greym}   This mode allows you to simulate downloading the .ZIP files from the MaxMind website. However, the CURL ${end}"
             echo "  ${greym}   commands will not actually be ran. Instead, the script will look for the needed database files in the ${end}"
-            echo "  ${greym}   ${folder_source_temp} folder. This method requires you to place either the .ZIP & .ZIP.MD5 files, or extracted CSV files ${end}"
-            echo "  ${greym}   in the folder ${oranged}${app_dir_github}/${folder_source_temp} ${end}"
+            echo "  ${greym}   ${folder_target_temp} folder. This method requires you to place either the .ZIP & .ZIP.MD5 files, or extracted CSV files ${end}"
+            echo "  ${greym}   in the folder ${oranged}${app_dir_github}/${folder_target_temp} ${end}"
             echo
-            echo "  ${greym}${bold}   Place the .ZIP & .MD5 file, OR the .CSV files in the folder ${oranged}${app_dir_github}/${folder_source_temp} ${end}"
-            echo "  ${bluel}         ${app_dir_github}/${folder_source_temp}/GeoLite2-ASN-Blocks-IPv4.csv ${end}"
-            echo "  ${bluel}         ${app_dir_github}/${folder_source_temp}/GeoLite2-ASN-Blocks-IPv6.csv ${end}"
+            echo "  ${greym}${bold}   Place the .ZIP & .MD5 file, OR the .CSV files in the folder ${oranged}${app_dir_github}/${folder_target_temp} ${end}"
+            echo "  ${bluel}         ${app_dir_github}/${folder_target_temp}/GeoLite2-ASN-Blocks-IPv4.csv ${end}"
+            echo "  ${bluel}         ${app_dir_github}/${folder_target_temp}/GeoLite2-ASN-Blocks-IPv6.csv ${end}"
             echo
-            echo "  ${bluel}         ${app_dir_github}/${folder_source_temp}/GeoLite2-ASN-CSV.zip ${end}"
-            echo "  ${bluel}         ${app_dir_github}/${folder_source_temp}/GeoLite2-ASN-CSV.zip.md5 ${end}"
+            echo "  ${bluel}         ${app_dir_github}/${folder_target_temp}/GeoLite2-ASN-CSV.zip ${end}"
+            echo "  ${bluel}         ${app_dir_github}/${folder_target_temp}/GeoLite2-ASN-CSV.zip.md5 ${end}"
             echo
             echo "  ${greym}${bold}   Run the following command: ${end}"
             echo "  ${bluel}         ./${app_file_this} --dry${end}"
@@ -483,7 +485,7 @@ while [ $# -gt 0 ]; do
             echo "  ${greym}        Can detect GeoLite2 ${bluel}.CSV${greym} location and IPv4/IPv6 files ${end}"
             echo
             echo
-            echo "  ${greenl}📁 ${bold}${oranged}${app_dir_github}/${folder_source_temp} ${end}"
+            echo "  ${greenl}📁 ${bold}${oranged}${app_dir_github}/${folder_target_temp} ${end}"
             echo "  ${greym}    Folder used when Dry Run enabled ${greend}(--dry) ${end}"
             echo "  ${greym}        Can detect GeoLite2 ${bluel}.ZIP${greym} and ${bluel}.ZIP.MD5${greym} files ${end}"
             echo "  ${greym}        Can detect GeoLite2 ${bluel}.CSV${greym} location and IPv4/IPv6 files ${end}"
@@ -1731,7 +1733,7 @@ generate_IPv4()
                 fi
             fi
 
-            path_ipset="${path_ipset_subfolder}/${argFile}.${folder_target_ext_tmp}"
+            path_ipset="${path_ipset_subfolder}/${argFile}.${file_target_ext_tmp}"
 
         # #
         #   --folder=, --file= not specified
@@ -1772,7 +1774,7 @@ generate_IPv4()
 
                 created_folders[${path_ipset_subfolder}]=1
             fi
-            path_ipset="${path_ipset_subfolder}/asn_${ipset_read_asn}_${ipset_orgname}.${folder_target_ext_tmp}"
+            path_ipset="${path_ipset_subfolder}/asn_${ipset_read_asn}_${ipset_orgname}.${file_target_ext_tmp}"
         fi
 
         debug "    ➕ Adding IP/Subnet › IP ${bluel}${ipset_read_subnet}${greym} › ASN ${bluel}${ipset_read_asn}${greym} › Org ${bluel}${ipset_read_orgname}${greym} › File ${bluel}${path_ipset}${greym}"
@@ -1800,7 +1802,7 @@ generate_IPv4()
         # #
 
         if [ "${argAggressive}" = "true" ]; then
-            aggressive_raw="${folder_target_storage}/${folder_target_aggressive}/${file_target_aggressive}.${folder_target_ext_tmp}"
+            aggressive_raw="${folder_target_storage}/${folder_target_aggressive}/${file_target_aggressive}.${file_target_ext_tmp}"
             mkdir -p "$(dirname "${aggressive_raw}")"
             echo "${ipset_read_subnet}" >> "${aggressive_raw}"
         fi
@@ -1940,7 +1942,7 @@ generate_IPv6()
                 fi
             fi
 
-            path_ipset="${path_ipset_subfolder}/${argFile}.${folder_target_ext_tmp}"
+            path_ipset="${path_ipset_subfolder}/${argFile}.${file_target_ext_tmp}"
 
         # #
         #   --folder=, --file= not specified
@@ -1981,7 +1983,7 @@ generate_IPv6()
 
                 created_folders[${path_ipset_subfolder}]=1
             fi
-            path_ipset="${path_ipset_subfolder}/asn_${ipset_read_asn}_${ipset_orgname}.${folder_target_ext_tmp}"
+            path_ipset="${path_ipset_subfolder}/asn_${ipset_read_asn}_${ipset_orgname}.${file_target_ext_tmp}"
         fi
 
         debug "    ➕ Adding IP/Subnet › IP ${bluel}${ipset_read_subnet}${greym} › ASN ${bluel}${ipset_read_asn}${greym} › Org ${bluel}${ipset_read_orgname}${greym} › File ${bluel}${path_ipset}${greym}"
@@ -2009,7 +2011,7 @@ generate_IPv6()
         # #
 
         if [ "${argAggressive}" = "true" ]; then
-            aggressive_raw="${folder_target_storage}/${folder_target_aggressive}/${file_target_aggressive}.${folder_target_ext_tmp}"
+            aggressive_raw="${folder_target_storage}/${folder_target_aggressive}/${file_target_aggressive}.${file_target_ext_tmp}"
             mkdir -p "$(dirname "${aggressive_raw}")"
             echo "${ipset_read_subnet}" >> "${aggressive_raw}"
         fi
@@ -2038,7 +2040,7 @@ ipsets_Merge()
     #   Recursively find all IPv6 tmp files
     # #
 
-    find "${path_storage_ipv6}" -type f -name "*.${folder_target_ext_tmp}" | while read fullpath_ipv6; do
+    find "${path_storage_ipv6}" -type f -name "*.${file_target_ext_tmp}" | while read fullpath_ipv6; do
         file_ipv6=$(basename "${fullpath_ipv6}")
         dest_dir="${path_storage_ipv4}/$(basename $(dirname "${fullpath_ipv6}"))"
 
@@ -2107,7 +2109,7 @@ ipsets_Finalize()
     #       aggressive_file     › final aggressive ipset file
     # #
 
-    aggressive_raw="${folder_target_storage}/${folder_target_aggressive}/${file_target_aggressive}.${folder_target_ext_tmp}"
+    aggressive_raw="${folder_target_storage}/${folder_target_aggressive}/${file_target_aggressive}.${file_target_ext_tmp}"
     aggressive_file="${folder_target_storage}/${folder_target_aggressive}/${file_target_aggressive}.${ext_target_ipset}"
     
     # #
@@ -2157,7 +2159,7 @@ ipsets_Finalize()
                 #   target_dir      blocklists/geolite/asn/212000
                 # #
 
-                basename_tmp=$(basename "${tmpfile}" .${folder_target_ext_tmp})             # asn_212513_osnet_telekomunikasyon_dis_ticaret_limited_sirketi
+                basename_tmp=$(basename "${tmpfile}" .${file_target_ext_tmp})             # asn_212513_osnet_telekomunikasyon_dis_ticaret_limited_sirketi
                 target_file="${target_dir}/${basename_tmp}.${ext_target_ipset}"             # blocklists/geolite/asn/212000/asn_212513_osnet_telekomunikasyon_dis_ticaret_limited_sirketi.ipset
 
 
@@ -2433,7 +2435,7 @@ ipsets_Finalize()
 
                 unset   _asn_source _asn_parts _asn_lines _asn_line _asn_line_count _asn_total \
                         _asn_idx _asn_val _asn_is_last _asn_header_block _asn_last_index _asn_i
-            done < <(find "${DIR}" -type f -name "*.${folder_target_ext_tmp}" -print0)
+            done < <(find "${DIR}" -type f -name "*.${file_target_ext_tmp}" -print0)
         fi
     done
 
@@ -2735,14 +2737,14 @@ gcc( )
 
     case "${BL_GEOLITE2_REUSE_TEMP:-false}" in
         1|true|TRUE|yes|YES)
-            info "    ♻️  Skipping temp cleanup for reuse ${bluel}${app_dir_github}/${folder_source_temp}${greym}"
+            info "    ♻️  Skipping temp cleanup for reuse ${bluel}${app_dir_github}/${folder_target_temp}${greym}"
             ;;
         *)
-            rm -rf "${app_dir_github}/${folder_source_temp}"
-            if [ ! -d "${app_dir_github}/${folder_source_temp}" ]; then
-                ok "    🗑️  Removed folder ${greenl}${app_dir_github}/${folder_source_temp}"
+            rm -rf "${app_dir_github}/${folder_target_temp}"
+            if [ ! -d "${app_dir_github}/${folder_target_temp}" ]; then
+                ok "    🗑️  Removed folder ${greenl}${app_dir_github}/${folder_target_temp}"
             else
-                error "    ❌ Failed to remove folder ${redl}${app_dir_github}/${folder_source_temp}"
+                error "    ❌ Failed to remove folder ${redl}${app_dir_github}/${folder_target_temp}"
             fi
             ;;
     esac
@@ -2816,14 +2818,14 @@ main()
     # #
 
     if [ "${argUseLocalDB}" = "false" ]; then
-        mkdir -p "${app_dir_github}/${folder_source_temp}"
-        if [ -d "${app_dir_github}/${folder_source_temp}" ]; then
-            ok "    📂 Created ${greenl}${app_dir_github}/${folder_source_temp}"
+        mkdir -p "${app_dir_github}/${folder_target_temp}"
+        if [ -d "${app_dir_github}/${folder_target_temp}" ]; then
+            ok "    📂 Created TEMPDIR ${greenl}${app_dir_github}/${folder_target_temp}"
         else
-            error "    ❌ Failed to create ${redl}${app_dir_github}/${folder_source_temp}"
+            error "    ❌ Failed to create ${redl}${app_dir_github}/${folder_target_temp}"
         fi
 
-        TEMPDIR="${app_dir_github}/${folder_source_temp}"
+        TEMPDIR="${app_dir_github}/${folder_target_temp}"
     else
         mkdir -p "${app_dir_github}/${folder_source_local}"
         if [ -d "${app_dir_github}/${folder_source_local}" ]; then
