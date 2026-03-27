@@ -737,6 +737,23 @@ print( )
 }
 
 # #
+#   Reuse mode helper
+#       - enabled when BL_GEOLITE2_REUSE_TEMP is truthy
+#       - used to skip repeated staging cleanup across many invocations
+# #
+
+geolite2_ReuseEnabled( )
+{
+    case "${BL_GEOLITE2_REUSE_TEMP:-false}" in
+        1|true|TRUE|yes|YES)
+            return 0
+            ;;
+    esac
+
+    return 1
+}
+
+# #
 #   Print › Demo Notifications
 #   
 #   Outputs a list of example notifications
@@ -1637,11 +1654,15 @@ generate_IPv4()
     #       blocklists/geolite/asn/ipv4/
     # #
 
-    rm -rf "${path_storage_ipv4}"
-    if [ ! -d "${path_storage_ipv4}" ]; then
-        ok "    🗑️ Removed folder ${bluel}${path_storage_ipv4}"
+    if geolite2_ReuseEnabled; then
+        info "    ♻️ Reusing staging folder ${bluel}${path_storage_ipv4}${greym}"
     else
-        error "    ❌ Failed to remove folder ${greenl}${path_storage_ipv4}"
+        rm -rf "${path_storage_ipv4}"
+        if [ ! -d "${path_storage_ipv4}" ]; then
+            ok "    🗑️ Removed folder ${bluel}${path_storage_ipv4}"
+        else
+            error "    ❌ Failed to remove folder ${greenl}${path_storage_ipv4}"
+        fi
     fi
 
     # #
@@ -1846,11 +1867,15 @@ generate_IPv6()
     #       blocklists/geolite/asn/ipv4/
     # #
 
-    rm -rf "${path_storage_ipv6}"
-    if [ ! -d "${path_storage_ipv6}" ]; then
-        ok "    🗑️ Removed folder ${bluel}${path_storage_ipv6}"
+    if geolite2_ReuseEnabled; then
+        info "    ♻️ Reusing staging folder ${bluel}${path_storage_ipv6}${greym}"
     else
-        error "    ❌ Failed to remove folder ${greenl}${path_storage_ipv6}"
+        rm -rf "${path_storage_ipv6}"
+        if [ ! -d "${path_storage_ipv6}" ]; then
+            ok "    🗑️ Removed folder ${bluel}${path_storage_ipv6}"
+        else
+            error "    ❌ Failed to remove folder ${greenl}${path_storage_ipv6}"
+        fi
     fi
 
     # #
@@ -2730,12 +2755,16 @@ gcc( )
     #       ./blocklists/geolite/asn/ipv4
     # #
 
-    if [ -d ${path_storage_ipv4} ]; then
-        rm -rf "${path_storage_ipv4}"
-        if [ ! -d "${path_storage_ipv4}" ]; then
-            ok "    🗑️ Removed folder ${greenl}${path_storage_ipv4}"
-        else
-            error "    ❌ Failed to remove folder ${redl}${path_storage_ipv4}"
+    if geolite2_ReuseEnabled; then
+        info "    ♻️ Skipping staging cleanup for reuse ${bluel}${path_storage_ipv4}${greym}"
+    else
+        if [ -d ${path_storage_ipv4} ]; then
+            rm -rf "${path_storage_ipv4}"
+            if [ ! -d "${path_storage_ipv4}" ]; then
+                ok "    🗑️ Removed folder ${greenl}${path_storage_ipv4}"
+            else
+                error "    ❌ Failed to remove folder ${redl}${path_storage_ipv4}"
+            fi
         fi
     fi
 
@@ -2744,12 +2773,16 @@ gcc( )
     #       ./blocklists/geolite/asn/ipv6
     # #
 
-    if [ -d ${path_storage_ipv6} ]; then
-        rm -rf "${path_storage_ipv6}"
-        if [ ! -d "${path_storage_ipv6}" ]; then
-            ok "    🗑️ Removed folder ${greenl}${path_storage_ipv6}"
-        else
-            error "    ❌ Failed to remove folder ${redl}${path_storage_ipv6}"
+    if geolite2_ReuseEnabled; then
+        info "    ♻️ Skipping staging cleanup for reuse ${bluel}${path_storage_ipv6}${greym}"
+    else
+        if [ -d ${path_storage_ipv6} ]; then
+            rm -rf "${path_storage_ipv6}"
+            if [ ! -d "${path_storage_ipv6}" ]; then
+                ok "    🗑️ Removed folder ${greenl}${path_storage_ipv6}"
+            else
+                error "    ❌ Failed to remove folder ${redl}${path_storage_ipv6}"
+            fi
         fi
     fi
 
@@ -2902,11 +2935,15 @@ main()
     #   Cleanup › ipv4
     # #
 
-    rm -rf "${path_storage_ipv4}"
-    if [ ! -d "${path_storage_ipv4}" ]; then
-        ok "    🗑️ Removed folder ${greenl}${path_storage_ipv4}"
+    if geolite2_ReuseEnabled; then
+        info "    ♻️ Reuse mode enabled; skipping pre-run cleanup for ${bluel}${path_storage_ipv4}${greym}"
     else
-        error "    ❌ Failed to remove folder ${redl}${path_storage_ipv4}"
+        rm -rf "${path_storage_ipv4}"
+        if [ ! -d "${path_storage_ipv4}" ]; then
+            ok "    🗑️ Removed folder ${greenl}${path_storage_ipv4}"
+        else
+            error "    ❌ Failed to remove folder ${redl}${path_storage_ipv4}"
+        fi
     fi
     
     if [ ! -d "${path_storage_ipv4}" ]; then
@@ -2923,11 +2960,15 @@ main()
     #   Cleanup › ipv6
     # #
 
-    rm -rf "${path_storage_ipv6}"
-    if [ ! -d "${path_storage_ipv6}" ]; then
-        ok "    🗑️ Removed folder ${greenl}${path_storage_ipv6}"
+    if geolite2_ReuseEnabled; then
+        info "    ♻️ Reuse mode enabled; skipping pre-run cleanup for ${bluel}${path_storage_ipv6}${greym}"
     else
-        error "    ❌ Failed to remove folder ${redl}${path_storage_ipv6}"
+        rm -rf "${path_storage_ipv6}"
+        if [ ! -d "${path_storage_ipv6}" ]; then
+            ok "    🗑️ Removed folder ${greenl}${path_storage_ipv6}"
+        else
+            error "    ❌ Failed to remove folder ${redl}${path_storage_ipv6}"
+        fi
     fi
 
     if [ ! -d "${path_storage_ipv6}" ]; then

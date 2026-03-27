@@ -129,7 +129,7 @@ jobs:
           📦 Setup
         runs-on: ubuntu-latest
       # runs-on: apollo-x64
-        timeout-minutes: 60
+        timeout-minutes: 120
         steps:
 
             # #
@@ -1302,7 +1302,7 @@ jobs:
               run: |
                   export MAXMIND_LICENSE_KEY="${{ secrets.API_GEOLITE2_KEY }}"
                   export BL_GEOLITE2_REUSE_TEMP=true
-                  rm -rf .github/.temp
+                  rm -rf .github/temp .github/.temp
 
                   ./.github/scripts/bl-geolite2_asn.sh --folder A --file akamai_core --asn ${{ vars.BL_GL2_ASN_AKAMAI_CORE_SRC }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder A --file akamai_linode --asn ${{ vars.BL_GL2_ASN_AKAMAI_LINODE_SRC }}
@@ -1367,7 +1367,8 @@ jobs:
                   ./.github/scripts/bl-geolite2_asn.sh --folder V --file yahoo --asn ${{ vars.BL_GL2_ASN_YAHOO_SRC }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder Y --file youtube --asn ${{ vars.BL_GL2_ASN_YOUTUBE_SRC }}
 
-                  rm -rf .github/.temp
+                  rm -rf blocklists/geolite/asn/ipv4 blocklists/geolite/asn/ipv6
+                  rm -rf .github/temp .github/.temp
 
             # #
             #   Generate › Transmission
