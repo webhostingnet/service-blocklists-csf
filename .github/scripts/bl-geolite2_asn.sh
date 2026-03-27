@@ -2677,7 +2677,7 @@ summary_PrintFooter( )
         _fnTotalIps=$(( _fnTotalIps + total_ips ))
         _fnTotalSubnets=$(( _fnTotalSubnets + total_subnets ))
 
-        label "       Created file: ${bluel}${_fnTargetFile}${greym}"
+        label "          Created file: ${bluel}${_fnTargetFile}${greym}"
     else
         while IFS= read -r -d '' _fnIpsetFile; do
             _fnFileLines=$(grep -vE '^[[:space:]]*(#|;|$)' "${_fnIpsetFile}" | wc -l)
@@ -2760,7 +2760,7 @@ gcc( )
 
     case "${BL_GEOLITE2_REUSE_TEMP:-false}" in
         1|true|TRUE|yes|YES)
-            info "    ♻️  Skipping temp cleanup for reuse ${bluel}${app_dir_github}/${folder_target_temp}${greym}"
+            info "    ♻️ Skipping temp cleanup for reuse ${bluel}${app_dir_github}/${folder_target_temp}${greym}"
             ;;
         *)
             rm -rf "${app_dir_github}/${folder_target_temp}"
@@ -2867,7 +2867,7 @@ main()
     #   Place geolite data in temporary directory
     # #
 
-    info "    ⚙️  Creating tempdir folder ${bluel}${TEMPDIR}"
+    info "    ⚙️ Creating tempdir folder ${bluel}${TEMPDIR}"
     OLD_PWD=$(pwd)
     cd "${TEMPDIR}" || exit 1
 
