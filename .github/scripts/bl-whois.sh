@@ -163,7 +163,7 @@ argDryrun="false"                                                               
 argDevMode="false"                                                              # dev mode
 argVerbose="false"                                                              # verbose mode
 argIncludeBogon="false"                                                         # filter out BOGON IP addresses from list
-argWhoisTimeout=5                                                               # Whois timeout
+argWhoisTimeout=2                                                               # Whois timeout
 
 # #
 #   Define › Time
@@ -1291,7 +1291,7 @@ download_list()
         fi
     fi
 
-    info "    🌎 Downloading ASN ${yellowd}${_fnArgAsn}${greym} list to ${peach}${_fnFileTemp}${greym}"
+    info "    🌎 Downloading ASN ${bluel}${_fnArgAsn}${greym} list to ${bluel}${_fnFileTemp}${greym}"
 
     _whois_err=$(mktemp)
     _whois_err_host=$(mktemp)
