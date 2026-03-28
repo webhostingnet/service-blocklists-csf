@@ -5,10 +5,10 @@
 #   @service        None
 #   @id             isp_embarq_ipset
 #   @uuid           2e51d53f-2999-31da-ae04-fbc14196827d
-#   @updated        Tue Mar 24 01:57:56 UTC 2026
-#   @entries        3,818,240 ips
-#                   494 subnets
-#                   494 lines
+#   @updated        Sat Mar 28 12:41:46 UTC 2026
+#   @entries        3,817,216 ips
+#                   493 subnets
+#                   493 lines
 #   @asn            AS22186, AS32855, AS2379, AS3447, AS4212
 #                   AS5778, AS6222, AS6367, AS11398, AS11530
 #                   AS13787, AS14905, AS14910, AS14921, AS16718
@@ -497,7 +497,6 @@
 208.68.120.0/21
 208.71.16.0/21
 208.71.152.0/22
-208.73.156.0/22
 208.74.226.0/24
 208.84.68.0/22
 208.163.128.0/19
