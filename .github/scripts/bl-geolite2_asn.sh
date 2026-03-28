@@ -275,6 +275,7 @@ path_storage_ipv6="./${folder_target_storage}/ipv6"                             
 file_target_ext_tmp="tmp"                                                       # temp extension for ipsets before work is done
 ext_target_ipset="ipset"                                                        # extension for ipsets
 folder_source_cache=".daily/geolite2"                                           # cache folder shared across repeated workflow invocations
+folder_source_cache_asn_index="asn-index"                                       # per-day ASN index cache folder
 folder_target_aggressive="@general"                                             # aggressive subfolder
 file_source_csv_ipv4="GeoLite2-ASN-Blocks-IPv4.csv"                             # Geolite2 ASN CSV IPv4
 file_source_csv_ipv6="GeoLite2-ASN-Blocks-IPv6.csv"                             # Geolite2 ASN CSV IPv6
@@ -282,6 +283,11 @@ file_source_csv_zip="GeoLite2-ASN-CSV.zip"                                      
 file_source_csv_zip_md5="${file_source_csv_zip}.md5"                            # Geolite2 ASN CSV Zip MD5 hash file
 file_target_aggressive="aggressive"                                             # filename to store aggressive list
 file_cfg="geolite2.conf"                                                        # Optional config file for license key / settings
+path_cache_root="${app_dir_github}/${folder_source_cache}"                      # .github/.daily/geolite2
+path_cache_asn_index_root="${path_cache_root}/${folder_source_cache_asn_index}" # .github/.daily/geolite2/asn-index
+path_cache_asn_index_ipv4="${path_cache_asn_index_root}/ipv4"                   # indexed ASN rows from IPv4 CSV
+path_cache_asn_index_ipv6="${path_cache_asn_index_root}/ipv6"                   # indexed ASN rows from IPv6 CSV
+file_cache_asn_index_meta="${path_cache_asn_index_root}/meta.env"               # cache fingerprint metadata
 
 # #
 #   Define › GeoLite2 Database Zip / Md5
@@ -1640,6 +1646,172 @@ maxmind_Database_Load( )
         fi
     done
 }
+# #
+#   ASN Index › Fingerprint
+# #
+
+asn_Index_Fingerprint( )
+{
+    _fnCsvIpv4="${TEMPDIR}/${file_source_csv_ipv4}"
+    _fnCsvIpv6="${TEMPDIR}/${file_source_csv_ipv6}"
+
+    if [ ! -f "${_fnCsvIpv4}" ] || [ ! -f "${_fnCsvIpv6}" ]; then
+        printf ''
+        return 1
+    fi
+
+    md5sum "${_fnCsvIpv4}" "${_fnCsvIpv6}" \
+        | awk 'BEGIN{ORS=":"} {print $1} END{print ""}' \
+        | sed 's/:$//'
+
+    unset   _fnCsvIpv4 _fnCsvIpv6
+    return 0
+}
+
+# #
+#   ASN Index › Build / Reuse
+#   
+#   Builds a reusable ASN row cache once per database fingerprint so subsequent
+#   script invocations can avoid re-importing the full IPv4/IPv6 CSV files.
+# #
+
+asn_Index_Prepare( )
+{
+    _fnFingerprint="$(asn_Index_Fingerprint)"
+    _fnStoredFingerprint=""
+
+    if [ -z "${_fnFingerprint}" ]; then
+        warn "    ⚠️ ASN index cache skipped; missing CSV database files"
+        return 0
+    fi
+
+    if [ -f "${file_cache_asn_index_meta}" ]; then
+        _fnStoredFingerprint="$(grep -m1 '^FINGERPRINT=' "${file_cache_asn_index_meta}" | cut -d'=' -f2-)"
+    fi
+
+    if [ "${_fnStoredFingerprint}" = "${_fnFingerprint}" ] \
+        && [ -d "${path_cache_asn_index_ipv4}" ] \
+        && [ -d "${path_cache_asn_index_ipv6}" ]
+    then
+        info "    ♻️ Reusing ASN index cache ${bluel}${path_cache_asn_index_root}${greym}"
+        return 0
+    fi
+
+    info "    🧱 Building ASN index cache ${bluel}${path_cache_asn_index_root}${greym}"
+    rm -rf "${path_cache_asn_index_root}"
+    mkdir -p "${path_cache_asn_index_ipv4}" "${path_cache_asn_index_ipv6}"
+
+    while IFS=',' read -r _fnSubnet _fnAsn _fnOrg _; do
+        [ -z "${_fnSubnet}" ] && continue
+        [ -z "${_fnAsn}" ] && continue
+        printf '%s,%s,%s\n' "${_fnSubnet}" "${_fnAsn}" "${_fnOrg}" >> "${path_cache_asn_index_ipv4}/${_fnAsn}.csv"
+    done < <(tail -n +2 "${TEMPDIR}/${file_source_csv_ipv4}")
+
+    while IFS=',' read -r _fnSubnet _fnAsn _fnOrg _; do
+        [ -z "${_fnSubnet}" ] && continue
+        [ -z "${_fnAsn}" ] && continue
+        printf '%s,%s,%s\n' "${_fnSubnet}" "${_fnAsn}" "${_fnOrg}" >> "${path_cache_asn_index_ipv6}/${_fnAsn}.csv"
+    done < <(tail -n +2 "${TEMPDIR}/${file_source_csv_ipv6}")
+
+    {
+        echo "FINGERPRINT=${_fnFingerprint}"
+        echo "GENERATED_AT=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+    } > "${file_cache_asn_index_meta}"
+
+    ok "    ✅ ASN index cache ready ${greenl}${path_cache_asn_index_root}${greym}"
+
+    unset   _fnFingerprint _fnStoredFingerprint _fnSubnet _fnAsn _fnOrg
+}
+
+# #
+#   ASN Index › Hydrate Custom Target
+#   
+#   Fast path used when --folder, --file, and --asn are provided. Pulls subnet
+#   rows from pre-indexed ASN files instead of scanning full CSV databases.
+#   
+#   @return
+#       0   handled (used cache path)
+#       1   not handled (caller should run full import path)
+# #
+
+asn_Index_Hydrate_CustomTarget( )
+{
+    _fnIpVersion="$1"
+    _fnTargetRoot="$2"
+    _fnIndexRoot=""
+    _fnTargetSubfolder=""
+    _fnTargetFile=""
+    _fnMatchedAny=false
+    _fnMetaOrg=""
+
+    if [ -z "${argFolder}" ] || [ -z "${argFile}" ] || [ -z "${argASN}" ]; then
+        return 1
+    fi
+
+    case "${_fnIpVersion}" in
+        ipv4)
+            _fnIndexRoot="${path_cache_asn_index_ipv4}"
+            ;;
+        ipv6)
+            _fnIndexRoot="${path_cache_asn_index_ipv6}"
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+
+    if [ ! -d "${_fnIndexRoot}" ]; then
+        return 1
+    fi
+
+    _fnTargetSubfolder="${_fnTargetRoot}/${argFolder}"
+    if [ ! -d "${_fnTargetSubfolder}" ]; then
+        mkdir -p "${_fnTargetSubfolder}"
+        if [ -d "${_fnTargetSubfolder}" ]; then
+            ok "    📂 Created ${greenl}${_fnTargetSubfolder}"
+        else
+            error "    ❌ Failed to create ${redl}${_fnTargetSubfolder}"
+            return 0
+        fi
+    fi
+
+    _fnTargetFile="${_fnTargetSubfolder}/${argFile}.${file_target_ext_tmp}"
+    rm -f "${_fnTargetFile}"
+
+    IFS=',' read -ra _fnFilterAsns <<< "${argASN}"
+    for _fnAsnRaw in "${_fnFilterAsns[@]}"; do
+        _fnAsn="$(echo "${_fnAsnRaw}" | tr -d '[:space:]')"
+        [ -z "${_fnAsn}" ] && continue
+
+        _fnIndexFile="${_fnIndexRoot}/${_fnAsn}.csv"
+        if [ ! -f "${_fnIndexFile}" ]; then
+            continue
+        fi
+
+        if [ "${_fnMatchedAny}" = "false" ]; then
+            _fnMetaOrg="$(head -n1 "${_fnIndexFile}" | cut -d',' -f3-)"
+            [ -z "${_fnMetaOrg}" ] && _fnMetaOrg="${argFile}"
+            {
+                echo "# META_ASN=${argASN}"
+                echo "# META_ORG=${_fnMetaOrg}"
+            } >> "${_fnTargetFile}"
+            _fnMatchedAny=true
+        fi
+
+        cut -d',' -f1 "${_fnIndexFile}" >> "${_fnTargetFile}"
+    done
+
+    if [ "${_fnMatchedAny}" = "false" ]; then
+        warn "    ⚠️ No ASN rows matched cached ${_fnIpVersion} index for ${argFolder}/${argFile}"
+        unset   _fnIpVersion _fnTargetRoot _fnIndexRoot _fnTargetSubfolder _fnTargetFile _fnMatchedAny _fnMetaOrg _fnFilterAsns _fnAsnRaw _fnAsn _fnIndexFile
+        return 0
+    fi
+
+    info "    ⚡ Reused cached ${bluel}${_fnIpVersion}${greym} ASN index for ${bluel}${argFolder}/${argFile}${greym}"
+
+    unset   _fnIpVersion _fnTargetRoot _fnIndexRoot _fnTargetSubfolder _fnTargetFile _fnMatchedAny _fnMetaOrg _fnFilterAsns _fnAsnRaw _fnAsn _fnIndexFile
+    return 0
+}
 
 # #
 #   Generate › IPv4
@@ -1678,6 +1850,16 @@ generate_IPv4()
         else
             error "    ❌ Failed to create ${redl}${path_storage_ipv4}"
         fi
+    fi
+
+    # #
+    #   Fast path
+    #       If custom target args are supplied and ASN index exists, hydrate
+    #       target from cache and skip full CSV import scan.
+    # #
+
+    if asn_Index_Hydrate_CustomTarget "ipv4" "${path_storage_ipv4}"; then
+        return 0
     fi
 
     # #
@@ -1891,6 +2073,16 @@ generate_IPv6()
         else
             error "    ❌ Failed to create ${redl}${path_storage_ipv6}"
         fi
+    fi
+
+    # #
+    #   Fast path
+    #       If custom target args are supplied and ASN index exists, hydrate
+    #       target from cache and skip full CSV import scan.
+    # #
+
+    if asn_Index_Hydrate_CustomTarget "ipv6" "${path_storage_ipv6}"; then
+        return 0
     fi
 
     # #
@@ -2910,6 +3102,7 @@ main()
 
     maxmind_Database_Download
     maxmind_Database_Load
+    asn_Index_Prepare
 
     # #
     #   Place set output in current working directory
