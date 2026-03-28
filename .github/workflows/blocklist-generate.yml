@@ -518,7 +518,6 @@ jobs:
 
             - name: "☑️ Set Permissions"
               id: task_blocklist_generate_perms
-              if: steps.task_blocklist_generate_run_mode.outputs.run_core == 'true'
               run: |
                   echo "🔧 Setting executable permissions for scripts"
 
