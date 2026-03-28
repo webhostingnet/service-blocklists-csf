@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_sierra_leone.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_sierra_leone.ipset
-#   @service        None
-#   @id             country_sierra_leone_ipset
-#   @uuid           92971a41-1b3e-385c-9405-99bc753600a2
-#   @updated        Thu Mar 26 09:08:49 UTC 2026
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:47 UTC 2026
 #   @entries        92,439 ips
 #                   181 subnets
 #                   181 lines
 #   @country        Sierra Leone (SL)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.63.117/32

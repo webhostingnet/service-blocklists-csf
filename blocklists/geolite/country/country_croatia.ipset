@@ -2,22 +2,27 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_croatia.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_croatia.ipset
-#   @service        None
-#   @id             country_croatia_ipset
-#   @uuid           bcffea06-de55-3e8b-957e-8abf981f76df
-#   @updated        Thu Mar 26 09:08:10 UTC 2026
-#   @entries        2,470,405 ips
-#                   1,113 subnets
-#                   1,113 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:14 UTC 2026
+#   @entries        2,471,171 ips
+#                   1,108 subnets
+#                   1,108 lines
 #   @country        Croatia (HR)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 2.56.9.252/30
-2.56.175.0/24
 2.58.32.0/24
 2.58.48.163/32
 2.58.49.64/28
@@ -126,6 +131,7 @@
 78.134.128.0/17
 79.127.144.0/24
 80.66.137.44/30
+80.75.52.0/22
 80.79.15.0/24
 80.80.48.0/20
 80.239.152.128/27
@@ -473,12 +479,6 @@
 161.53.0.0/16
 161.69.7.21/32
 161.69.16.21/32
-161.69.20.21/32
-161.69.22.21/32
-161.69.52.21/32
-161.69.66.21/32
-161.69.69.21/32
-161.69.71.21/32
 162.120.187.105/32
 162.120.187.233/32
 162.120.188.105/32
@@ -683,6 +683,7 @@
 194.36.44.0/22
 194.50.99.99/32
 194.56.72.0/22
+194.77.125.212/30
 194.77.126.0/30
 194.126.213.0/24
 194.126.214.0/24

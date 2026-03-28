@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_french_southern_territories.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_french_southern_territories.ipset
-#   @service        None
-#   @id             country_french_southern_territories_ipset
-#   @uuid           e91632fc-680a-3372-9d4b-fa4df3b3b847
-#   @updated        Thu Mar 26 09:08:51 UTC 2026
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:48 UTC 2026
 #   @entries        67 ips
 #                   51 subnets
 #                   51 lines
 #   @country        French Southern Territories (TF)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.175.190.180/31

@@ -2,19 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_equatorial_guinea.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_equatorial_guinea.ipset
-#   @service        None
-#   @id             country_equatorial_guinea_ipset
-#   @uuid           35f250c2-6a5e-3c8e-a2ff-39caa6b60785
-#   @updated        Thu Mar 26 09:07:56 UTC 2026
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:12 UTC 2026
 #   @entries        23,251 ips
 #                   142 subnets
 #                   142 lines
 #   @country        Equatorial Guinea (GQ)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-429: Too Many Requests
-For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.60.117/32

@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_venezuela.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_venezuela.ipset
-#   @service        None
-#   @id             country_venezuela_ipset
-#   @uuid           62d2b174-58b0-38d6-9496-7bfa471e73e6
-#   @updated        Thu Mar 26 09:09:38 UTC 2026
-#   @entries        7,570,432 ips
-#                   1,512 subnets
-#                   1,512 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:57:27 UTC 2026
+#   @entries        7,572,980 ips
+#                   1,501 subnets
+#                   1,501 lines
 #   @country        Venezuela (VE)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.57.101/32
@@ -122,6 +128,7 @@
 38.188.52.0/22
 38.188.96.0/22
 38.188.200.0/23
+38.188.232.0/21
 38.188.240.0/22
 38.190.124.0/23
 38.190.148.0/32
@@ -589,8 +596,7 @@
 156.236.128.0/18
 156.236.224.0/20
 156.236.240.0/21
-156.236.252.0/23
-156.236.254.0/24
+156.236.252.0/22
 156.238.81.0/24
 156.247.128.0/17
 156.255.128.0/17
@@ -599,20 +605,8 @@
 160.20.218.0/23
 160.238.244.0/22
 161.22.32.0/21
-161.69.3.23/32
-161.69.3.151/32
-161.69.4.23/32
-161.69.4.151/32
-161.69.54.19/32
-161.69.54.35/32
 161.69.60.19/32
 161.69.60.35/32
-161.69.63.23/32
-161.69.63.151/32
-161.69.92.19/32
-161.69.92.35/32
-161.69.101.23/32
-161.69.101.151/32
 161.69.105.23/32
 161.69.105.151/32
 161.140.0.0/16
@@ -791,6 +785,7 @@
 193.186.4.253/32
 194.50.99.239/32
 195.60.171.0/24
+195.96.159.0/24
 196.48.205.0/24
 196.56.205.0/24
 196.57.205.0/24

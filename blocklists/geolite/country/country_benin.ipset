@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_benin.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_benin.ipset
-#   @service        None
-#   @id             country_benin_ipset
-#   @uuid           1494cf8c-6b18-3735-99b9-543d1df0d77a
-#   @updated        Thu Mar 26 09:06:36 UTC 2026
-#   @entries        157,634 ips
-#                   196 subnets
-#                   196 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:55:41 UTC 2026
+#   @entries        157,632 ips
+#                   194 subnets
+#                   194 lines
 #   @country        Benin (BJ)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.60.33/32
@@ -134,10 +140,8 @@
 2606:54c3:0:9af::/64
 2620:0:876:4800::/56
 2a00:ca0:2002:1000::/52
-2a00:ca0:202d:c000::/52
 2a00:ca0:2035:f000::/52
 2a00:ca0:2036:4000::/50
-2a00:ca0:2036:8000::/50
 2a00:ca0:203c::/50
 2a02:26f7:f0c0:4000::/64
 2a02:26f7:f0c0:cd20::/63

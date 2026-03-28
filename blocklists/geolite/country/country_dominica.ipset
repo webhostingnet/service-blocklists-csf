@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_dominica.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_dominica.ipset
-#   @service        None
-#   @id             country_dominica_ipset
-#   @uuid           1cadca1e-26f0-397e-91ca-4e5bd25b1087
-#   @updated        Thu Mar 26 09:06:55 UTC 2026
-#   @entries        28,305 ips
-#                   193 subnets
-#                   193 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:55:58 UTC 2026
+#   @entries        28,049 ips
+#                   192 subnets
+#                   192 lines
 #   @country        Dominica (DM)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.56.77/32
@@ -116,7 +122,6 @@
 205.217.249.224/27
 205.217.250.0/23
 205.217.252.0/22
-206.53.141.0/24
 206.214.8.0/22
 207.42.128.0/22
 207.42.136.0/21

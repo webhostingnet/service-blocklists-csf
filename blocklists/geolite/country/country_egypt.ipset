@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_egypt.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_egypt.ipset
-#   @service        None
-#   @id             country_egypt_ipset
-#   @uuid           72b278a4-426a-31f9-9ef4-b8fd97796a62
-#   @updated        Thu Mar 26 09:06:56 UTC 2026
-#   @entries        24,208,114 ips
-#                   952 subnets
-#                   952 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:55:59 UTC 2026
+#   @entries        24,208,094 ips
+#                   932 subnets
+#                   932 lines
 #   @country        Egypt (EG)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 2.21.128.0/22
@@ -487,28 +493,8 @@
 161.69.7.35/32
 161.69.16.27/32
 161.69.16.35/32
-161.69.20.27/32
-161.69.20.35/32
-161.69.22.27/32
-161.69.22.35/32
-161.69.52.27/32
-161.69.52.35/32
-161.69.61.17/32
-161.69.61.145/32
-161.69.66.27/32
-161.69.66.35/32
-161.69.69.27/32
-161.69.69.35/32
-161.69.71.27/32
-161.69.71.35/32
-161.69.75.17/32
-161.69.75.145/32
 161.69.77.17/32
 161.69.77.145/32
-161.69.78.17/32
-161.69.78.145/32
-161.69.94.17/32
-161.69.94.145/32
 161.69.106.17/32
 161.69.106.145/32
 161.123.131.0/24

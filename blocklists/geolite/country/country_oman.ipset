@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_oman.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_oman.ipset
-#   @service        None
-#   @id             country_oman_ipset
-#   @uuid           e0eddb8e-3c58-355a-9370-75290a584bc8
-#   @updated        Thu Mar 26 09:08:37 UTC 2026
-#   @entries        1,105,645 ips
-#                   489 subnets
-#                   489 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:37 UTC 2026
+#   @entries        1,107,181 ips
+#                   495 subnets
+#                   495 lines
 #   @country        Oman (OM)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 2.56.253.0/24
@@ -292,6 +298,8 @@
 185.232.15.0/24
 185.233.168.0/22
 185.243.56.0/24
+185.245.181.0/24
+185.245.254.0/24
 185.255.204.0/22
 188.65.24.0/21
 188.66.128.0/17
@@ -301,6 +309,7 @@
 192.109.41.176/29
 193.3.37.0/24
 193.22.144.0/23
+193.22.153.0/24
 193.29.60.0/24
 193.42.97.0/24
 193.43.68.0/24
@@ -311,13 +320,16 @@
 194.50.99.173/32
 194.60.200.0/24
 194.110.84.0/24
+194.110.193.0/24
 194.156.226.0/24
 194.163.0.0/20
 194.195.80.0/22
 194.233.108.0/22
 195.179.196.0/22
 195.179.204.0/22
+195.200.210.0/24
 195.200.215.0/24
+195.200.221.0/24
 195.245.85.0/24
 196.48.152.0/24
 196.56.152.0/24

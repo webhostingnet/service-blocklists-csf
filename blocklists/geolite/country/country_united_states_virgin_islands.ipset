@@ -2,20 +2,28 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_united_states_virgin_islands.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_united_states_virgin_islands.ipset
-#   @service        None
-#   @id             country_united_states_virgin_islands_ipset
-#   @uuid           afbe3fa6-010a-3df3-8090-2127a3842651
-#   @updated        Thu Mar 26 09:09:39 UTC 2026
-#   @entries        193,883 ips
-#                   307 subnets
-#                   307 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:57:27 UTC 2026
+#   @entries        193,925 ips
+#                   287 subnets
+#                   287 lines
 #   @country        United States Virgin Islands (VI)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
+2.27.26.0/27
+2.27.27.0/27
 5.175.190.40/31
 5.175.190.228/30
 8.26.18.0/23
@@ -235,28 +243,6 @@
 2604:ca00:1e4::/48
 2604:ca00:1f4::/48
 2604:ea40::/32
-2605:59c0:1540::/47
-2605:59c0:1543::/48
-2605:59c0:1545::/48
-2605:59c0:1547::/48
-2605:59c0:154b::/48
-2605:59c0:154c::/48
-2605:59c0:1552::/47
-2605:59c0:1554::/48
-2605:59c0:1556::/48
-2605:59c0:1558::/47
-2605:59c0:155a::/48
-2605:59c0:155f::/48
-2605:59c0:1561::/48
-2605:59c0:1565::/48
-2605:59c0:1566::/47
-2605:59c0:1569::/48
-2605:59c0:156f::/48
-2605:59c0:1574::/48
-2605:59c0:1576::/47
-2605:59c0:1578::/47
-2605:59c0:157b::/48
-2605:59c0:157e::/48
 2605:59ca:9000::/40
 2605:de80::/32
 2605:ef80:4::/48

@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_south_korea.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_south_korea.ipset
-#   @service        None
-#   @id             country_south_korea_ipset
-#   @uuid           1fd7aee6-6c85-37f8-8489-de18c0cece06
-#   @updated        Thu Mar 26 09:08:21 UTC 2026
-#   @entries        116,111,536 ips
-#                   5,704 subnets
-#                   5,704 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:23 UTC 2026
+#   @entries        116,109,735 ips
+#                   5,699 subnets
+#                   5,699 lines
 #   @country        South Korea (KR)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 1.11.0.0/16
@@ -256,8 +262,6 @@
 23.49.48.0/23
 23.49.144.0/20
 23.49.204.0/22
-23.49.224.0/22
-23.50.0.0/22
 23.50.121.0/24
 23.52.32.0/22
 23.53.2.0/24
@@ -713,7 +717,6 @@
 45.64.172.0/22
 45.67.97.0/24
 45.80.212.0/24
-45.82.247.0/24
 45.84.109.0/24
 45.84.111.0/24
 45.85.15.0/24
@@ -2060,6 +2063,7 @@
 104.30.170.53/32
 104.30.170.214/32
 104.30.171.170/32
+104.30.172.137/32
 104.30.176.10/32
 104.30.176.141/32
 104.30.176.218/32
@@ -2251,6 +2255,7 @@
 113.29.128.0/18
 113.29.192.0/20
 113.30.0.0/17
+113.30.133.0/24
 113.52.136.0/21
 113.52.192.0/19
 113.59.128.0/18
@@ -2754,6 +2759,8 @@
 131.229.238.144/32
 131.229.247.13/32
 131.229.247.42/31
+131.229.248.16/32
+131.229.248.144/32
 131.229.255.16/32
 131.229.255.144/32
 132.145.80.0/20
@@ -2892,6 +2899,7 @@
 144.208.233.0/24
 145.36.51.0/24
 145.40.86.0/23
+145.40.91.0/24
 146.19.154.0/24
 146.56.32.0/20
 146.56.61.0/24
@@ -3152,16 +3160,6 @@
 161.33.253.0/24
 161.69.19.13/32
 161.69.19.42/31
-161.69.55.13/32
-161.69.55.42/31
-161.69.56.13/32
-161.69.56.42/31
-161.69.88.13/32
-161.69.88.42/31
-161.69.89.13/32
-161.69.89.42/31
-161.69.93.13/32
-161.69.93.42/31
 161.69.100.0/29
 161.69.100.8/31
 161.69.100.16/32
@@ -4077,6 +4075,7 @@
 2001:470:d:2c5::/64
 2001:470:d:2d4::/64
 2001:470:d:2ee::/64
+2001:470:d:377::/64
 2001:470:d:378::/64
 2001:470:d:3b7::/64
 2001:470:d:483::/64
@@ -4342,7 +4341,6 @@
 2001:470:1f17:95::/64
 2001:470:1f1b:3b9::/64
 2001:470:1f1b:63a::/64
-2001:470:1f1d:250::/64
 2001:470:1f1f:6a::/64
 2001:470:1f1f:3ee::/64
 2001:470:1f2b:da::/64
@@ -4999,6 +4997,7 @@
 2603:c082::/35
 2603:c082:4000::/35
 2603:c082:8000::/35
+2604:1380:10::/44
 2604:6600:25::/48
 2604:6600:9a::/48
 2604:b040:13:500::/64
@@ -5205,6 +5204,7 @@
 2606:f4c0:61b0::/44
 2606:f4c0:b5e0::/44
 2606:fb40:201::/48
+2607:740:195::/48
 2607:fb10:2060::/48
 2607:fb10:2120::/44
 2620:171:67::/48
@@ -5452,6 +5452,7 @@
 2a09:bac0:1000:1274::/64
 2a09:bac0:1000:1313::/64
 2a09:bac0:1000:13e8::/64
+2a09:bac0:1000:14c0::/64
 2a09:bac0:1001:5e::/64
 2a09:bac0:1001:1ba::/64
 2a09:bac0:1001:28a::/64

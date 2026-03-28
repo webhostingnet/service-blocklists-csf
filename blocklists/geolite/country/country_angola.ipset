@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_angola.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_angola.ipset
-#   @service        None
-#   @id             country_angola_ipset
-#   @uuid           2009e126-96e5-334f-a7d0-26f46ee87055
-#   @updated        Thu Mar 26 09:06:30 UTC 2026
-#   @entries        1,298,860 ips
-#                   577 subnets
-#                   577 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:55:36 UTC 2026
+#   @entries        1,298,604 ips
+#                   576 subnets
+#                   576 lines
 #   @country        Angola (AO)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.60.9/32
@@ -351,7 +357,6 @@
 196.1.15.0/24
 196.6.255.0/24
 196.11.189.0/24
-196.11.234.0/24
 196.13.109.0/24
 196.13.204.0/24
 196.13.243.0/24

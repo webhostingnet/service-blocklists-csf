@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_bangladesh.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_bangladesh.ipset
-#   @service        None
-#   @id             country_bangladesh_ipset
-#   @uuid           c6b3cf0c-838a-354d-8190-6b3b0ccf3d51
-#   @updated        Thu Mar 26 09:06:34 UTC 2026
-#   @entries        2,100,680 ips
-#                   4,513 subnets
-#                   4,513 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:55:40 UTC 2026
+#   @entries        2,100,928 ips
+#                   4,511 subnets
+#                   4,511 lines
 #   @country        Bangladesh (BD)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.60.25/32
@@ -201,6 +207,7 @@
 69.88.23.0/24
 72.14.201.130/32
 72.14.201.159/32
+72.251.222.0/24
 74.80.104.0/24
 78.138.49.0/24
 82.39.70.0/24
@@ -1913,6 +1920,8 @@
 131.229.238.12/32
 131.229.238.140/32
 131.229.247.48/31
+131.229.248.12/32
+131.229.248.140/32
 131.229.255.12/32
 131.229.255.140/32
 134.231.235.128/26
@@ -2031,6 +2040,7 @@
 153.80.132.0/23
 153.80.134.0/24
 153.80.166.0/23
+154.89.7.0/24
 154.95.81.0/24
 154.95.93.0/24
 154.205.144.0/24
@@ -2165,11 +2175,6 @@
 160.250.230.0/23
 160.250.240.0/23
 161.69.19.48/31
-161.69.55.48/31
-161.69.56.48/31
-161.69.88.48/31
-161.69.89.48/31
-161.69.93.48/31
 161.69.100.12/32
 161.69.100.140/32
 161.69.102.12/32
@@ -2312,7 +2317,6 @@
 165.101.100.0/23
 165.101.106.0/24
 165.101.132.0/23
-165.101.151.0/24
 165.101.168.0/23
 165.101.176.0/23
 165.101.188.0/23

@@ -2,17 +2,17 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/asn/A/akamai_linode.ipset
 #
 #   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/asn/A/akamai_linode.ipset
-#   @service        
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN-CSV.zip
 #   @id             asn
 #   @uuid           f99d3d34-7b7f-3743-be03-4400566a522a
-#   @updated        Fri Mar 27 02:42:12 UTC 2026
+#   @updated        Sat Mar 28 13:58:31 UTC 2026
 #   @entries        1,310,502 ips
 #                   171 subnets
 #                   171 lines
 #   @expires        24 hours
 #   @category       Autonomous System Number
 #
-#   All IP ranges registered to ASN 63949 (akamai_connected_cloud).
+#   All IP ranges registered to ASN 63949 ().
 #
 #   Includes both IPv4 and IPv6 networks merged
 # #

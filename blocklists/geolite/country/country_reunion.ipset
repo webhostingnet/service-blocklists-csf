@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_reunion.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_reunion.ipset
-#   @service        None
-#   @id             country_reunion_ipset
-#   @uuid           9188dc00-8bd1-3e95-9f01-c49ad3430716
-#   @updated        Thu Mar 26 09:08:41 UTC 2026
-#   @entries        677,366 ips
-#                   258 subnets
-#                   258 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:40 UTC 2026
+#   @entries        660,985 ips
+#                   260 subnets
+#                   260 lines
 #   @country        Reunion (RE)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.57.96.0/19
@@ -108,7 +114,6 @@
 109.122.128.0/19
 109.122.160.0/20
 129.122.64.0/18
-139.26.64.0/18
 139.26.128.0/17
 140.248.24.84/31
 140.248.41.84/31
@@ -270,7 +275,10 @@
 2a13:a5c7:25bc::/48
 2a13:a5c7:25ff:bb00::/56
 2a14:7580:cfbb::/48
-2c0f:3780::/28
+2c0f:3780::/32
+2c0f:3782::/31
+2c0f:3784::/30
+2c0f:3788::/29
 2c0f:6c00::/32
 2c0f:f608::/32
 2c0f:f918::/32

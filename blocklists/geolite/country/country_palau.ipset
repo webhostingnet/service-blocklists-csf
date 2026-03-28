@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_palau.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_palau.ipset
-#   @service        None
-#   @id             country_palau_ipset
-#   @uuid           1599150f-4c34-3b16-86a9-ef52eff39b9c
-#   @updated        Thu Mar 26 09:08:41 UTC 2026
-#   @entries        12,588 ips
-#                   137 subnets
-#                   137 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:40 UTC 2026
+#   @entries        12,586 ips
+#                   135 subnets
+#                   135 lines
 #   @country        Palau (PW)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 31.209.97.0/24
@@ -84,7 +90,6 @@
 202.124.224.0/20
 204.3.59.0/24
 2001:470:d:321::/64
-2001:470:d:83d::/64
 2001:470:36:180::/64
 2001:470:36:1c8::/64
 2001:470:36:7d3::/64
@@ -93,7 +98,6 @@
 2001:470:1f1b:213::/64
 2001:470:887f::/48
 2001:470:efca::/48
-2001:470:f2f3::/48
 2001:67c:ec8::/48
 2401:6e0::/32
 2404:7800::/32

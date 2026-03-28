@@ -2,22 +2,29 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_armenia.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_armenia.ipset
-#   @service        None
-#   @id             country_armenia_ipset
-#   @uuid           9969777b-460e-39db-89f6-b13719a0b51d
-#   @updated        Thu Mar 26 09:06:29 UTC 2026
-#   @entries        566,962 ips
-#                   752 subnets
-#                   752 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:55:36 UTC 2026
+#   @entries        567,025 ips
+#                   753 subnets
+#                   753 lines
 #   @country        Armenia (AM)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 2.17.249.0/24
-2.56.118.0/24
+2.27.26.224/27
+2.27.27.224/27
 2.56.204.0/22
 5.39.204.0/22
 5.62.60.13/32
@@ -176,6 +183,7 @@
 130.49.66.0/24
 130.193.27.0/24
 130.193.120.0/21
+138.249.135.0/24
 138.249.174.0/24
 138.249.254.0/24
 139.28.4.0/24
@@ -493,7 +501,6 @@
 2001:470:1f1b:555::/64
 2001:470:1f1b:565::/64
 2001:470:1f1b:65b::/64
-2001:470:1f1d:29e::/64
 2001:470:1f21:a::/64
 2001:470:1f21:3d::/64
 2001:470:1f21:bf::/64

@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_azerbaijan.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_azerbaijan.ipset
-#   @service        None
-#   @id             country_azerbaijan_ipset
-#   @uuid           605c3c5d-be18-3c4a-bd9b-833bec79c44a
-#   @updated        Thu Mar 26 09:06:33 UTC 2026
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:55:39 UTC 2026
 #   @entries        765,270 ips
 #                   714 subnets
 #                   714 lines
 #   @country        Azerbaijan (AZ)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.10.252.0/22
@@ -495,9 +501,9 @@
 2001:470:6d:676::/64
 2001:470:6d:99c::/64
 2001:470:6d:b88::/64
-2001:470:6f:32c::/64
 2001:470:71:195::/64
 2001:470:71:5c7::/64
+2001:470:71:5ed::/64
 2001:470:71:658::/64
 2001:470:7c:14a::/64
 2001:470:1f09:4e7::/64

@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_estonia.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_estonia.ipset
-#   @service        None
-#   @id             country_estonia_ipset
-#   @uuid           99b13814-c63a-3a7e-a974-2556381ddecd
-#   @updated        Thu Mar 26 09:06:56 UTC 2026
-#   @entries        1,578,223 ips
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:55:59 UTC 2026
+#   @entries        1,577,999 ips
 #                   1,621 subnets
 #                   1,621 lines
 #   @country        Estonia (EE)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 2.57.220.0/22
@@ -476,7 +482,6 @@
 140.248.62.63/32
 140.248.63.63/32
 141.8.147.136/29
-141.98.165.0/24
 141.105.131.0/24
 141.105.140.0/24
 144.31.129.192/27
@@ -553,6 +558,7 @@
 157.167.240.32/32
 157.167.240.146/32
 158.173.75.0/24
+159.117.235.32/27
 159.253.16.0/21
 160.22.180.0/24
 160.25.104.113/32

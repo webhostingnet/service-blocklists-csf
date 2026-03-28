@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_macao.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_macao.ipset
-#   @service        None
-#   @id             country_macao_ipset
-#   @uuid           eb52941b-d434-3ee3-b9db-2d56f50be3b5
-#   @updated        Thu Mar 26 09:08:26 UTC 2026
-#   @entries        378,815 ips
-#                   660 subnets
-#                   660 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:27 UTC 2026
+#   @entries        378,816 ips
+#                   661 subnets
+#                   661 lines
 #   @country        Macao (MO)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.60.241/32
@@ -366,6 +372,7 @@
 2001:470:1f07:ce1::/64
 2001:470:1f09:4ee::/64
 2001:470:1f0b:634::/64
+2001:470:1f0b:a8d::/64
 2001:470:1f0b:fa9::/64
 2001:470:1f0b:11c2::/64
 2001:470:1f11:23e::/64

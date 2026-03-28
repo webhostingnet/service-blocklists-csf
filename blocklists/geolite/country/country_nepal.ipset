@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_nepal.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_nepal.ipset
-#   @service        None
-#   @id             country_nepal_ipset
-#   @uuid           30681ea1-120b-3183-b866-664c7e99f0a4
-#   @updated        Thu Mar 26 09:08:36 UTC 2026
-#   @entries        595,712 ips
-#                   735 subnets
-#                   735 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:37 UTC 2026
+#   @entries        595,704 ips
+#                   732 subnets
+#                   732 lines
 #   @country        Nepal (NP)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.63.45/32
@@ -324,6 +330,8 @@
 131.229.238.18/32
 131.229.238.146/32
 131.229.247.50/31
+131.229.248.18/32
+131.229.248.146/32
 131.229.255.18/32
 131.229.255.146/32
 136.234.190.0/24
@@ -369,11 +377,6 @@
 160.30.180.0/23
 160.250.254.0/23
 161.69.19.50/31
-161.69.55.50/31
-161.69.56.50/31
-161.69.88.50/31
-161.69.89.50/31
-161.69.93.50/31
 161.69.100.18/32
 161.69.100.146/32
 161.69.102.18/32

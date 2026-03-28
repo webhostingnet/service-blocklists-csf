@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_antigua_barbuda.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_antigua_barbuda.ipset
-#   @service        None
-#   @id             country_antigua_barbuda_ipset
-#   @uuid           a95ca522-2940-3a56-a8d9-60494c51ca1b
-#   @updated        Thu Mar 26 09:06:29 UTC 2026
-#   @entries        74,914 ips
-#                   277 subnets
-#                   277 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:55:35 UTC 2026
+#   @entries        58,018 ips
+#                   251 subnets
+#                   251 lines
 #   @country        Antigua Barbuda (AG)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.56.13/32
@@ -28,14 +34,6 @@
 45.138.10.124/30
 57.74.114.0/23
 69.50.64.0/20
-69.57.224.0/22
-69.57.228.0/23
-69.57.231.0/24
-69.57.234.0/23
-69.57.238.0/24
-69.57.240.0/24
-69.57.242.0/23
-69.57.244.0/22
 69.79.208.0/21
 91.108.35.0/24
 91.108.36.0/22
@@ -102,8 +100,6 @@
 149.112.100.0/24
 162.120.199.168/32
 162.120.202.197/32
-162.210.159.0/24
-162.222.86.0/23
 163.116.250.87/32
 163.116.250.89/32
 170.39.108.0/22
@@ -115,8 +111,6 @@
 185.26.72.0/24
 185.26.74.0/23
 185.182.12.0/22
-192.64.120.0/23
-192.64.122.0/24
 194.50.99.4/32
 196.48.37.0/24
 196.56.37.0/24
@@ -125,26 +119,12 @@
 196.197.37.0/24
 196.198.37.0/24
 196.199.37.0/24
-199.16.56.0/24
 199.48.204.0/22
 204.14.251.210/32
 204.16.112.128/25
-204.16.113.0/24
-204.16.114.0/23
-205.217.245.0/24
 205.217.249.218/32
 206.83.13.0/24
-206.214.0.0/21
-206.214.12.0/22
-206.214.20.0/22
-206.214.24.0/21
 208.83.80.0/21
-209.59.88.0/23
-209.59.90.0/24
-209.59.92.0/22
-209.59.120.0/22
-209.59.124.0/23
-209.59.126.0/24
 216.48.96.0/22
 2001:470:b:41d::/64
 2001:470:d:1177::/64

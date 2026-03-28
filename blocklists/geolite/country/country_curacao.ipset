@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_curacao.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_curacao.ipset
-#   @service        None
-#   @id             country_curacao_ipset
-#   @uuid           9fbaba46-3c5a-34cc-8153-ebeefb61eb48
-#   @updated        Thu Mar 26 09:06:48 UTC 2026
-#   @entries        190,527 ips
-#                   191 subnets
-#                   191 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:55:51 UTC 2026
+#   @entries        195,647 ips
+#                   194 subnets
+#                   194 lines
 #   @country        Curacao (CW)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.175.190.54/31
@@ -109,6 +115,8 @@
 193.23.16.0/22
 194.50.99.53/32
 196.3.16.0/20
+198.93.48.0/22
+198.93.176.0/21
 200.0.20.0/23
 200.6.56.0/21
 200.16.93.0/24
@@ -118,6 +126,7 @@
 200.124.128.0/19
 201.131.43.0/24
 206.107.225.0/24
+206.113.24.0/21
 216.122.184.0/23
 216.122.188.0/23
 216.152.160.0/20

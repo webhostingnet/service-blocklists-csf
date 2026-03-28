@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_cote_divoire.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_cote_divoire.ipset
-#   @service        None
-#   @id             country_cote_divoire_ipset
-#   @uuid           ee2198b1-ddcb-3dee-969d-90639e4261e8
-#   @updated        Thu Mar 26 09:06:44 UTC 2026
-#   @entries        1,835,167 ips
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:55:48 UTC 2026
+#   @entries        1,835,423 ips
 #                   458 subnets
 #                   458 lines
 #   @country        Cote d'Ivoire (CI)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.60.105/32
@@ -142,7 +148,7 @@
 102.210.16.0/22
 102.210.80.0/22
 102.210.208.0/24
-102.211.233.0/24
+102.211.232.0/23
 102.212.5.0/24
 102.212.7.0/24
 102.212.188.0/22

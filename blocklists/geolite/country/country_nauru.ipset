@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_nauru.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_nauru.ipset
-#   @service        None
-#   @id             country_nauru_ipset
-#   @uuid           5f7b9b68-4b02-35ad-afb5-0ef3d2f170a1
-#   @updated        Thu Mar 26 09:08:37 UTC 2026
-#   @entries        13,308 ips
-#                   130 subnets
-#                   130 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:37 UTC 2026
+#   @entries        13,310 ips
+#                   132 subnets
+#                   132 lines
 #   @country        Nauru (NR)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.56.141/32
@@ -77,7 +83,9 @@
 2001:470:36:8cc::/64
 2001:470:36:918::/64
 2001:470:71:7cd::/64
+2001:470:180d::/48
 2001:470:1f0b:10d9::/64
+2001:470:1f1d:23::/64
 2001:470:6303::/48
 2001:470:7601::/48
 2001:470:f2bb::/48

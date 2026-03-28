@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_eritrea.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_eritrea.ipset
-#   @service        None
-#   @id             country_eritrea_ipset
-#   @uuid           02460c55-934a-3b46-bf18-26c0c2aab948
-#   @updated        Thu Mar 26 09:06:57 UTC 2026
-#   @entries        7,461 ips
-#                   139 subnets
-#                   139 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:55:59 UTC 2026
+#   @entries        7,974 ips
+#                   141 subnets
+#                   141 lines
 #   @country        Eritrea (ER)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.60.121/32
@@ -25,6 +31,7 @@
 79.135.105.48/30
 84.254.152.0/24
 88.202.80.0/24
+98.97.158.0/23
 104.28.9.167/32
 104.28.9.168/31
 104.28.37.54/31
@@ -94,6 +101,7 @@
 2001:470:fc9a::/48
 2001:470:fe3d::/48
 2600:70ff:d801::/48
+2605:59c0:1600::/40
 2606:40:aa8::/45
 2606:40:ab0::/45
 2606:40:1330::/44

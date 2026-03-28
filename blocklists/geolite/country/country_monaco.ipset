@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_monaco.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_monaco.ipset
-#   @service        None
-#   @id             country_monaco_ipset
-#   @uuid           ee98ae04-5b04-38ca-a6c5-f223aa585461
-#   @updated        Thu Mar 26 09:08:24 UTC 2026
-#   @entries        80,761 ips
-#                   331 subnets
-#                   331 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:26 UTC 2026
+#   @entries        81,337 ips
+#                   334 subnets
+#                   334 lines
 #   @country        Monaco (MC)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.63.17/32
@@ -151,6 +157,7 @@
 172.225.26.96/27
 172.225.144.224/27
 172.225.161.64/28
+176.67.85.128/26
 176.114.96.0/20
 176.121.52.0/22
 181.215.138.64/28
@@ -158,6 +165,7 @@
 185.104.173.0/24
 185.112.132.33/32
 185.162.120.0/22
+185.187.214.0/24
 185.193.108.0/22
 185.243.3.0/24
 185.250.4.0/22
@@ -172,6 +180,7 @@
 193.84.183.176/28
 193.105.1.0/24
 193.105.15.0/24
+193.201.10.0/24
 193.218.123.0/24
 194.50.99.139/32
 194.165.16.0/23

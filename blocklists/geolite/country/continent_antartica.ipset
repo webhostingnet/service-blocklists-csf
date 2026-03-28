@@ -2,22 +2,30 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/continent_antartica.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/continent_antartica.ipset
-#   @service        None
-#   @id             continent_antartica_ipset
-#   @uuid           4664790b-caa6-3b99-b0ab-15f30c9016d1
-#   @updated        Thu Mar 26 09:04:55 UTC 2026
-#   @entries        2,032 ips
-#                   917 subnets
-#                   917 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:54:16 UTC 2026
+#   @entries        2,100 ips
+#                   923 subnets
+#                   923 lines
 #   @continent      Antartica (AN)
 #   @countries      Antarctica (AQ), Heard Island and McDonald Islands (HM), 
 #                   French Southern Territories (TF), South Georgia and the South Sandwich Islands (GS)Bouvet Island (BV), 
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
+2.27.26.128/27
+2.27.27.128/27
 5.175.190.176/30
 5.175.190.180/31
 5.175.190.182/31
@@ -216,6 +224,7 @@
 2001:470:1f05:9e::/64
 2001:470:1f07:11c::/64
 2001:470:1f07:35b::/64
+2001:470:1f07:49::/64
 2001:470:1f07:5b1::/64
 2001:470:1f07:61d::/64
 2001:470:1f07:65a::/64
@@ -365,6 +374,7 @@
 2001:470:4135::/48
 2001:470:480c::/48
 2001:470:482a::/48
+2001:470:482f::/48
 2001:470:4893::/48
 2001:470:48b3::/48
 2001:470:4997::/48
@@ -383,6 +393,7 @@
 2001:470:67:20b::/64
 2001:470:67:286::/64
 2001:470:67:3e::/64
+2001:470:67:46::/64
 2001:470:67:49::/64
 2001:470:67:d5::/64
 2001:470:67:ef::/64
@@ -466,6 +477,7 @@
 2001:470:d:223::/64
 2001:470:d:22c::/64
 2001:470:d:24c::/64
+2001:470:d:30b::/64
 2001:470:d:4a7::/64
 2001:470:d:4e9::/64
 2001:470:d:541::/64

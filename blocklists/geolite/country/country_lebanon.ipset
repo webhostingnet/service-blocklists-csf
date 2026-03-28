@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_lebanon.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_lebanon.ipset
-#   @service        None
-#   @id             country_lebanon_ipset
-#   @uuid           d0a79f55-389a-31c6-ad63-aab24324fef7
-#   @updated        Thu Mar 26 09:08:22 UTC 2026
-#   @entries        585,810 ips
-#                   627 subnets
-#                   627 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:24 UTC 2026
+#   @entries        587,585 ips
+#                   626 subnets
+#                   626 lines
 #   @country        Lebanon (LB)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.8.128.0/19
@@ -70,8 +76,7 @@
 80.79.144.0/20
 80.81.144.0/20
 80.83.16.0/20
-80.89.189.0/24
-80.89.190.10/32
+80.89.188.0/22
 82.112.160.0/21
 82.146.160.0/19
 82.198.25.0/24
@@ -218,7 +223,6 @@
 163.116.179.107/32
 164.137.66.0/24
 164.137.106.0/24
-169.150.227.96/28
 172.69.84.0/24
 172.98.51.96/28
 172.224.250.32/28
@@ -371,6 +375,7 @@
 193.188.136.0/24
 193.201.155.0/26
 193.227.160.0/19
+194.26.4.0/22
 194.50.99.128/32
 194.126.0.0/19
 194.126.136.0/21

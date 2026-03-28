@@ -1,0 +1,26 @@
+# #
+#   🧱 Firewall Blocklist - blocklists/geolite/asn/Q/quadra_net.ipset
+#
+#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/asn/Q/quadra_net.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN-CSV.zip
+#   @id             asn
+#   @uuid           f99d3d34-7b7f-3743-be03-4400566a522a
+#   @updated        Sat Mar 28 13:59:26 UTC 2026
+#   @entries        7,425 ips
+#                   7 subnets
+#                   7 lines
+#   @expires        24 hours
+#   @category       Autonomous System Number
+#
+#   All IP ranges registered to ASN 8100 ().
+#
+#   Includes both IPv4 and IPv6 networks merged
+# #
+
+166.1.209.0/24
+173.205.86.0/23
+190.9.32.0/20
+190.114.11.0/24
+190.114.12.0/24
+200.6.152.0/21
+2602:fed2:708d::/48

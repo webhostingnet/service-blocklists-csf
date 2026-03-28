@@ -2,17 +2,17 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/asn/B/bluehost_eig.ipset
 #
 #   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/asn/B/bluehost_eig.ipset
-#   @service        
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN-CSV.zip
 #   @id             asn
 #   @uuid           f99d3d34-7b7f-3743-be03-4400566a522a
-#   @updated        Fri Mar 27 02:45:22 UTC 2026
-#   @entries        560,640 ips
-#                   209 subnets
-#                   209 lines
+#   @updated        Sat Mar 28 13:58:35 UTC 2026
+#   @entries        553,728 ips
+#                   217 subnets
+#                   217 lines
 #   @expires        24 hours
 #   @category       Autonomous System Number
 #
-#   All IP ranges registered to ASN 46606 (unified_layer).
+#   All IP ranges registered to ASN 46606 ().
 #
 #   Includes both IPv4 and IPv6 networks merged
 # #
@@ -165,8 +165,6 @@
 162.241.26.0/23
 162.241.28.0/24
 162.241.56.0/23
-162.241.60.0/23
-162.241.62.0/24
 162.241.64.0/24
 162.241.68.0/24
 162.241.84.0/23
@@ -176,7 +174,6 @@
 162.241.118.0/23
 162.241.122.0/23
 162.241.137.0/24
-162.241.139.0/24
 162.241.141.0/24
 162.241.144.0/22
 162.241.148.0/24
@@ -205,7 +202,11 @@
 192.185.129.0/24
 192.185.135.0/24
 192.185.248.0/21
-192.232.192.0/18
+192.232.192.0/20
+192.232.208.0/21
+192.232.224.0/20
+192.232.240.0/21
+192.232.252.0/22
 192.254.128.0/19
 192.254.160.0/20
 192.254.176.0/22
@@ -213,7 +214,14 @@
 192.254.192.0/19
 198.1.64.0/18
 198.20.224.0/19
-198.57.128.0/17
+198.57.128.0/20
+198.57.144.0/22
+198.57.149.0/24
+198.57.152.0/21
+198.57.160.0/19
+198.57.192.0/19
+198.57.224.0/20
+198.57.248.0/21
 198.58.80.0/22
 198.58.85.0/24
 198.58.86.0/23

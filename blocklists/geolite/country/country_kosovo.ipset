@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_kosovo.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_kosovo.ipset
-#   @service        None
-#   @id             country_kosovo_ipset
-#   @uuid           b356dc5e-c550-3ba8-95ad-049b1236b1a0
-#   @updated        Thu Mar 26 09:09:40 UTC 2026
-#   @entries        158,710 ips
-#                   94 subnets
-#                   94 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:57:28 UTC 2026
+#   @entries        158,709 ips
+#                   93 subnets
+#                   93 lines
 #   @country        Kosovo (XK)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.206.232.0/21
@@ -109,4 +115,3 @@
 2a0b:6300::/29
 2a0c:b340::/29
 2a13:a5c7:25f4::/48
-2a14:67c2:862::/48

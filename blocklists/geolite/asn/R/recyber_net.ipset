@@ -1,0 +1,35 @@
+# #
+#   🧱 Firewall Blocklist - blocklists/geolite/asn/R/recyber_net.ipset
+#
+#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/asn/R/recyber_net.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN-CSV.zip
+#   @id             asn
+#   @uuid           f99d3d34-7b7f-3743-be03-4400566a522a
+#   @updated        Sat Mar 28 13:59:28 UTC 2026
+#   @entries        14,849 ips
+#                   16 subnets
+#                   16 lines
+#   @expires        24 hours
+#   @category       Autonomous System Number
+#
+#   All IP ranges registered to ASN 202425 ().
+#
+#   Includes both IPv4 and IPv6 networks merged
+# #
+
+45.140.222.0/24
+45.148.144.0/24
+80.82.64.0/22
+80.82.68.0/23
+80.82.70.0/24
+80.82.76.0/22
+89.248.160.0/21
+89.248.168.0/22
+89.248.172.0/23
+89.248.174.0/24
+92.63.196.0/24
+93.174.88.0/21
+94.102.48.0/20
+145.249.104.0/22
+185.242.226.0/24
+2a02:6c8:8000::/33

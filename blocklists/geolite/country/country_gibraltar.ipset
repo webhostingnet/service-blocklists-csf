@@ -2,19 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_gibraltar.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_gibraltar.ipset
-#   @service        429: Too Many Requests
-For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
-#   @id             country_gibraltar_ipset
-#   @uuid           3871faa6-6178-3e51-9a3e-4daf3337198a
-#   @updated        Thu Mar 26 09:07:40 UTC 2026
-#   @entries        103,171 ips
-#                   230 subnets
-#                   230 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:12 UTC 2026
+#   @entries        102,915 ips
+#                   229 subnets
+#                   229 lines
 #   @country        Gibraltar (GI)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 2.58.8.0/22
@@ -85,7 +90,6 @@ For more on scraping GitHub and how it may affect your rights, please review our
 104.255.128.0/21
 136.23.1.129/32
 136.23.21.29/32
-138.249.135.0/24
 140.248.56.82/32
 140.248.57.82/32
 140.248.58.82/32

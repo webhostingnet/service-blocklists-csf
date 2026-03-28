@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_cuba.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_cuba.ipset
-#   @service        None
-#   @id             country_cuba_ipset
-#   @uuid           b7b75721-45ee-3fc5-ba13-8e85ed54f132
-#   @updated        Thu Mar 26 09:06:47 UTC 2026
-#   @entries        259,856 ips
-#                   187 subnets
-#                   187 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:55:51 UTC 2026
+#   @entries        259,858 ips
+#                   189 subnets
+#                   189 lines
 #   @country        Cuba (CU)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.56.73/32
@@ -118,6 +124,7 @@
 2001:470:b:7a5::/64
 2001:470:d:d05::/64
 2001:470:d:fab::/64
+2001:470:19:b8::/64
 2001:470:19:c1::/64
 2001:470:19:12e1::/64
 2001:470:1d:1f1::/64
@@ -137,6 +144,7 @@
 2001:470:e34e::/48
 2001:470:f50d::/48
 2001:470:f629::/48
+2001:470:f86c::/48
 2001:470:f881::/48
 2001:1340::/32
 2001:1358::/32

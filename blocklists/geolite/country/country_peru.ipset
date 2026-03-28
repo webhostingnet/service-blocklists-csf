@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_peru.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_peru.ipset
-#   @service        None
-#   @id             country_peru_ipset
-#   @uuid           71d5151d-8e2f-3be1-99ce-861c8ce9b877
-#   @updated        Thu Mar 26 09:08:38 UTC 2026
-#   @entries        3,706,736 ips
-#                   1,865 subnets
-#                   1,865 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:38 UTC 2026
+#   @entries        3,724,134 ips
+#                   1,863 subnets
+#                   1,863 lines
 #   @country        Peru (PE)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 2.23.232.0/22
@@ -31,11 +37,18 @@
 13.130.8.0/21
 18.68.11.0/25
 18.68.11.128/26
+23.0.144.0/20
+23.0.232.0/21
 23.57.120.0/22
+23.193.168.0/23
 23.194.222.0/23
 23.196.72.0/21
 23.196.80.0/20
 23.209.108.0/22
+23.210.94.0/23
+23.216.16.0/20
+23.216.32.0/20
+23.216.48.0/22
 24.239.165.0/24
 31.41.252.0/23
 32.59.88.137/32
@@ -230,7 +243,6 @@
 45.191.196.0/22
 45.194.7.0/24
 45.200.120.0/23
-45.200.133.0/24
 45.200.134.0/23
 45.200.141.0/24
 45.200.192.0/18
@@ -302,6 +314,7 @@
 91.216.77.0/24
 92.118.181.0/24
 95.173.223.0/24
+95.210.16.0/24
 95.210.95.0/24
 96.0.12.0/22
 96.0.16.0/21
@@ -653,20 +666,8 @@
 157.191.175.134/32
 157.240.197.0/24
 158.95.94.0/23
-161.69.3.16/32
-161.69.3.144/32
-161.69.4.16/32
-161.69.4.144/32
-161.69.54.22/32
-161.69.54.38/32
 161.69.60.22/32
 161.69.60.38/32
-161.69.63.16/32
-161.69.63.144/32
-161.69.92.22/32
-161.69.92.38/32
-161.69.101.16/32
-161.69.101.144/32
 161.69.105.16/32
 161.69.105.144/32
 161.69.123.38/32
@@ -1001,6 +1002,7 @@
 200.11.36.0/22
 200.11.48.0/20
 200.14.62.0/24
+200.14.240.0/22
 200.15.12.200/29
 200.15.13.200/29
 200.16.0.0/21
@@ -1148,6 +1150,7 @@
 2001:470:5:393::/64
 2001:470:5:3db::/64
 2001:470:5:3fc::/64
+2001:470:5:423::/64
 2001:470:5:431::/64
 2001:470:5:657::/64
 2001:470:5:65b::/64
@@ -1204,6 +1207,7 @@
 2001:470:d978::/48
 2001:470:d989::/48
 2001:470:d9dc::/48
+2001:470:da3a::/48
 2001:470:db4d::/48
 2001:470:db4e::/48
 2001:470:f07f::/48

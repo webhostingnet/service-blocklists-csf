@@ -1,0 +1,35 @@
+# #
+#   🧱 Firewall Blocklist - blocklists/geolite/asn/C/china_tietong.ipset
+#
+#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/asn/C/china_tietong.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN-CSV.zip
+#   @id             asn
+#   @uuid           f99d3d34-7b7f-3743-be03-4400566a522a
+#   @updated        Sat Mar 28 13:58:57 UTC 2026
+#   @entries        511,488 ips
+#                   16 subnets
+#                   16 lines
+#   @expires        24 hours
+#   @category       Autonomous System Number
+#
+#   All IP ranges registered to ASN 9394, 24138, 45057 ().
+#
+#   Includes both IPv4 and IPv6 networks merged
+# #
+
+36.192.0.0/21
+61.232.0.0/20
+61.233.0.0/19
+61.237.224.0/20
+61.237.253.0/24
+110.96.0.0/16
+110.113.0.0/16
+110.114.0.0/16
+111.132.0.0/16
+122.70.0.0/15
+122.72.16.0/24
+122.72.38.0/24
+123.66.128.0/17
+161.207.18.0/23
+211.98.24.0/24
+222.35.0.0/16

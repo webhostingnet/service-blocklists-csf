@@ -2,21 +2,26 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_iceland.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_iceland.ipset
-#   @service        None
-#   @id             country_iceland_ipset
-#   @uuid           02608517-a80d-312e-ac6d-a62e1e3c7ab1
-#   @updated        Thu Mar 26 09:08:16 UTC 2026
-#   @entries        928,728 ips
-#                   742 subnets
-#                   742 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:19 UTC 2026
+#   @entries        928,474 ips
+#                   743 subnets
+#                   743 lines
 #   @country        Iceland (IS)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
-2.56.174.0/24
 2.56.243.0/24
 5.23.64.0/19
 5.62.20.0/24
@@ -389,6 +394,7 @@
 2001:470:d:2ba::/64
 2001:470:d:1174::/64
 2001:470:19:ab::/64
+2001:470:19:b4::/64
 2001:470:19:868::/64
 2001:470:19:bd8::/64
 2001:470:19:fcf::/64
@@ -446,6 +452,7 @@
 2001:470:dffc::/48
 2001:470:ecce::/48
 2001:470:f16f::/48
+2001:470:f868::/48
 2001:470:f886::/48
 2001:678:888::/48
 2001:678:afc::/48

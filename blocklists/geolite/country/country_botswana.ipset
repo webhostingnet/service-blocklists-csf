@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_botswana.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_botswana.ipset
-#   @service        None
-#   @id             country_botswana_ipset
-#   @uuid           8977937d-0f99-3a4d-8807-1bf396cd82f9
-#   @updated        Thu Mar 26 09:06:39 UTC 2026
-#   @entries        172,908 ips
-#                   237 subnets
-#                   237 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:55:44 UTC 2026
+#   @entries        170,860 ips
+#                   236 subnets
+#                   236 lines
 #   @country        Botswana (BW)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.60.45/32
@@ -153,7 +159,6 @@
 196.57.54.0/24
 196.58.54.0/24
 196.60.4.0/24
-196.61.208.0/21
 196.197.54.0/24
 196.198.54.0/24
 196.199.54.0/24

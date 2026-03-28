@@ -1,0 +1,24 @@
+# #
+#   🧱 Firewall Blocklist - blocklists/geolite/asn/O/onyphe_io.ipset
+#
+#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/asn/O/onyphe_io.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN-CSV.zip
+#   @id             asn
+#   @uuid           f99d3d34-7b7f-3743-be03-4400566a522a
+#   @updated        Sat Mar 28 13:59:22 UTC 2026
+#   @entries        1,280 ips
+#                   5 subnets
+#                   5 lines
+#   @expires        24 hours
+#   @category       Autonomous System Number
+#
+#   All IP ranges registered to ASN 213412 ().
+#
+#   Includes both IPv4 and IPv6 networks merged
+# #
+
+91.196.152.0/24
+91.230.168.0/24
+91.231.89.0/24
+94.231.206.0/24
+195.184.76.0/24

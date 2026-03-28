@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_maldives.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_maldives.ipset
-#   @service        None
-#   @id             country_maldives_ipset
-#   @uuid           ccda0536-ca04-3cac-8990-d43feabfbd13
-#   @updated        Thu Mar 26 09:08:27 UTC 2026
-#   @entries        105,711 ips
-#                   1,717 subnets
-#                   1,717 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:28 UTC 2026
+#   @entries        105,713 ips
+#                   1,719 subnets
+#                   1,719 lines
 #   @country        Maldives (MV)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.62.249/32
@@ -161,6 +167,7 @@
 2001:470:d:4fd::/64
 2001:470:d:84c::/64
 2001:470:d:1301::/64
+2001:470:19:b0::/64
 2001:470:19:1297::/64
 2001:470:24:2d7::/64
 2001:470:24:35a::/64
@@ -185,6 +192,7 @@
 2001:470:f2f6::/48
 2001:470:f70a::/48
 2001:470:f710::/48
+2001:470:f84b::/48
 2001:470:fdb7::/48
 2001:470:fe30::/48
 2001:dde::/48

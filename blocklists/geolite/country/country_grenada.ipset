@@ -2,19 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_grenada.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_grenada.ipset
-#   @service        429: Too Many Requests
-For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
-#   @id             country_grenada_ipset
-#   @uuid           e9560a79-3344-34a9-a11e-edfc2ec214df
-#   @updated        Thu Mar 26 09:07:27 UTC 2026
-#   @entries        31,356 ips
-#                   203 subnets
-#                   203 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:11 UTC 2026
+#   @entries        31,358 ips
+#                   205 subnets
+#                   205 lines
 #   @country        Grenada (GD)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.56.101/32
@@ -131,11 +136,13 @@ For more on scraping GitHub and how it may affect your rights, please review our
 216.110.118.0/24
 216.110.125.0/24
 216.110.126.0/23
+2001:470:19:ae::/64
 2001:470:24:223::/64
 2001:470:36:d0::/64
 2001:470:1f0b:13a::/64
 2001:470:1f1b:423::/64
 2001:470:1f29:3dd::/64
+2001:470:f849::/48
 2001:470:fe88::/48
 2001:504:35::/48
 2001:1808::/32

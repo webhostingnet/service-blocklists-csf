@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_paraguay.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_paraguay.ipset
-#   @service        None
-#   @id             country_paraguay_ipset
-#   @uuid           0de65af8-075d-36bc-ac14-d57829ca1364
-#   @updated        Thu Mar 26 09:08:41 UTC 2026
-#   @entries        1,254,899 ips
-#                   677 subnets
-#                   677 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:40 UTC 2026
+#   @entries        1,255,399 ips
+#                   666 subnets
+#                   666 lines
 #   @country        Paraguay (PY)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.56.177/32
@@ -253,20 +259,8 @@
 160.238.185.160/27
 160.238.185.192/26
 160.238.186.0/23
-161.69.3.17/32
-161.69.3.145/32
-161.69.4.17/32
-161.69.4.145/32
-161.69.54.27/32
-161.69.54.41/32
 161.69.60.27/32
 161.69.60.41/32
-161.69.63.17/32
-161.69.63.145/32
-161.69.92.27/32
-161.69.92.41/32
-161.69.101.17/32
-161.69.101.145/32
 161.69.105.17/32
 161.69.105.145/32
 162.158.147.0/24
@@ -340,6 +334,7 @@
 179.189.218.0/23
 181.1.152.0/22
 181.40.0.0/16
+181.41.150.0/23
 181.41.199.0/24
 181.78.27.0/24
 181.78.40.0/23

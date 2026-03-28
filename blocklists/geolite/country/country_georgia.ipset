@@ -2,20 +2,28 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_georgia.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_georgia.ipset
-#   @service        None
-#   @id             country_georgia_ipset
-#   @uuid           dd1f414b-3a04-3945-8333-54ec8d6c72ff
-#   @updated        Thu Mar 26 09:07:31 UTC 2026
-#   @entries        1,295,013 ips
-#                   794 subnets
-#                   794 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:11 UTC 2026
+#   @entries        1,296,357 ips
+#                   795 subnets
+#                   795 lines
 #   @country        Georgia (GE)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
+2.27.26.192/27
+2.27.27.192/27
 2.57.60.0/22
 2.57.216.0/22
 5.10.32.0/21
@@ -109,12 +117,11 @@
 74.1.222.0/23
 77.74.40.0/21
 77.91.65.0/24
-77.91.72.0/24
+77.91.72.0/22
 77.91.77.0/24
 77.91.97.0/24
-77.91.101.0/24
-77.91.102.0/23
-77.91.123.0/24
+77.91.100.0/22
+77.91.122.0/23
 77.91.126.0/24
 77.92.224.0/19
 77.242.48.0/20

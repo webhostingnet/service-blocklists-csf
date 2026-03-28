@@ -1,0 +1,34 @@
+# #
+#   🧱 Firewall Blocklist - blocklists/geolite/asn/S/stackpath_blackhost.ipset
+#
+#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/asn/S/stackpath_blackhost.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN-CSV.zip
+#   @id             asn
+#   @uuid           f99d3d34-7b7f-3743-be03-4400566a522a
+#   @updated        Sat Mar 28 13:59:35 UTC 2026
+#   @entries        4,101 ips
+#                   15 subnets
+#                   15 lines
+#   @expires        24 hours
+#   @category       Autonomous System Number
+#
+#   All IP ranges registered to ASN 12989, 67211 ().
+#
+#   Includes both IPv4 and IPv6 networks merged
+# #
+
+45.12.60.0/24
+86.54.28.0/22
+168.222.185.0/24
+168.222.186.0/24
+185.142.236.0/24
+185.142.238.0/23
+194.54.180.0/23
+194.54.182.0/24
+212.104.140.0/23
+213.254.179.0/24
+2a01:e940::/48
+2a01:e944::/48
+2a01:e945::/48
+2a01:e946::/48
+2a01:e947::/48

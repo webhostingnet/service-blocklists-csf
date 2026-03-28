@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_ethiopia.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_ethiopia.ipset
-#   @service        None
-#   @id             country_ethiopia_ipset
-#   @uuid           99870db1-f287-3b49-a665-37ac5079f7a6
-#   @updated        Thu Mar 26 09:06:58 UTC 2026
-#   @entries        374,614 ips
-#                   193 subnets
-#                   193 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:00 UTC 2026
+#   @entries        375,127 ips
+#                   195 subnets
+#                   195 lines
 #   @country        Ethiopia (ET)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.60.129/32
@@ -28,6 +34,7 @@
 79.135.105.52/30
 84.254.155.0/24
 88.202.82.0/24
+98.97.160.0/23
 102.203.224.0/22
 102.204.190.0/23
 102.208.96.0/22
@@ -128,6 +135,7 @@
 2001:4860:7:160d::/64
 2001:4860:7:170d::/64
 2400:cb00:1022::/48
+2605:59c0:1500::/40
 2606:40:a68::/45
 2606:40:a70::/45
 2606:40:12f0::/44

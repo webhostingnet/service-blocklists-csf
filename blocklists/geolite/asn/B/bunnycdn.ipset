@@ -1,0 +1,46 @@
+# #
+#   🧱 Firewall Blocklist - blocklists/geolite/asn/B/bunnycdn.ipset
+#
+#   @url            https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/asn/B/bunnycdn.ipset
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN-CSV.zip
+#   @id             asn
+#   @uuid           f99d3d34-7b7f-3743-be03-4400566a522a
+#   @updated        Sat Mar 28 13:58:36 UTC 2026
+#   @entries        4,112 ips
+#                   27 subnets
+#                   27 lines
+#   @expires        24 hours
+#   @category       Autonomous System Number
+#
+#   All IP ranges registered to ASN 200325 ().
+#
+#   Includes both IPv4 and IPv6 networks merged
+# #
+
+38.92.173.0/24
+91.200.176.0/24
+103.180.114.0/23
+107.150.176.0/24
+109.104.146.0/23
+109.224.228.0/22
+157.53.226.0/24
+185.190.83.0/24
+193.162.131.0/24
+194.156.156.0/24
+212.104.158.0/24
+2400:52e0:1500::/47
+2400:52e0:1502::/48
+2400:52e0:1690::/48
+2400:52e0:1::/48
+2400:52e0:1a00::/45
+2400:52e0:1a08::/47
+2400:52e0:1e01::/48
+2400:52e0:1e02::/47
+2400:52e0:1e04::/46
+2400:52e0:1e08::/47
+2400:52e0:1e10::/48
+2400:52e0:2::/48
+2400:52e0:2a00::/48
+2400:52e0:4000::/48
+2400:52e0:fff0::/46
+2607:f740:e00c::/48

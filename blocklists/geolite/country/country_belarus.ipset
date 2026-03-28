@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_belarus.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_belarus.ipset
-#   @service        None
-#   @id             country_belarus_ipset
-#   @uuid           2c022716-2784-3acf-a8bd-b6cbef0dabef
-#   @updated        Thu Mar 26 09:06:39 UTC 2026
-#   @entries        1,890,318 ips
-#                   828 subnets
-#                   828 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:55:44 UTC 2026
+#   @entries        1,890,316 ips
+#                   826 subnets
+#                   826 lines
 #   @country        Belarus (BY)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.44.44.0/24
@@ -625,7 +631,6 @@
 2001:470:1f15:341::/64
 2001:470:1f15:5a4::/64
 2001:470:1f15:75e::/64
-2001:470:1f15:a48::/64
 2001:470:1f15:d8a::/64
 2001:470:1f1b:1d3::/64
 2001:470:1f1b:1db::/64
@@ -671,7 +676,6 @@
 2001:470:72e5::/48
 2001:470:7318::/48
 2001:470:7b1d::/48
-2001:470:7b2a::/48
 2001:470:7bd6::/48
 2001:470:82b8::/48
 2001:470:8c8e::/48

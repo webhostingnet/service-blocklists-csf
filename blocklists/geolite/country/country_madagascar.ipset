@@ -2,18 +2,24 @@
 #   🧱 Firewall Blocklist - blocklists/geolite/country/country_madagascar.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/geolite/country/country_madagascar.ipset
-#   @service        None
-#   @id             country_madagascar_ipset
-#   @uuid           af763214-f92b-31a3-9b06-8d8de82dc00e
-#   @updated        Thu Mar 26 09:08:25 UTC 2026
-#   @entries        589,616 ips
-#                   208 subnets
-#                   208 lines
+#   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
+#   @id             countries
+#   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
+#   @updated        Sat Mar 28 13:56:26 UTC 2026
+#   @entries        589,617 ips
+#                   209 subnets
+#                   209 lines
 #   @country        Madagascar (MG)
-#   @expires        6 hours
-#   @category       Uncategorized
+#   @expires        24 hours
+#   @category       Geolocation
 #
-#   No description provided
+#   These ASN databases allow you to restrict which companies from accessing your server
+#   based on their assigned ASN (Autonomous System Number). They are fully compatible with
+#   applications such as ConfigServer Firewall, Wireshark, Elastic Search, NGINX, 
+#   Snowplow Analytics, Revive Adserver, OPNSense, etc.
+#   
+#   A more detailed list is available at:
+#       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
 5.62.60.249/32
@@ -204,6 +210,7 @@
 2a09:bac4:1460::/45
 2a09:bac5:4908::/45
 2a09:bac6:4908::/45
+2a09:bac6:db38::/45
 2a0a:6044:6a6b::/48
 2a0a:6044:6a6c::/46
 2a0a:6044:6a70::/45
