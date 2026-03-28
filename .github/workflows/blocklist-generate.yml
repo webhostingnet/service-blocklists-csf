@@ -603,21 +603,19 @@ jobs:
                   #   Privacy › General
                   # #
   
-                  run_general=".github/scripts/bl-block.sh blocklists/privacy/privacy_general.ipset privacy"
-                  eval "./$run_general"
+                  ./.github/scripts/bl-block.sh blocklists/privacy/privacy_general.ipset privacy
 
                   # #
                   #   Privacy › Activision
                   # #
 
-                  run_activision=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_activision.ipset ${{ vars.BL_PRIVACY_ACTIVISION_SRC }}"
-                  eval "./$run_activision"
+                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_activision.ipset "${{ vars.BL_ACTIVISION_URL }}"
 
                   # #
                   #   Privacy › Ahrefs
                   # #
 
-                  curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_PRIVACY_AHREFS_SRC }} | jq -r '.ips[].ip_address | select( . != null )' | .github/scripts/bl-format.sh blocklists/privacy/privacy_ahrefs.ipset
+                  curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_AHREFS_URL }} | jq -r '.ips[].ip_address | select( . != null )' | .github/scripts/bl-format.sh blocklists/privacy/privacy_ahrefs.ipset
 
                   # #
                   #   Privacy › AI › ChatGPT
@@ -677,7 +675,7 @@ jobs:
                   #   Privacy › Anthropic
                   # #
 
-                  run_mip_anthropic=".github/scripts/bl-mip.sh blocklists/privacy/privacy_anthropic.ipset '${{ vars.BL_PRIVACY_MIP_ANTHROPIC_SRC }}' privacy/anthropic"
+                  run_mip_anthropic=".github/scripts/bl-mip.sh blocklists/privacy/privacy_anthropic.ipset '${{ vars.BL_AI_ANTHROPIC_URL }}' privacy/anthropic"
                   eval "./$run_mip_anthropic"
 
                   # #
@@ -697,22 +695,19 @@ jobs:
                   #   Privacy › Automattic / Tumblr / Wordpress
                   # #
 
-                  run_automattic=".github/scripts/bl-whois.sh blocklists/privacy/privacy_automattic.ipset ${{ vars.BL_PRIVACY_AUTOMATTIC_SRC }}"
-                  eval "./$run_automattic"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_automattic.ipset "${{ vars.BL_AUTOMATTIC_WORDPRESS }}"
 
                   # #
                   #   Privacy › Alibaba
                   # #
 
-                  run_alibaba=".github/scripts/bl-whois.sh blocklists/privacy/privacy_alibaba.ipset ${{ vars.BL_PRIVACY_ALIBABA_SRC }}"
-                  eval "./$run_alibaba"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_alibaba.ipset "${{ vars.BL_CHINA_ALIBABA_ASN }}"
                   
                   # #
                   #   Privacy › Baidu
                   # #
 
-                  run_baidu=".github/scripts/bl-whois.sh blocklists/privacy/privacy_baidu.ipset ${{ vars.BL_PRIVACY_BAIDU_SRC }}"
-                  eval "./$run_baidu"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_baidu.ipset "${{ vars.BL_CHINA_BAIDU_ASN }}"
 
                   # #
                   #   Privacy › Bing
@@ -732,7 +727,7 @@ jobs:
                   #   Privacy › Bluehost
                   # #
 
-                  run_bluehost_eig=".github/scripts/bl-whois.sh blocklists/privacy/privacy_bluehost_eig.ipset ${{ vars.BL_PRIVACY_BLUEHOST_EIG_SRC }}"
+                  run_bluehost_eig=".github/scripts/bl-whois.sh blocklists/privacy/privacy_bluehost_eig.ipset ${{ vars.BL_BLUEHOST_EIG_ASN }}"
                   eval "./$run_bluehost_eig"
 
                   # #
@@ -750,15 +745,13 @@ jobs:
                   #   Privacy › ByteDance / Tiktok
                   # #
 
-                  run_bytedance=".github/scripts/bl-whois.sh blocklists/privacy/privacy_bytedance.ipset ${{ vars.BL_PRIVACY_TIKTOK_BYTEDANCE_SRC }}"
-                  eval "./$run_bytedance"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_bytedance.ipset "${{ vars.BL_TIKTOK_BYTEDANCE_ASN }}"
 
                   # #
                   #   Privacy › Cloudfront
                   # #
 
-                  run_cloudfront=".github/scripts/bl-json.sh blocklists/privacy/privacy_cloudfront.ipset ${{ vars.BL_PRIVACY_CLOUDFRONT_SRC }} 'map(.[]) | sort | .[]'"
-                  eval "./$run_cloudfront"
+                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_cloudfront.ipset "${{ vars.BL_PRIVACY_CLOUDFRONT_SRC }}" 'map(.[]) | sort | .[]'
 
                   # #
                   #   Privacy › Cloudflare CDN
@@ -775,28 +768,26 @@ jobs:
                   #   Privacy › COLOCROSSING / HostPapa
                   # #
 
-                  run_colocrossing_hostpapa=".github/scripts/bl-whois.sh blocklists/privacy/privacy_colocrossing_hostpapa.ipset ${{ vars.BL_PRIVACY_COLOCROSSING_HOSTPAPA_SRC }}"
+                  run_colocrossing_hostpapa=".github/scripts/bl-whois.sh blocklists/privacy/privacy_colocrossing_hostpapa.ipset ${{ vars.BL_COLOCROSSING_HOSTPAPA_ASN }}"
                   eval "./$run_colocrossing_hostpapa"
 
                   # #
                   #   Privacy › Contabo Hosting
                   # #
 
-                  run_contabo_gmbh=".github/scripts/bl-whois.sh blocklists/privacy/privacy_contabo_gmbh.ipset ${{ vars.BL_PRIVACY_CONTABO_GMBH }}"
-                  eval "./$run_contabo_gmbh"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_contabo_gmbh.ipset "${{ vars.BL_CONTABO_GMBH_ASN }}"
 
                   # #
                   #   Privacy › Digital Ocean
                   # #
 
-                  run_digitalocean=".github/scripts/bl-whois.sh blocklists/privacy/privacy_digitalocean_asn.ipset ${{ vars.BL_PRIVACY_DIGITAL_OCEAN_ASN_SRC }}"
-                  eval "./$run_digitalocean"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_digitalocean_asn.ipset "${{ vars.BL_DIGITAL_OCEAN_ASN }}"
 
                   # #
                   #   Privacy › Digital Ocean
                   # #
 
-                  curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_PRIVACY_DIGITAL_OCEAN_URL_SRC }} \
+                  curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_DIGITAL_OCEAN_URL }} \
                     | cut -d, -f1 \
                     | grep -vE '^(#|;|[[:space:]]*$)' \
                     | sort -u \
@@ -806,8 +797,7 @@ jobs:
                   #   Privacy › Contabo Hosting
                   # #
 
-                  run_dreamhost=".github/scripts/bl-whois.sh blocklists/privacy/privacy_dreamhost.ipset ${{ vars.BL_PRIVACY_DREAMHOST_SRC }}"
-                  eval "./$run_dreamhost"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_dreamhost.ipset "${{ vars.BL_DREAMHOST_ASN }}"
 
                   # #
                   #   Privacy › DuckDuckGo
@@ -819,7 +809,7 @@ jobs:
                   #       https://duckduckgo.com/duckduckbot.json
                   # #
 
-                  run_duckduckgo=".github/scripts/bl-json.sh blocklists/privacy/privacy_duckduckgo.ipset ${{ vars.BL_PRIVACY_DUCKDUCKGO_SRC }} '.prefixes[] | select(.ipv4Prefix or .ipv6Prefix) | (.ipv4Prefix // .ipv6Prefix)'"
+                  run_duckduckgo=".github/scripts/bl-json.sh blocklists/privacy/privacy_duckduckgo.ipset ${{ vars.BL_DUCKDUCKGO_URL }} '.prefixes[] | select(.ipv4Prefix or .ipv6Prefix) | (.ipv4Prefix // .ipv6Prefix)'"
                   eval "./$run_duckduckgo"
 
                   # #
@@ -835,7 +825,7 @@ jobs:
                   #   https://bgp.he.net/search?search%5Bsearch%5D=facebook&commit=Search
                   # #
 
-                  run_facebook=".github/scripts/bl-whois.sh blocklists/privacy/privacy_facebook.ipset ${{ vars.BL_PRIVACY_FACEBOOK_SRC }}"
+                  run_facebook=".github/scripts/bl-whois.sh blocklists/privacy/privacy_facebook.ipset ${{ vars.BL_FACEBOOK_ASN }}"
                   eval "./$run_facebook"
 
                   # #
@@ -920,7 +910,7 @@ jobs:
                   #   Privacy › Huawei
                   # #
 
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_huawei.ipset "${{ vars.BL_PRIVACY_HUAWEI_SRC }}"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_huawei.ipset "${{ vars.BL_HUAWEI_ASN }}"
 
                   # #
                   #   Privacy › Linode
@@ -1050,7 +1040,7 @@ jobs:
                   curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_PRIVACY_RSSAPI_SRC }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_rssapi.ipset
 
                   #   Privacy › Shadow Server
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_shadowserver.ipset "${{ vars.BL_PRIVACY_SHADOWSERVER_SRC }}"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_shadowserver.ipset "${{ vars.BL_SHADOWSERVER_FOUNDATION_ASN }}"
 
                   #   Privacy › Steam
                   ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_steam.ipset "${{ vars.BL_PRIVACY_STEAM_SRC }}"
@@ -1071,40 +1061,40 @@ jobs:
                   curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_PRIVACY_TELEGRAM_SRC }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_telegram.ipset
 
                   #   Privacy › Censys, Inc.
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_censys_io.ipset "${{ vars.BL_PRIVACY_CENSYS_IO_SRC }}"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_censys_io.ipset "${{ vars.BL_CENSYS_IO_ASN }}"
 
                   #   Privacy › China › China Broadcasting Network
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_broadcasting_network.ipset "${{ vars.BL_PRIVACY_CHINA_BROADCASTING_NETWORK_SRC }}"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_broadcasting_network.ipset "${{ vars.BL_CHINA_BROADCASTING_NETWORK_ASN }}"
 
                   #   Privacy › China › China Mobile
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_mobile.ipset "${{ vars.BL_PRIVACY_CHINA_MOBILE_SRC }}"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_mobile.ipset "${{ vars.BL_CHINA_MOBILE_ASN }}"
 
                   #   Privacy › China › ChinaNET
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_chinanet.ipset "${{ vars.BL_PRIVACY_CHINA_CHINANET_SRC }}"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_chinanet.ipset "${{ vars.BL_CHINA_CHINANET_ASN }}"
 
                   #   Privacy › China › China / Shanghai Mobile Communications Co.,Ltd.
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_net_mobile.ipset "${{ vars.BL_PRIVACY_CHINA_NETMOBILE_SRC }}"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_net_mobile.ipset "${{ vars.BL_CHINA_NETMOBILE_ASN }}"
 
                   #   Privacy › China › China Networks Inter-Exchange
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_networks.ipset "${{ vars.BL_PRIVACY_CHINA_NETWORKS_SRC }}"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_networks.ipset "${{ vars.BL_CHINA_NETWORKS_ASN }}"
 
                   #   Privacy › China › Telecom
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_telecom.ipset "${{ vars.BL_PRIVACY_CHINA_TELECOM_SRC }}"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_telecom.ipset "${{ vars.BL_CHINA_TELECOM_ASN }}"
 
                   #   Privacy › China › Tencent Networks
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_tencent.ipset "${{ vars.BL_PRIVACY_CHINA_TENCENT_NET_SRC }}"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_tencent.ipset "${{ vars.BL_CHINA_TENCENT_NET_ASN }}"
 
                   #   Privacy › China › Tietong
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_tietong.ipset "${{ vars.BL_PRIVACY_CHINA_TIETONG_SRC }}"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_tietong.ipset "${{ vars.BL_CHINA_TIETONG_ASN }}"
 
                   #   Privacy › China › Unicorn
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_unicorn.ipset "${{ vars.BL_PRIVACY_CHINA_UNICORN_SRC }}"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_unicorn.ipset "${{ vars.BL_CHINA_UNICORN_ASN }}"
 
                   #   Privacy › Tumblr
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_tumblr.ipset "${{ vars.BL_PRIVACY_TUMBLR_SRC }}"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_tumblr.ipset "${{ vars.BL_TUMBLR_ASN }}"
 
                   #   Privacy › Twitter / X
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_twitter_x.ipset "${{ vars.BL_PRIVACY_TWITTER_INC_X_SRC }}"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_twitter_x.ipset "${{ vars.BL_TWITTER_INC_X_ASN }}"
 
                   #   Privacy › Ubisoft
                   ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_ubisoft.ipset "${{ vars.BL_PRIVACY_UBISOFT_SRC }}"
@@ -1165,99 +1155,46 @@ jobs:
               if: steps.task_blocklist_generate_run_mode.outputs.run_core == 'true'
               run: |
 
-                  # #
                   #   ISP › AOL
-                  # #
-              
-                  run_isp_aol=".github/scripts/bl-block.sh blocklists/isp/isp_aol.ipset isp/aol.ipset"
-                  eval "./$run_isp_aol"
+                  ./.github/scripts/bl-block.sh blocklists/isp/isp_aol.ipset isp/aol.ipset
 
-                  # #
                   #   ISP › ATT
-                  # #
+                  ./.github/scripts/bl-whois.sh blocklists/isp/isp_att.ipset "${{ vars.BL_ATT_ASN }}"
 
-                  run_isp_att=".github/scripts/bl-whois.sh blocklists/isp/isp_att.ipset AS7018"
-                  eval "./$run_isp_att"
-
-                  # #
                   #   ISP › Cablevision | Later merged with Suddenlink
-                  # #
+                  ./.github/scripts/bl-whois.sh blocklists/isp/isp_cablevision.ipset "${{ vars.BL_CABLEVISION_ASN }}"
 
-                  run_isp_cablevision=".github/scripts/bl-whois.sh blocklists/isp/isp_cablevision.ipset AS6128 AS13490 AS19720"
-                  eval "./$run_isp_cablevision"
-
-                  # #
-                  #   ISP › Suddenlink / Altice / Optiumum
-                  # #
-
-                  run_isp_suddenlink_optimum=".github/scripts/bl-json.sh blocklists/isp/isp_suddenlink_altice_optimum.ipset https://ip.guide/AS19108 '.routes | .v4//empty,.v6//empty | .[]'"
-                  eval "./$run_isp_suddenlink_optimum"
-
-                  # #
-                  #   ISP › Frontier Communications
-                  #   https://networksdb.io/ip-addresses-of/cox-communications-inc
-                  # #
-
-                  run_isp_frontier=".github/scripts/bl-whois.sh blocklists/isp/isp_frontier_communications.ipset AS3593 AS5650 AS7011 AS26127 AS30064 AS32587"
-                  eval "./$run_isp_frontier"
-
-                  # #
                   #   ISP › Charter & Spectrum (Previously Time Warner Cable)
-                  # #
+                  ./.github/scripts/bl-whois.sh blocklists/isp/isp_charter_spectrum_timewarnercable.ipset "${{ vars.BL_CHARTER_SPECTRUM_TIMEWARNERCABLE }}"
 
-                  run_isp_charter_spectrum=".github/scripts/bl-whois.sh blocklists/isp/isp_charter_spectrum_timewarnercable.ipset AS7843 AS11351 AS12271 AS20001 AS20115 AS3456 AS63365"
-                  eval "./$run_isp_charter_spectrum"
-
-                  # #
                   #   ISP › Comcast
-                  # #
+                  ./.github/scripts/bl-whois.sh blocklists/isp/isp_comcast.ipset "${{ vars.BL_COMCAST_ASN }}"
 
-                  run_isp_comcast=".github/scripts/bl-whois.sh blocklists/isp/isp_comcast.ipset AS7922 AS7015 AS36732 AS36196 AS33651 AS33650 AS33542 AS33491 AS33490 AS33489 AS33351 AS33287 AS23266 AS23253 AS22909 AS22258 AS21508 AS20214 AS16748 AS14668 AS14042 AS13385 AS13367 AS11025"
-                  eval "./$run_isp_comcast"
-
-                  # #
-                  #   ISP › Embarq
-                  # #
-
-                  run_isp_embarq=".github/scripts/bl-whois.sh blocklists/isp/isp_embarq.ipset AS22186 AS32855 AS2379 AS3447 AS4212 AS5778 AS6222 AS6367 AS11398 AS11530 AS13787 AS14905 AS14910 AS14921 AS16718 AS17402 AS18494 AS22186 AS32855"
-                  eval "./$run_isp_embarq"
-
-                  # #
-                  #   ISP › Qwest
-                  # #
-
-                  run_isp_qwest=".github/scripts/bl-whois.sh blocklists/isp/isp_qwest.ipset AS3908 AS3909 AS3910 AS3951 AS4015 AS4911 AS6225 AS6226 AS6227 AS394190"
-                  eval "./$run_isp_qwest"
-
-                  # #
-                  #   ISP › Sprint
-                  # #
-
-                  run_isp_sprint=".github/scripts/bl-whois.sh blocklists/isp/isp_sprint.ipset AS1239 AS150389 AS1789 AS1790 AS1791 AS1792 AS1793 AS1794 AS1795 AS197226 AS2014 AS2050 AS2053 AS206963 AS21288 AS2938 AS2942 AS2959 AS2981 AS3647 AS3648 AS3649 AS3650 AS3651 AS3652"
-                  eval "./$run_isp_sprint"
-
-                  # #
-                  #   ISP › Verizon
-                  #   https://networksdb.io/search/org/verizon
-                  # #
-
-                  run_isp_verizon=".github/scripts/bl-whois.sh blocklists/isp/isp_verizon.ipset AS701 AS702 AS1321 AS2125 AS7021 AS8385 AS6066 AS6167 AS9055 AS12367 AS22521"
-                  eval "./$run_isp_verizon"
-
-                  # #
                   #   ISP › Cox Communications
                   #   https://networksdb.io/ip-addresses-of/cox-communications-inc
-                  # #
+                  ./.github/scripts/bl-whois.sh blocklists/isp/isp_cox_communications.ipset "${{ vars.BL_COX_COMMUNICATIONS_ASN }}"
 
-                  run_isp_cox=".github/scripts/bl-whois.sh blocklists/isp/isp_cox_communications.ipset AS31771 AS22773 AS13432 AS6298 AS12064 AS13493 AS15218 AS22318 AS25904 AS26204"
-                  eval "./$run_isp_cox"
+                  #   ISP › Embarq
+                  ./.github/scripts/bl-whois.sh blocklists/isp/isp_embarq.ipset "${{ vars.BL_EMBARQ_ASN }}"
 
-                  # #
+                  #   ISP › Frontier Communications
+                  ./.github/scripts/bl-whois.sh blocklists/isp/isp_frontier_communications.ipset "${{ vars.BL_FRONTIER_COMMUNICATIONS_ASN }}"
+
+                  #   ISP › Qwest / CenturyLink
+                  ./.github/scripts/bl-whois.sh blocklists/isp/isp_qwest_centurylink.ipset "${{ vars.BL_QWEST_CENTURYLINK_ASN }}"
+
+                  #   ISP › Sprint
+                  ./.github/scripts/bl-whois.sh blocklists/isp/isp_sprint.ipset "${{ vars.BL_SPRINT_ASN }}"
+
+                  #   ISP › Verizon
+                  #   https://networksdb.io/search/org/verizon
+                  ./.github/scripts/bl-whois.sh blocklists/isp/isp_verizon.ipset "${{ vars.BL_VERIZON_ASN }}"
+
                   #   ISP › SpaceX Starlink
-                  # #
+                  ./.github/scripts/bl-whois.sh blocklists/isp/isp_spacex_starlink.ipset "${{ vars.BL_SPACEX_STARLINK_ASN }}"
 
-                  run_isp_starlink=".github/scripts/bl-whois.sh blocklists/isp/isp_spacex_starlink.ipset AS14593 AS397763 AS27277 AS142475"
-                  eval "./$run_isp_starlink"
+                  #   ISP › Suddenlink / Altice / Optiumum
+                  ./.github/scripts/bl-json.sh blocklists/isp/isp_suddenlink_altice_optimum.ipset https://ip.guide/AS19108 '.routes | .v4//empty,.v6//empty | .[]'
 
             # #
             #   Generate › Geographical › Geolite2 › Setup
@@ -1330,68 +1267,78 @@ jobs:
                   export BL_GEOLITE2_REUSE_TEMP=true
                   rm -rf .github/temp .github/.temp
 
-                  ./.github/scripts/bl-geolite2_asn.sh --folder A --file akamai_core --asn ${{ vars.BL_GL2_ASN_AKAMAI_CORE_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder A --file akamai_linode --asn ${{ vars.BL_GL2_ASN_AKAMAI_LINODE_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder A --file amazon_inc --asn ${{ vars.BL_GL2_ASN_AMAZON_INC_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder A --file apple_inc --asn ${{ vars.BL_GL2_ASN_APPLE_INC_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder B --file bluehost_eig --asn ${{ vars.BL_GL2_ASN_BLUEHOST_EIG_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder B --file bunnycdn --asn ${{ vars.BL_GL2_ASN_BUNNYCDN_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file censys_io --asn ${{ vars.BL_GL2_ASN_CENSYS_IO_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file charter_communications --asn ${{ vars.BL_GL2_ASN_CHARTER_COMMUNICATIONS_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_broadcasting_network --asn ${{ vars.BL_GL2_ASN_CHINA_BROADCASTING_NETWORK_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_mobile --asn ${{ vars.BL_GL2_ASN_CHINA_MOBILE_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_chinanet --asn ${{ vars.BL_GL2_ASN_CHINA_CHINANET_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_net_mobile --asn ${{ vars.BL_GL2_ASN_CHINA_NETMOBILE_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_networks --asn ${{ vars.BL_GL2_ASN_CHINA_NETWORKS_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_telecom --asn ${{ vars.BL_GL2_ASN_CHINA_TELECOM_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_tencent_net --asn ${{ vars.BL_GL2_ASN_CHINA_TENCENT_NET_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_tietong --asn ${{ vars.BL_GL2_ASN_CHINA_TIETONG_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_unicorn --asn ${{ vars.BL_GL2_ASN_CHINA_UNICORN_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file cloudflare --asn ${{ vars.BL_GL2_ASN_CLOUDFLARE_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file colocrossing_hostpapa --asn ${{ vars.BL_GL2_ASN_COLOCROSSING_HOSTPAPA_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file contabo_gmbh --asn ${{ vars.BL_GL2_ASN_CONTABO_GMBH }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder D --file digital_ocean --asn ${{ vars.BL_GL2_ASN_DIGITAL_OCEAN_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder D --file dreamhost --asn ${{ vars.BL_GL2_ASN_DREAMHOST_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder F --file facebook --asn ${{ vars.BL_GL2_ASN_FACEBOOK_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder F --file fastly --asn ${{ vars.BL_GL2_ASN_FASTLY_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder F --file fdc_servers --asn ${{ vars.BL_GL2_ASN_FDC_SERVERS_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder G --file godaddy --asn ${{ vars.BL_GL2_ASN_GODADDY_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder G --file google --asn ${{ vars.BL_GL2_ASN_GOOGLE_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder H --file haproxy_technologies_inc --asn ${{ vars.BL_GL2_ASN_HAPROXY_TECHNOLOGIES_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder H --file hetzner --asn ${{ vars.BL_GL2_ASN_HETZNER_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder H --file hostinger --asn ${{ vars.BL_GL2_ASN_HOSTINGER_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder I --file inmotion_hosting --asn ${{ vars.BL_GL2_ASN_INMOTION_HOSTING_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder I --file ionos_1and1 --asn ${{ vars.BL_GL2_ASN_IONOS_1AND1_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder I --file internet_measurement_com --asn ${{ vars.BL_GL2_ASN_INTERNET_MEASUREMENT_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder K --file korea_telecom --asn ${{ vars.BL_GL2_ASN_KOREA_TELECOM_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder L --file leaseweb_hosting --asn ${{ vars.BL_GL2_ASN_LEASEWEB_HOSTING_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder M --file microsoft_corp --asn ${{ vars.BL_GL2_ASN_MICROSOFT_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder N --file namecheap --asn ${{ vars.BL_GL2_ASN_NAMECHEAP_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder O --file onyphe_io --asn ${{ vars.BL_GL2_ASN_ONYPHE_IO_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder O --file oracle --asn ${{ vars.BL_GL2_ASN_ORACLE_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder O --file ovh_cloud --asn ${{ vars.BL_GL2_ASN_OVH_CLOUD_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder P --file psychz_networks --asn ${{ vars.BL_GL2_ASN_PSYCHZ_NETWORKS_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder Q --file quadra_net --asn ${{ vars.BL_GL2_ASN_QUADRA_NET_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder R --file rackspace_hosting --asn ${{ vars.BL_GL2_ASN_RACKSPACE_HOSTING_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder R --file recyber_net --asn ${{ vars.BL_GL2_ASN_RECYBER_NET_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file russia_crimeacom_south_llc --asn ${{ vars.BL_GL2_ASN_RUSSIA_CRIMEACOM_SOUTH_LLC_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file russia_zummer_llc --asn ${{ vars.BL_GL2_ASN_RUSSIA_ZUMMER_LLC_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder S --file scaleway_sas --asn ${{ vars.BL_GL2_ASN_SCALEWAY_SAS_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder S --file servers_dot_com_inc --asn ${{ vars.BL_GL2_ASN_SERVERS_DOT_COM_INC_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder S --file shadowserver_foundation --asn ${{ vars.BL_GL2_ASN_SHADOWSERVER_FOUNDATION_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder S --file shodan_io --asn ${{ vars.BL_GL2_ASN_SHODAN_IO_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder S --file sharktech --asn ${{ vars.BL_GL2_ASN_SHARKTECH_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder S --file stackpath_blackhost --asn ${{ vars.BL_GL2_ASN_STACKPATH_BLACKHOST_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder S --file starlink --asn ${{ vars.BL_GL2_ASN_STARLINK_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder T --file tiktok_bytedance --asn ${{ vars.BL_GL2_ASN_TIKTOK_BYTEDANCE_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder T --file tumblr --asn ${{ vars.BL_GL2_ASN_TUMBLR_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder U --file upcloud_usa_inc --asn ${{ vars.BL_GL2_ASN_UPCLOUD_USA_INC_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder U --file usa_department_of_defense_dnic --asn ${{ vars.BL_GL2_ASN_USA_DOD_DNIC_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder U --file usa_internet_corp --asn ${{ vars.BL_GL2_ASN_USA_INTERNET_CORP_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder U --file vultr --asn ${{ vars.BL_GL2_ASN_VULTR_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder V --file vietel --asn ${{ vars.BL_GL2_ASN_VIETEL_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder V --file yahoo --asn ${{ vars.BL_GL2_ASN_YAHOO_SRC }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder Y --file youtube --asn ${{ vars.BL_GL2_ASN_YOUTUBE_SRC }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder A --file akamai_core --asn ${{ vars.BL_AKAMAI_CORE_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder A --file akamai_linode --asn ${{ vars.BL_AKAMAI_LINODE_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder A --file amazon_inc --asn ${{ vars.BL_AMAZON_INC_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder A --file apple_inc --asn ${{ vars.BL_APPLE_INC_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder A --file att --asn ${{ vars.BL_ATT_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder B --file bluehost_eig --asn ${{ vars.BL_BLUEHOST_EIG_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder B --file bunnycdn --asn ${{ vars.BL_BUNNYCDN_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file cablevision --asn ${{ vars.BL_CABLEVISION_ASN }} 
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file censys_io --asn ${{ vars.BL_CENSYS_IO_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file charter_spectrum_timewarnercable --asn ${{ vars.BL_CHARTER_SPECTRUM_TIMEWARNERCABLE }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_broadcasting_network --asn ${{ vars.BL_CHINA_BROADCASTING_NETWORK_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_mobile --asn ${{ vars.BL_CHINA_MOBILE_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_chinanet --asn ${{ vars.BL_CHINA_CHINANET_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_net_mobile --asn ${{ vars.BL_CHINA_NETMOBILE_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_networks --asn ${{ vars.BL_CHINA_NETWORKS_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_telecom --asn ${{ vars.BL_CHINA_TELECOM_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_tencent_net --asn ${{ vars.BL_CHINA_TENCENT_NET_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_tietong --asn ${{ vars.BL_CHINA_TIETONG_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_unicorn --asn ${{ vars.BL_CHINA_UNICORN_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file cloudflare --asn ${{ vars.BL_CLOUDFLARE_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file colocrossing_hostpapa --asn ${{ vars.BL_COLOCROSSING_HOSTPAPA_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file comcast --asn ${{ vars.BL_COMCAST_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file contabo_gmbh --asn ${{ vars.BL_CONTABO_GMBH_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file cox_communications --asn ${{ vars.BL_COX_COMMUNICATIONS_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder D --file digital_ocean --asn ${{ vars.BL_DIGITAL_OCEAN_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder D --file dreamhost --asn ${{ vars.BL_DREAMHOST_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder E --file embarq --asn ${{ vars.BL_EMBARQ_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder F --file facebook --asn ${{ vars.BL_FACEBOOK_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder F --file fastly --asn ${{ vars.BL_FASTLY_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder F --file fdc_servers --asn ${{ vars.BL_FDC_SERVERS_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder F --file frontier_communications --asn ${{ vars.BL_FRONTIER_COMMUNICATIONS_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder G --file godaddy --asn ${{ vars.BL_GODADDY_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder G --file google --asn ${{ vars.BL_GOOGLE_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder H --file haproxy_technologies_inc --asn ${{ vars.BL_HAPROXY_TECHNOLOGIES_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder H --file hetzner --asn ${{ vars.BL_HETZNER_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder H --file hostinger --asn ${{ vars.BL_HOSTINGER_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder I --file inmotion_hosting --asn ${{ vars.BL_INMOTION_HOSTING_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder I --file ionos_1and1 --asn ${{ vars.BL_IONOS_1AND1_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder I --file internet_measurement_com --asn ${{ vars.BL_INTERNET_MEASUREMENT_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder K --file korea_telecom --asn ${{ vars.BL_KOREA_TELECOM_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder L --file leaseweb_hosting --asn ${{ vars.BL_LEASEWEB_HOSTING_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder M --file microsoft_corp --asn ${{ vars.BL_MICROSOFT_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder N --file namecheap --asn ${{ vars.BL_NAMECHEAP_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder O --file onyphe_io --asn ${{ vars.BL_ONYPHE_IO_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder O --file oracle --asn ${{ vars.BL_ORACLE_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder O --file ovh_cloud --asn ${{ vars.BL_OVH_CLOUD_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder P --file psychz_networks --asn ${{ vars.BL_PSYCHZ_NETWORKS_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder Q --file quadra_net --asn ${{ vars.BL_QUADRA_NET_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder Q --file qwest_centurylink --asn ${{ vars.BL_QWEST_CENTURYLINK_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder R --file rackspace_hosting --asn ${{ vars.BL_RACKSPACE_HOSTING_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder R --file recyber_net --asn ${{ vars.BL_RECYBER_NET_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder R --file russia_crimeacom_south_llc --asn ${{ vars.BL_RUSSIA_CRIMEACOM_SOUTH_LLC_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder R --file russia_zummer_llc --asn ${{ vars.BL_RUSSIA_ZUMMER_LLC_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder S --file scaleway_sas --asn ${{ vars.BL_SCALEWAY_SAS_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder S --file servers_dot_com_inc --asn ${{ vars.BL_SERVERS_DOT_COM_INC_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder S --file shadowserver_foundation --asn ${{ vars.BL_SHADOWSERVER_FOUNDATION_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder S --file shodan_io --asn ${{ vars.BL_SHODAN_IO_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder S --file sharktech --asn ${{ vars.BL_SHARKTECH_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder S --file stackpath_blackhost --asn ${{ vars.BL_STACKPATH_BLACKHOST_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder S --file spacex_starlink --asn ${{ vars.BL_SPACEX_STARLINK_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder S --file sprint --asn ${{ vars.BL_SPRINT_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder T --file tiktok_bytedance --asn ${{ vars.BL_TIKTOK_BYTEDANCE_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder T --file tumblr --asn ${{ vars.BL_TUMBLR_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder T --file twitter_x --asn ${{ vars.BL_TWITTER_INC_X_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder U --file upcloud_usa_inc --asn ${{ vars.BL_UPCLOUD_USA_INC_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder U --file usa_department_of_defense_dnic --asn ${{ vars.BL_USA_DOD_DNIC_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder U --file usa_internet_corp --asn ${{ vars.BL_USA_INTERNET_CORP_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder V --file verizon --asn ${{ vars.BL_VERIZON_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder V --file vietel --asn ${{ vars.BL_VIETNAM_VIETEL_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder U --file vultr --asn ${{ vars.BL_VULTR_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder V --file yahoo --asn ${{ vars.BL_YAHOO_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder Y --file youtube --asn ${{ vars.BL_YOUTUBE_ASN }}
 
                   rm -rf blocklists/geolite/asn/ipv4 blocklists/geolite/asn/ipv6
                   rm -rf .github/temp .github/.temp

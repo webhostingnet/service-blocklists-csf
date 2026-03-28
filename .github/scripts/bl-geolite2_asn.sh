@@ -2611,16 +2611,16 @@ ipsets_Finalize()
 
                 _asn_header_block=""
                 if [ "${#_asn_lines[@]}" -eq 0 ]; then
-                    _asn_header_block="#   All IP ranges registered to ASN ${ipset_read_asn} (${ipset_read_orgname})."
+                    _asn_header_block="#   All IP ranges registered to ASN ${ipset_read_asn}."
                 elif [ "${#_asn_lines[@]}" -eq 1 ]; then
-                    _asn_header_block="#   All IP ranges registered to ASN ${_asn_lines[0]} (${ipset_read_orgname})."
+                    _asn_header_block="#   All IP ranges registered to ASN ${_asn_lines[0]}."
                 else
                     _asn_header_block="#   All IP ranges registered to ASN ${_asn_lines[0]}"
                     _asn_last_index=$(( ${#_asn_lines[@]} - 1 ))
                     for (( _asn_i=1; _asn_i< _asn_last_index; _asn_i++ )); do
                         _asn_header_block="${_asn_header_block}\n#   ${_asn_lines[$_asn_i]}"
                     done
-                    _asn_header_block="${_asn_header_block}\n#   ${_asn_lines[$_asn_last_index]} (${ipset_read_orgname})."
+                    _asn_header_block="${_asn_header_block}\n#   ${_asn_lines[$_asn_last_index]}."
                 fi
 
                 # #
