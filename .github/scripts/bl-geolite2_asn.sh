@@ -2521,10 +2521,19 @@ ipsets_Finalize()
                 #   Define › Template › External Sources
                 # #
 
-                curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/descriptions/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/desc.txt &
-                curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/categories/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/cat.txt &
-                curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/expires/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/exp.txt &
-                curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/url-source/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/src.txt &
+                if [ ! -d "${app_dir_github}/${folder_target_temp}" ]; then
+                    mkdir -p "${app_dir_github}/${folder_target_temp}"
+                fi
+            
+                if [ ! -d "${app_dir_github}/${folder_target_temp}" ]; then
+                    error "          Could not create temp folder ${redd}${app_dir_github}/${folder_target_temp}${end}"
+                    exit 1
+                fi
+
+                curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/descriptions/geolite2/${templ_id}.txt" > "${app_dir_github}/${folder_target_temp}/desc.txt" &
+                curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/categories/geolite2/${templ_id}.txt" > "${app_dir_github}/${folder_target_temp}/cat.txt" &
+                curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/expires/geolite2/${templ_id}.txt" > "${app_dir_github}/${folder_target_temp}/exp.txt" &
+                curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/url-source/geolite2/${templ_id}.txt" > "${app_dir_github}/${folder_target_temp}/src.txt" &
                 wait
 
                 # #
@@ -2570,58 +2579,49 @@ ipsets_Finalize()
                 ${greyd}\n${greym}Service:	        ${greyd}..........${yellowl} ${templ_url_service}${greyd}"
 
                 # #
-                #   Build ASN header block:
-                #       - 5 ASNs per line
-                #       - wrapped lines end in comma except final ASN line
-                #       - final line appends organization and period
+                #   Build ASN header block
+                #       - Match bl-whois template style
+                #       - Start with @asn on first line
+                #       - Wrap every 5 ASNs
                 # #
 
                 _asn_source="${ipset_read_asn}"
                 _asn_source=$(printf '%s' "${_asn_source}" | sed 's/[[:space:]]*,[[:space:]]*/,/g; s/[[:space:]]\+/,/g; s/,,*/,/g; s/^,//; s/,$//')
                 IFS=',' read -r -a _asn_parts <<< "${_asn_source}"
-                _asn_lines=()
-                _asn_line=""
-                _asn_line_count=0
-                _asn_total=${#_asn_parts[@]}
+                _asn_values=()
 
-                for _asn_idx in "${!_asn_parts[@]}"; do
-                    _asn_val="${_asn_parts[$_asn_idx]}"
-                    [ -z "${_asn_val}" ] && continue
+                for _asn_part in "${_asn_parts[@]}"; do
+                    _asn_part=$(printf '%s' "${_asn_part}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+                    [ -z "${_asn_part}" ] && continue
 
-                    if [ -z "${_asn_line}" ]; then
-                        _asn_line="${_asn_val}"
-                    else
-                        _asn_line="${_asn_line}, ${_asn_val}"
-                    fi
-
-                    _asn_line_count=$(( _asn_line_count + 1 ))
-                    _asn_is_last=$(( _asn_idx + 1 ))
-
-                    if [ "${_asn_line_count}" -ge 5 ] && [ "${_asn_is_last}" -lt "${_asn_total}" ]; then
-                        _asn_line="${_asn_line},"
-                        _asn_lines+=( "${_asn_line}" )
-                        _asn_line=""
-                        _asn_line_count=0
+                    if printf '%s\n' "${_asn_part}" | grep -qE '^([Aa][Ss])?[0-9]+$'; then
+                        _asn_digits=$(printf '%s' "${_asn_part}" | sed -E 's/^([Aa][Ss])?([0-9]+)$/\2/')
+                        _asn_values+=( "AS${_asn_digits}" )
                     fi
                 done
 
-                if [ -n "${_asn_line}" ]; then
-                    _asn_lines+=( "${_asn_line}" )
+                if [ "${#_asn_values[@]}" -eq 0 ]; then
+                    if printf '%s\n' "${ipset_read_asn}" | grep -qE '^[0-9]+$'; then
+                        _asn_values=( "AS${ipset_read_asn}" )
+                    elif [ -n "${ipset_read_asn}" ]; then
+                        _asn_values=( "${ipset_read_asn}" )
+                    else
+                        _asn_values=( "None" )
+                    fi
                 fi
 
                 _asn_header_block=""
-                if [ "${#_asn_lines[@]}" -eq 0 ]; then
-                    _asn_header_block="#   All IP ranges registered to ASN ${ipset_read_asn}."
-                elif [ "${#_asn_lines[@]}" -eq 1 ]; then
-                    _asn_header_block="#   All IP ranges registered to ASN ${_asn_lines[0]}."
-                else
-                    _asn_header_block="#   All IP ranges registered to ASN ${_asn_lines[0]}"
-                    _asn_last_index=$(( ${#_asn_lines[@]} - 1 ))
-                    for (( _asn_i=1; _asn_i< _asn_last_index; _asn_i++ )); do
-                        _asn_header_block="${_asn_header_block}\n#   ${_asn_lines[$_asn_i]}"
-                    done
-                    _asn_header_block="${_asn_header_block}\n#   ${_asn_lines[$_asn_last_index]}."
-                fi
+                _asn_step=0
+                for _asn_entry in "${_asn_values[@]}"; do
+                    if [ "${_asn_step}" -eq 0 ]; then
+                        _asn_header_block="#   @asn            ${_asn_entry}"
+                    elif [ $(( _asn_step % 5 )) -eq 0 ]; then
+                        _asn_header_block="${_asn_header_block}\n#                   ${_asn_entry}"
+                    else
+                        _asn_header_block="${_asn_header_block}, ${_asn_entry}"
+                    fi
+                    _asn_step=$(( _asn_step + 1 ))
+                done
 
                 # #
                 #   Write ipset header and metadata block
@@ -2639,10 +2639,9 @@ ipsets_Finalize()
                     echo "#   @entries        ${total_ips} ips"
                     echo "#                   ${total_subnets} subnets"
                     echo "#                   ${total_lines} lines"
+                    printf "%b\n" "${_asn_header_block}"
                     echo "#   @expires        ${templ_exp}"
                     echo "#   @category       ${templ_cat}"
-                    echo "#"
-                    printf "%b\n" "${_asn_header_block}"
                     echo "#"
                     echo "#   Includes both IPv4 and IPv6 networks merged"
                     echo "# #"
@@ -2673,8 +2672,8 @@ ipsets_Finalize()
                 rm -f "${tmp_clean}"
                 ok "    🚛 Moved ${bluel}${tmpfile}${greym} › ${bluel}${target_file}${greym}"
 
-                unset   _asn_source _asn_parts _asn_lines _asn_line _asn_line_count _asn_total \
-                        _asn_idx _asn_val _asn_is_last _asn_header_block _asn_last_index _asn_i
+                unset   _asn_source _asn_parts _asn_values _asn_part _asn_digits \
+                        _asn_header_block _asn_step _asn_entry
             done < <(find "${DIR}" -type f -name "*.${file_target_ext_tmp}" -print0)
         fi
     done
@@ -2772,11 +2771,18 @@ ipsets_Finalize()
         # #
         #   ASN › Template › External Sources
         # #
+        if [ ! -d "${app_dir_github}/${folder_target_temp}" ]; then
+            mkdir -p "${app_dir_github}/${folder_target_temp}"
+        fi
+        if [ ! -d "${app_dir_github}/${folder_target_temp}" ]; then
+            error "          Could not create temp folder ${redd}${app_dir_github}/${folder_target_temp}${end}"
+            exit 1
+        fi
 
-        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/descriptions/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/desc.txt &
-        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/categories/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/cat.txt &
-        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/expires/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/exp.txt &
-        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/url-source/geolite2/${templ_id}.txt" > ${app_dir_github}/${folder_target_temp}/src.txt &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/descriptions/geolite2/${templ_id}.txt" > "${app_dir_github}/${folder_target_temp}/desc.txt" &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/categories/geolite2/${templ_id}.txt" > "${app_dir_github}/${folder_target_temp}/cat.txt" &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/expires/geolite2/${templ_id}.txt" > "${app_dir_github}/${folder_target_temp}/exp.txt" &
+        curl "${templ_curl_opts[@]}" "${app_repo_curl_storage}/url-source/geolite2/${templ_id}.txt" > "${app_dir_github}/${folder_target_temp}/src.txt" &
         wait
 
         # #
