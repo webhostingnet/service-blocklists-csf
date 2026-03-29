@@ -5,10 +5,10 @@
 #   @service        None
 #   @id             privacy_ai_claude_official_ipset
 #   @uuid           8acc71c8-3f03-3818-840e-d233021be1cd
-#   @updated        Sat Mar 28 20:26:09 UTC 2026
-#   @entries        2,561 ips
-#                   3 subnets
-#                   3 lines
+#   @updated        Sun Mar 29 17:08:20 UTC 2026
+#   @entries        2,049 ips
+#                   2 subnets
+#                   2 lines
 #   @expires        6 hours
 #   @category       Uncategorized
 #
@@ -16,5 +16,4 @@
 # #
 
 160.79.104.0/21
-160.79.104.0/23
 2607:6bc0::/48

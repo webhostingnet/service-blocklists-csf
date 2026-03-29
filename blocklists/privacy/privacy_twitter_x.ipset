@@ -5,11 +5,11 @@
 #   @service        None
 #   @id             privacy_twitter_x_ipset
 #   @uuid           91063083-a070-366f-9e33-fc5c7619e8a2
-#   @updated        Tue Mar 24 01:55:23 UTC 2026
-#   @entries        46,595 ips
-#                   26 subnets
-#                   26 lines
-#   @asn            AS13414, AS35995
+#   @updated        Sun Mar 29 17:37:57 UTC 2026
+#   @entries        49,155 ips
+#                   28 subnets
+#                   28 lines
+#   @asn            AS13414, AS63179, AS35995, AS54888
 #   @expires        6 hours
 #   @category       Uncategorized
 #
@@ -19,6 +19,7 @@
 8.25.194.0/23
 8.25.196.0/23
 64.63.0.0/18
+69.12.56.0/21
 69.195.160.0/19
 103.252.112.0/22
 104.244.40.0/24
@@ -33,6 +34,7 @@
 185.45.6.0/23
 188.64.224.0/21
 192.44.68.0/23
+192.48.236.0/23
 192.133.76.0/22
 199.16.156.0/22
 199.59.148.0/22
