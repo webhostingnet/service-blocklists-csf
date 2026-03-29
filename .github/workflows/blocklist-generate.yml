@@ -661,14 +661,14 @@ jobs:
                   #   Privacy › Amazon AWS
                   # #
 
-                  run_amz_aws=".github/scripts/bl-json.sh blocklists/privacy/privacy_amazon_aws.ipset ${{ vars.BL_AMAZON_INC_URL }} '.prefixes[] | select(.service==\"AMAZON\") | .ip_prefix'"
+                  run_amz_aws=".github/scripts/bl-json.sh blocklists/privacy/privacy_amazon_aws.ipset ${{ vars.BL_AMAZON_CORE_URL }} '.prefixes[] | select(.service==\"AMAZON\") | .ip_prefix'"
                   eval "./$run_amz_aws"
 
                   # #
                   #   Privacy › Amazon EC2
                   # #
 
-                  run_amz_ec2=".github/scripts/bl-json.sh blocklists/privacy/privacy_amazon_ec2.ipset ${{ vars.BL_AMAZON_INC_URL }} '.prefixes[] | select(.service==\"EC2\") | .ip_prefix'"
+                  run_amz_ec2=".github/scripts/bl-json.sh blocklists/privacy/privacy_amazon_ec2.ipset ${{ vars.BL_AMAZON_CORE_URL }} '.prefixes[] | select(.service==\"EC2\") | .ip_prefix'"
                   eval "./$run_amz_ec2"
 
                   # #
@@ -713,22 +713,19 @@ jobs:
                   #   Privacy › Bing
                   # #
 
-                  run_bing=".github/scripts/bl-json.sh blocklists/privacy/privacy_bing.ipset ${{ vars.BL_PRIVACY_BING_SRC }} '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty'"
-                  eval "./$run_bing"
+                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_bing.ipset "${{ vars.BL_PRIVACY_BING_SRC }}" '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty'
 
                   # #
                   #   Privacy › Blizzard
                   # #
 
-                  run_blizzard=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_blizzard.ipset ${{ vars.BL_PRIVACY_BLIZZARD_SRC }}"
-                  eval "./$run_blizzard"
+                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_blizzard.ipset "${{ vars.BL_PRIVACY_BLIZZARD_SRC }}"
 
                   # #
                   #   Privacy › Bluehost
                   # #
 
-                  run_bluehost_eig=".github/scripts/bl-whois.sh blocklists/privacy/privacy_bluehost_eig.ipset ${{ vars.BL_BLUEHOST_EIG_ASN }}"
-                  eval "./$run_bluehost_eig"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_bluehost_eig.ipset "${{ vars.BL_BLUEHOST_EIG_ASN }}"
 
                   # #
                   #   Privacy › Bunny CDN
@@ -751,15 +748,15 @@ jobs:
                   #   Privacy › Cloudfront
                   # #
 
-                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_cloudfront.ipset "${{ vars.BL_PRIVACY_CLOUDFRONT_SRC }}" 'map(.[]) | sort | .[]'
+                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_cloudfront.ipset "${{ vars.BL_AMAZON_CLOUDFRONT_URL }}" 'map(.[]) | sort | .[]'
 
                   # #
                   #   Privacy › Cloudflare CDN
                   # #
 
-                  CLOUDFLARE_IPv4=$( curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_PRIVACY_CLOUDFLARE_SRC }}/ips-v4 \
+                  CLOUDFLARE_IPv4=$( curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_CLOUDFLARE_URL }}/ips-v4 \
                     | grep -vE '^(#|;|[[:space:]]*$)' )
-                  CLOUDFLARE_IPv6=$( curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_PRIVACY_CLOUDFLARE_SRC }}/ips-v6 \
+                  CLOUDFLARE_IPv6=$( curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_CLOUDFLARE_URL }}/ips-v6 \
                     | grep -vE '^(#|;|[[:space:]]*$)' )
                   CLOUDFLARE_LIST=$( echo -e "${CLOUDFLARE_IPv4}\n${CLOUDFLARE_IPv6}" | sort -u )
                   echo "$CLOUDFLARE_LIST" | .github/scripts/bl-format.sh blocklists/privacy/privacy_cloudflarecdn.ipset
@@ -768,8 +765,7 @@ jobs:
                   #   Privacy › COLOCROSSING / HostPapa
                   # #
 
-                  run_colocrossing_hostpapa=".github/scripts/bl-whois.sh blocklists/privacy/privacy_colocrossing_hostpapa.ipset ${{ vars.BL_COLOCROSSING_HOSTPAPA_ASN }}"
-                  eval "./$run_colocrossing_hostpapa"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_colocrossing_hostpapa.ipset "${{ vars.BL_COLOCROSSING_HOSTPAPA_ASN }}"
 
                   # #
                   #   Privacy › Contabo Hosting
@@ -809,15 +805,13 @@ jobs:
                   #       https://duckduckgo.com/duckduckbot.json
                   # #
 
-                  run_duckduckgo=".github/scripts/bl-json.sh blocklists/privacy/privacy_duckduckgo.ipset ${{ vars.BL_DUCKDUCKGO_URL }} '.prefixes[] | select(.ipv4Prefix or .ipv6Prefix) | (.ipv4Prefix // .ipv6Prefix)'"
-                  eval "./$run_duckduckgo"
+                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_duckduckgo.ipset "${{ vars.BL_DUCKDUCKGO_URL }}" '.prefixes[] | select(.ipv4Prefix or .ipv6Prefix) | (.ipv4Prefix // .ipv6Prefix)'
 
                   # #
                   #   Privacy › Electronic Arts & IGN
                   # #
 
-                  run_ea_ign=".github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_electronicarts_ign.ipset ${{ vars.BL_PRIVACY_ELECTRONICARTS_SRC }}"
-                  eval "./$run_ea_ign"
+                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_electronicarts_ign.ipset "${{ vars.BL_PRIVACY_ELECTRONICARTS_SRC }}"
 
                   # #
                   #   Privacy › Facebook
@@ -825,15 +819,13 @@ jobs:
                   #   https://bgp.he.net/search?search%5Bsearch%5D=facebook&commit=Search
                   # #
 
-                  run_facebook=".github/scripts/bl-whois.sh blocklists/privacy/privacy_facebook.ipset ${{ vars.BL_FACEBOOK_ASN }}"
-                  eval "./$run_facebook"
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_facebook.ipset "${{ vars.BL_FACEBOOK_ASN }}"
 
                   # #
                   #   Privacy › Fastly
                   # #
 
-                  run_fastly=".github/scripts/bl-json.sh blocklists/privacy/privacy_fastly.ipset ${{ vars.BL_PRIVACY_FASTLY_SRC }} 'map(.[]) | .[]'"
-                  eval "./$run_fastly"
+                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_fastly.ipset ${{ vars.BL_FASTLY_URL }} 'map(.[]) | .[]'
 
             # #
             #   Generate › Privacy › G - 
@@ -868,19 +860,19 @@ jobs:
                   #   Privacy › Google › Core
                   # #
 
-                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_google_core.ipset "${{ vars.BL_PRIVACY_GOOGLE_BOTS_SRC }}" '.prefixes[] | select(.ipv4Prefix or .ipv6Prefix) | (.ipv4Prefix // .ipv6Prefix)'
+                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_google_core.ipset "${{ vars.BL_GOOGLE_BOTS_URL }}" '.prefixes[] | select(.ipv4Prefix or .ipv6Prefix) | (.ipv4Prefix // .ipv6Prefix)'
 
                   # #
                   #   Privacy › Google › Bot
                   # #
 
-                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_google_bots.ipset "${{ vars.BL_PRIVACY_GOOGLE_BOTS_SRC }}" '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty'
+                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_google_bots.ipset "${{ vars.BL_GOOGLE_BOTS_URL }}" '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty'
 
                   # #
                   #   Privacy › Google › Cloud
                   # #
 
-                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_google_cloud.ipset "${{ vars.BL_PRIVACY_GOOGLE_CLOUD_SRC }}" '.prefixes[] | select(.ipv4Prefix or .ipv6Prefix) | (.ipv4Prefix // .ipv6Prefix)'
+                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_google_cloud.ipset "${{ vars.BL_GOOGLE_CLOUD_URL }}" '.prefixes[] | select(.ipv4Prefix or .ipv6Prefix) | (.ipv4Prefix // .ipv6Prefix)'
 
                   # #
                   #   Privacy › Huawei
@@ -898,7 +890,7 @@ jobs:
                   #   Privacy › Microsoft › 365
                   # #
 
-                  MS_365_URL="${{ vars.BL_PRIVACY_MICROSOFT_365_SRC }}?clientrequestid=$(uuidgen)"
+                  MS_365_URL="${{ vars.BL_MICROSOFT_365_URL }}?clientrequestid=$(uuidgen)"
                   ./.github/scripts/bl-json.sh blocklists/privacy/privacy_microsoft_365.ipset $MS_365_URL '.[] | .ips[]?'
 
                   # #
@@ -912,47 +904,47 @@ jobs:
                   #   @ref    https://azservicetags.azurewebsites.net/
                   # #
 
-                  MS_AZURE_URL_PUBLIC=$( curl -fsSL "${{ vars.BL_PRIVACY_MICROSOFT_AZURE_URL_PUBLIC_SRC }}" | grep -o 'https://download.microsoft.com/download[^"]*ServiceTags_Public_[0-9]\+\.json' | head -n1 )
+                  MS_AZURE_URL_PUBLIC=$( curl -fsSL "${{ vars.BL_MICROSOFT_AZURE_PUBLIC_URL }}" | grep -o 'https://download.microsoft.com/download[^"]*ServiceTags_Public_[0-9]\+\.json' | head -n1 )
                   ./.github/scripts/bl-json.sh blocklists/privacy/privacy_microsoft_azure_public.ipset $MS_AZURE_URL_PUBLIC '.values[].properties.addressPrefixes[]'
 
-                  MS_AZURE_URL_USGOV=$( curl -fsSL "${{ vars.BL_PRIVACY_MICROSOFT_AZURE_URL_USGOV_SRC }}" | grep -o 'https://download.microsoft.com/download[^"]*ServiceTags_AzureGovernment_[0-9]\+\.json' | head -n1 )
+                  MS_AZURE_URL_USGOV=$( curl -fsSL "${{ vars.BL_MICROSOFT_AZURE_USGOV_URL }}" | grep -o 'https://download.microsoft.com/download[^"]*ServiceTags_AzureGovernment_[0-9]\+\.json' | head -n1 )
                   ./.github/scripts/bl-json.sh blocklists/privacy/privacy_microsoft_azure_usgov.ipset $MS_AZURE_URL_USGOV '.values[].properties.addressPrefixes[]'
 
-                  MS_AZURE_URL_GERMANY=$( curl -fsSL "${{ vars.BL_PRIVACY_MICROSOFT_AZURE_URL_GERMANY_SRC }}" | grep -o 'https://download.microsoft.com/download[^"]*ServiceTags_AzureGermany_[0-9]\+\.json' | head -n1 )
+                  MS_AZURE_URL_GERMANY=$( curl -fsSL "${{ vars.BL_MICROSOFT_AZURE_GERMANY_URL }}" | grep -o 'https://download.microsoft.com/download[^"]*ServiceTags_AzureGermany_[0-9]\+\.json' | head -n1 )
                   ./.github/scripts/bl-json.sh blocklists/privacy/privacy_microsoft_azure_usgov.ipset $MS_AZURE_URL_GERMANY '.values[].properties.addressPrefixes[]'
 
-                  MS_AZURE_URL_CHINA=$( curl -fsSL "${{ vars.BL_PRIVACY_MICROSOFT_AZURE_URL_CHINA_SRC }}" | grep -o 'https://download.microsoft.com/download[^"]*ServiceTags_China_[0-9]\+\.json' | head -n1 )
+                  MS_AZURE_URL_CHINA=$( curl -fsSL "${{ vars.BL_MICROSOFT_AZURE_CHINA_URL }}" | grep -o 'https://download.microsoft.com/download[^"]*ServiceTags_China_[0-9]\+\.json' | head -n1 )
                   ./.github/scripts/bl-json.sh blocklists/privacy/privacy_microsoft_azure_china.ipset $MS_AZURE_URL_CHINA '.values[].properties.addressPrefixes[]'
 
                   # #
                   #   Privacy › Nintendo
                   # #
 
-                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_nintendo.ipset "${{ vars.BL_PRIVACY_NINTENDO_SRC }}"
+                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_nintendo.ipset "${{ vars.BL_NINTENDO_URL }}"
 
                   # #
                   #   Privacy › Oracle › OCI (EC2 / GCP)
                   # #
 
-                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_oci.ipset "${{ vars.BL_PRIVACY_ORACLE_OCI_SRC }}" '.regions[].cidrs[] | select(.tags[] == "OCI") | .cidr'
+                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_oci.ipset "${{ vars.BL_ORACLE_OCI_URL }}" '.regions[].cidrs[] | select(.tags[] == "OCI") | .cidr'
 
                   # #
                   #   Privacy › Oracle › Oracle services network (OSN)
                   # #
 
-                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_osn.ipset "${{ vars.BL_PRIVACY_ORACLE_OSN_SRC }}" '.regions[].cidrs[] | select(.tags[] == "OSN") | .cidr'
+                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_osn.ipset "${{ vars.BL_ORACLE_OSN_URL }}" '.regions[].cidrs[] | select(.tags[] == "OSN") | .cidr'
 
                   # #
                   #   Privacy › Oracle › Object Storage
                   # #
 
-                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_object_storage.ipset "${{ vars.BL_PRIVACY_ORACLE_OBJ_SRC }}" '.regions[].cidrs[] | select(.tags[] == "OBJECT_STORAGE") | .cidr'
+                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_object_storage.ipset "${{ vars.BL_ORACLE_OBJ_URL }}" '.regions[].cidrs[] | select(.tags[] == "OBJECT_STORAGE") | .cidr'
 
                   # #
                   #   Privacy › Oracle › All
                   # #
 
-                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_all.ipset "${{ vars.BL_PRIVACY_ORACLE_ALL_SRC }}" '.regions[].cidrs[] | .cidr'
+                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_oracle_all.ipset "${{ vars.BL_ORACLE_ALL_URL }}" '.regions[].cidrs[] | .cidr'
 
                   # #
                   #   Privacy › Pandora
@@ -1030,8 +1022,20 @@ jobs:
                   #   Privacy › Stripe › Armada Gator
                   curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_PRIVACY_STRIPE_ARMADA_GATOR_SRC }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_stripe_armada_gator.ipset
 
-                  #   Privacy › Sony Entertainment
-                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_sony.ipset "${{ vars.BL_PRIVACY_SONY_CORE_SRC }}"
+                  #   Privacy › Sony › All
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_sony_all.ipset "${{ vars.BL_SONY_ALL_ASN }}"
+
+                  #   Privacy › Sony › Sony Network Communications Inc. (Japan/ISP/So-net)
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_sony_network_communications.ipset "${{ vars.BL_SONY_NETWORK_COMMUNICATIONS_ASN }}"
+
+                  #   Privacy › Sony › Sony Pictures Technologies Inc.
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_sony_pictures_technologies.ipset "${{ vars.BL_SONY_PICTURES_TECHNOLOGIES_ASN }}"
+
+                  #   Privacy › Sony › Sony Interactive Entertainment LLC (Playstation)
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_sony_playstation_network.ipset "${{ vars.BL_SONY_PLAYSTATION_NETWORK_ASN }}"
+
+                  #   Privacy › Sony › User Reported
+                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_sony_userflagged.ipset "${{ vars.BL_SONY_USERFLAGGED_URL }}"
 
                   #   Privacy › Telegram
                   curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_PRIVACY_TELEGRAM_SRC }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_telegram.ipset
@@ -1082,7 +1086,7 @@ jobs:
                   curl -sSLk -A "${{ env.USERAGENT }}" "${{ secrets.PROXY_WEB_URL_HTTPS }}/json?url=https%3A%2F%2Fwebpagetest.org%2Faddresses.php%3Ff%3Djson" | jq -r '.data[].addresses[] | select( . != null )' | .github/scripts/bl-format.sh blocklists/privacy/privacy_webpagetest.ipset
 
                   #   Privacy › Xfire
-                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_xfire.ipset "${{ vars.BL_PRIVACY_XFIRE_SRC }}"
+                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_xfire.ipset "${{ vars.BL_XFIRE_URL }}"
 
             # #
             #   Generate › Spam
@@ -1245,7 +1249,8 @@ jobs:
 
                   ./.github/scripts/bl-geolite2_asn.sh --folder A --file akamai_core --asn ${{ vars.BL_AKAMAI_CORE_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder A --file akamai_linode --asn ${{ vars.BL_AKAMAI_LINODE_ASN }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder A --file amazon_inc --asn ${{ vars.BL_AMAZON_INC_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder A --file amazon_core --asn ${{ vars.BL_AMAZON_CORE_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file amazon_cloudfront --asn ${{ vars.BL_AMAZON_CLOUDFRONT_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder A --file apple_inc --asn ${{ vars.BL_APPLE_INC_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder A --file att --asn ${{ vars.BL_ATT_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder B --file bluehost_eig --asn ${{ vars.BL_BLUEHOST_EIG_ASN }}
@@ -1287,6 +1292,7 @@ jobs:
                   ./.github/scripts/bl-geolite2_asn.sh --folder L --file leaseweb_hosting --asn ${{ vars.BL_LEASEWEB_HOSTING_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder M --file microsoft_corp --asn ${{ vars.BL_MICROSOFT_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder N --file namecheap --asn ${{ vars.BL_NAMECHEAP_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder N --file nintendo --asn ${{ vars.BL_NINTENDO_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder O --file onyphe_io --asn ${{ vars.BL_ONYPHE_IO_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder O --file oracle --asn ${{ vars.BL_ORACLE_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder O --file ovh_cloud --asn ${{ vars.BL_OVH_CLOUD_ASN }}
