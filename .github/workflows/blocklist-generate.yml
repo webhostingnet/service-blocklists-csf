@@ -587,8 +587,7 @@ jobs:
                   #   Main › BOGON
                   # #
 
-                  run_bogon=".github/scripts/bogon.sh blocklists/bogon.ipset"
-                  eval "./$run_bogon"
+                  ./.github/scripts/bogon.sh blocklists/bogon.ipset
 
             # #
             #   Generate › Privacy
@@ -689,7 +688,9 @@ jobs:
                   #   https://developer.apple.com/icloud/prepare-your-network-for-icloud-private-relay/
                   # #
 
-                  curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_APPLE_INC_PROXY_URL }} | cut -d',' -f1 | .github/scripts/bl-format.sh blocklists/privacy/privacy_apple_icloud.ipset
+                  curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_APPLE_INC_PROXY_URL }} \
+                    | awk -F',' 'NR>1{print $1}' \
+                    | BL_FORMAT_TRUSTED_INPUT=true BL_FORMAT_SKIP_BOGON_FILTER=true .github/scripts/bl-format.sh blocklists/privacy/privacy_apple_icloud.ipset
 
                   # #
                   #   Privacy › Automattic / Tumblr / Wordpress

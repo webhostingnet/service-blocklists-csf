@@ -163,6 +163,44 @@ argDryrun="false"                                                               
 argDevMode="false"                                                              # dev mode
 argVerbose="false"                                                              # verbose mode
 argIncludeBogon="false"                                                         # filter out BOGON IP addresses from list
+argTrustedInput="false"                                                         # trusted input mode (skip validation loop)
+argSkipBogonFilter="false"                                                      # skip bogon filter loop
+argSortParallel="${BL_FORMAT_SORT_PARALLEL:-}"                                  # optional sort --parallel value
+argSortBufferSize="${BL_FORMAT_SORT_BUFFER_SIZE:-}"                             # optional sort -S value
+sort_cmd_opts=()                                                                # optional sort command tuning
+did_load_fallback="false"                                                       # track whether fallback lists were merged
+
+# #
+#   Optional Parameters
+#   
+#       BL_FORMAT_TRUSTED_INPUT=true  
+#           Skip per-line IP/CIDR validation loop.
+#   
+#       BL_FORMAT_SKIP_BOGON_FILTER=true  
+#           Skip bogon filtering loop.
+#   
+#       BL_FORMAT_SORT_PARALLEL=<N>  
+#           Pass --parallel=<N> to sort if supported.
+#   
+#       BL_FORMAT_SORT_BUFFER_SIZE=<size>  
+#           Pass -S <size> to sort (example: 50%, 1G).
+#   
+#       curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_APPLE_INC_PROXY_URL }} \
+#           | awk -F',' 'NR>1{print $1}' \
+#           | BL_FORMAT_TRUSTED_INPUT=true BL_FORMAT_SKIP_BOGON_FILTER=true .github/scripts/bl-format.sh blocklists/privacy/privacy_apple_icloud.ipset
+# #
+
+case "${BL_FORMAT_TRUSTED_INPUT:-false}" in
+    1|true|TRUE|yes|YES|on|ON)
+        argTrustedInput="true"
+        ;;
+esac
+
+case "${BL_FORMAT_SKIP_BOGON_FILTER:-false}" in
+    1|true|TRUE|yes|YES|on|ON)
+        argSkipBogonFilter="true"
+        ;;
+esac
 argWhoisTimeout=2                                                               # Whois timeout
 
 # #
@@ -179,8 +217,8 @@ SECONDS=0                                                                       
 regex_url='^(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]\.[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]$'
 regex_ipv4='^([0-9]{1,3}\.){3}[0-9]{1,3}$'
 regex_ipv4_cidr='^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]{1,2})$'
-regex_ipv6='^[0-9A-Fa-f:.]+$'
-regex_ipv6_cidr='^[0-9A-Fa-f:.]+/[0-9]{1,3}$'
+regex_ipv6='^[0-9A-Fa-f:.]*:[0-9A-Fa-f:.]*$'
+regex_ipv6_cidr='^[0-9A-Fa-f:.]*:[0-9A-Fa-f:.]*/([0-9]{1,3})$'
 regex_ipv4_range='([0-9]{1,3}\.){3}[0-9]{1,3}[[:space:]]*-[[:space:]]*([0-9]{1,3}\.){3}[0-9]{1,3}'
 
 # #
@@ -701,6 +739,38 @@ run()
 }
 
 # #
+#   Configure sort options
+#   
+#   Builds the options array for the `sort` command based on user settings:
+#       - If `argSortParallel` is valid number and the system supports it, enable parallel sorting with that value
+#       - If `argSortBufferSize` is set, apply it as the sort buffer size (-S)
+#       - Log what gets enabled or warns if values are invalid or unsupported
+# #
+
+configure_sort_options( )
+{
+    sort_cmd_opts=()
+
+    if [ -n "${argSortParallel}" ]; then
+        if [[ "${argSortParallel}" =~ ^[1-9][0-9]*$ ]]; then
+            if sort --help 2>/dev/null | grep -q -- '--parallel'; then
+                sort_cmd_opts+=( "--parallel=${argSortParallel}" )
+                info "    ⚙️  Sort parallelism enabled (${yellowl}${argSortParallel}${greym})"
+            else
+                warn "    ⚠️  sort --parallel unsupported; running with default sort options"
+            fi
+        else
+            warn "    ⚠️  Invalid BL_FORMAT_SORT_PARALLEL value ${yellowl}${argSortParallel}${greym}; ignoring"
+        fi
+    fi
+
+    if [ -n "${argSortBufferSize}" ]; then
+        sort_cmd_opts+=( "-S" "${argSortBufferSize}" )
+        info "    ⚙️  Sort buffer size set to ${yellowl}${argSortBufferSize}${greym}"
+    fi
+}
+
+# #
 #   Sort Results
 #   
 #   @usage          line=$(parse_spf_record "${ip}" | sort_results)
@@ -725,12 +795,12 @@ sort_results()
 
     # Sort IPv4 numerically, remove duplicates
     if [ -s "$_ipv4_tmp" ]; then
-        sort -t. -n -k1,1 -k2,2 -k3,3 -k4,4 "$_ipv4_tmp" | uniq
+        sort "${sort_cmd_opts[@]}" -t. -n -k1,1 -k2,2 -k3,3 -k4,4 "$_ipv4_tmp" | uniq
     fi
 
     # Sort IPv6 lexicographically, remove duplicates
     if [ -s "$_ipv6_tmp" ]; then
-        sort "$_ipv6_tmp" | uniq
+        sort "${sort_cmd_opts[@]}" "$_ipv6_tmp" | uniq
     fi
 
     # Clean up temp files
@@ -741,6 +811,151 @@ sort_results()
     # #
 
     unset   _ipv4_tmp _ipv6_tmp
+}
+
+# #
+#   Validate › IPv4
+# #
+
+is_valid_ipv4()
+{
+    _fnIp=$1
+
+    [[ ${_fnIp} =~ ${regex_ipv4} ]] || return 1
+
+    IFS='.' read -r _fnO1 _fnO2 _fnO3 _fnO4 <<< "${_fnIp}"
+    for _fnOctet in "${_fnO1}" "${_fnO2}" "${_fnO3}" "${_fnO4}"; do
+        [ "${_fnOctet}" -ge 0 ] 2>/dev/null || return 1
+        [ "${_fnOctet}" -le 255 ] || return 1
+    done
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnIp _fnO1 _fnO2 _fnO3 _fnO4 _fnOctet
+    return 0
+}
+
+# #
+#   Validate › IPv4 CIDR
+# #
+
+is_valid_ipv4_cidr()
+{
+    _fnIpCidr=$1
+    _fnIp="${_fnIpCidr%/*}"
+    _fnCidr="${_fnIpCidr#*/}"
+
+    [[ ${_fnIpCidr} =~ ${regex_ipv4_cidr} ]] || return 1
+    is_valid_ipv4 "${_fnIp}" || return 1
+    [ "${_fnCidr}" -ge 0 ] 2>/dev/null || return 1
+    [ "${_fnCidr}" -le 32 ] || return 1
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnIpCidr _fnIp _fnCidr
+    return 0
+}
+
+# #
+#   Validate › IPv6
+# #
+
+is_valid_ipv6()
+{
+    _fnIp=$1
+
+    [[ ${_fnIp} =~ ${regex_ipv6} ]] || return 1
+    printf '%s' "${_fnIp}" | grep -Eq '^[0-9A-Fa-f:.]+$' || return 1
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnIp
+    return 0
+}
+
+# #
+#   Validate › IPv6 CIDR
+# #
+
+is_valid_ipv6_cidr()
+{
+    _fnIpCidr=$1
+    _fnIp="${_fnIpCidr%/*}"
+    _fnCidr="${_fnIpCidr#*/}"
+
+    [[ ${_fnIpCidr} =~ ${regex_ipv6_cidr} ]] || return 1
+    is_valid_ipv6 "${_fnIp}" || return 1
+    [ "${_fnCidr}" -ge 0 ] 2>/dev/null || return 1
+    [ "${_fnCidr}" -le 128 ] || return 1
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnIpCidr _fnIp _fnCidr
+    return 0
+}
+
+# #
+#   Validate › Generic IP Entry
+# #
+
+is_valid_ip_entry()
+{
+    _fnEntry=$1
+
+    is_valid_ipv4 "${_fnEntry}" && return 0
+    is_valid_ipv4_cidr "${_fnEntry}" && return 0
+    is_valid_ipv6 "${_fnEntry}" && return 0
+    is_valid_ipv6_cidr "${_fnEntry}" && return 0
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnEntry
+    return 1
+}
+
+# #
+#   Filter invalid IP entries from file
+# #
+
+filter_valid_ip_entries()
+{
+    _fnValidateFile=$1
+    _fnValidateTemp="${_fnValidateFile}.valid"
+    _fnValidateRemoved=0
+
+    > "${_fnValidateTemp}"
+
+    while IFS= read -r _fnValidateLine || [ -n "${_fnValidateLine}" ]; do
+        [ -z "${_fnValidateLine}" ] && continue
+
+        if is_valid_ip_entry "${_fnValidateLine}"; then
+            printf '%s\n' "${_fnValidateLine}" >> "${_fnValidateTemp}"
+        else
+            _fnValidateRemoved=$(( _fnValidateRemoved + 1 ))
+        fi
+    done < "${_fnValidateFile}"
+
+    mv "${_fnValidateTemp}" "${_fnValidateFile}"
+
+    if [ "${_fnValidateRemoved}" -gt 0 ]; then
+        warn "    ⚠️  Removed ${orangel}${_fnValidateRemoved}${greym} invalid IP/CIDR entries"
+    fi
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnValidateFile _fnValidateTemp _fnValidateRemoved _fnValidateLine
 }
 
 # #
@@ -909,6 +1124,11 @@ filter_bogon_ips( )
     _fnBogonBefore=0
     _fnBogonAfter=0
     _fnBogonRemoved=0
+
+    if [ "${argSkipBogonFilter}" = "true" ]; then
+        info "    ⚡ Skipping bogon filtering (BL_FORMAT_SKIP_BOGON_FILTER=true)"
+        return 0
+    fi
 
     case "${argIncludeBogon:-true}" in
         1|true|TRUE|yes|YES)
@@ -1469,6 +1689,13 @@ download_list()
         fi
     fi
 
+    # drop malformed entries before sorting (optional trusted-input fast path)
+    if [ "${argTrustedInput}" = "true" ]; then
+        info "    ⚡ Trusted input mode enabled; skipping per-line IP validation"
+    else
+        filter_valid_ip_entries "${_fnFileTemp}"
+    fi
+
     # #
     #   Dedupe, Sort: Move from .tmp to .sort
     # #
@@ -1626,6 +1853,20 @@ ${greyd}\n${greym}Service:	        ${greyd}..........${yellowl} ${templ_url_serv
 
 info "    ⭐ Starting script ${bluel}${app_file_this}${greym}"
 
+if [ "${argTrustedInput}" = "true" ]; then
+    info "    ⚡ Fast mode: trusted input enabled"
+fi
+
+if [ "${argSkipBogonFilter}" = "true" ]; then
+    info "    ⚡ Fast mode: bogon filtering disabled"
+fi
+
+# #
+#   Config Sort Options
+# #
+
+configure_sort_options
+
 # #
 #   Create or Clean file
 # #
@@ -1706,12 +1947,16 @@ done
 # #
 
 if [ -f "${file_ipset_target}" ]; then
-    info "    🧹 Sorting and removing duplicate IP entries from ${bluel}${PWD}/${file_ipset_target}${greym}"
-    grep -vE '^[[:space:]]*(#|;|$)' "${file_ipset_target}" | sort_results > "${file_ipset_target}.sort"
-    > "${file_ipset_target}"
-    cat "${file_ipset_target}.sort" >> "${file_ipset_target}"
-    rm "${file_ipset_target}.sort"
-    ok "    ✅ Duplicate IPs removed"
+    if [ "${did_load_fallback}" = "true" ]; then
+        info "    🧹 Sorting and removing duplicate IP entries from ${bluel}${PWD}/${file_ipset_target}${greym}"
+        grep -vE '^[[:space:]]*(#|;|$)' "${file_ipset_target}" | sort_results > "${file_ipset_target}.sort"
+        > "${file_ipset_target}"
+        cat "${file_ipset_target}.sort" >> "${file_ipset_target}"
+        rm "${file_ipset_target}.sort"
+        ok "    ✅ Duplicate IPs removed"
+    else
+        info "    ⚡ Skipping final global sort/dedupe (single source already normalized)"
+    fi
 fi
 
 # #
@@ -1731,7 +1976,7 @@ if [ -f "${file_ipset_target}" ]; then
     total_ips=$total_ips
     total_subnets=$total_subnets
 
-    total_lines=$(wc -l < "${file_ipset_target}")                               # count ip lines
+    total_lines=$(wc -l < "${file_ipset_target}")                               # Count ip lines
     total_lines=$(printf "%'d" "$total_lines")                                  # GLOBAL add commas to thousands
     total_subnets=$(printf "%'d" "$total_subnets")                              # GLOBAL add commas to thousands
     total_ips=$(printf "%'d" "$total_ips")                                      # GLOBAL add commas to thousands

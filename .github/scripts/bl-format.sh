@@ -159,6 +159,44 @@ argDryrun="false"                                                               
 argDevMode="false"                                                              # dev mode
 argVerbose="false"                                                              # verbose mode
 argIncludeBogon="false"                                                         # filter out BOGON IP addresses from list
+argTrustedInput="false"                                                         # trusted input mode (skip validation loop)
+argSkipBogonFilter="false"                                                      # skip bogon filter loop
+argSortParallel="${BL_FORMAT_SORT_PARALLEL:-}"                                  # optional sort --parallel value
+argSortBufferSize="${BL_FORMAT_SORT_BUFFER_SIZE:-}"                             # optional sort -S value
+sort_cmd_opts=()                                                                # optional sort command tuning
+did_load_fallback="false"                                                       # track whether fallback lists were merged
+
+# #
+#   Optional Parameters
+#   
+#       BL_FORMAT_TRUSTED_INPUT=true  
+#           Skip per-line IP/CIDR validation loop.
+#   
+#       BL_FORMAT_SKIP_BOGON_FILTER=true  
+#           Skip bogon filtering loop.
+#   
+#       BL_FORMAT_SORT_PARALLEL=<N>  
+#           Pass --parallel=<N> to sort if supported.
+#   
+#       BL_FORMAT_SORT_BUFFER_SIZE=<size>  
+#           Pass -S <size> to sort (example: 50%, 1G).
+#   
+#       curl -sSL -A "${{ env.USERAGENT }}" ${{ vars.BL_APPLE_INC_PROXY_URL }} \
+#           | awk -F',' 'NR>1{print $1}' \
+#           | BL_FORMAT_TRUSTED_INPUT=true BL_FORMAT_SKIP_BOGON_FILTER=true .github/scripts/bl-format.sh blocklists/privacy/privacy_apple_icloud.ipset
+# #
+
+case "${BL_FORMAT_TRUSTED_INPUT:-false}" in
+    1|true|TRUE|yes|YES|on|ON)
+        argTrustedInput="true"
+        ;;
+esac
+
+case "${BL_FORMAT_SKIP_BOGON_FILTER:-false}" in
+    1|true|TRUE|yes|YES|on|ON)
+        argSkipBogonFilter="true"
+        ;;
+esac
 
 # #
 #   Define › Time
@@ -672,6 +710,38 @@ run()
 }
 
 # #
+#   Configure sort options
+#   
+#   Builds the options array for the `sort` command based on user settings:
+#       - If `argSortParallel` is valid number and the system supports it, enable parallel sorting with that value
+#       - If `argSortBufferSize` is set, apply it as the sort buffer size (-S)
+#       - Log what gets enabled or warns if values are invalid or unsupported
+# #
+
+configure_sort_options( )
+{
+    sort_cmd_opts=()
+
+    if [ -n "${argSortParallel}" ]; then
+        if [[ "${argSortParallel}" =~ ^[1-9][0-9]*$ ]]; then
+            if sort --help 2>/dev/null | grep -q -- '--parallel'; then
+                sort_cmd_opts+=( "--parallel=${argSortParallel}" )
+                info "    ⚙️  Sort parallelism enabled (${yellowl}${argSortParallel}${greym})"
+            else
+                warn "    ⚠️  sort --parallel unsupported; running with default sort options"
+            fi
+        else
+            warn "    ⚠️  Invalid BL_FORMAT_SORT_PARALLEL value ${yellowl}${argSortParallel}${greym}; ignoring"
+        fi
+    fi
+
+    if [ -n "${argSortBufferSize}" ]; then
+        sort_cmd_opts+=( "-S" "${argSortBufferSize}" )
+        info "    ⚙️  Sort buffer size set to ${yellowl}${argSortBufferSize}${greym}"
+    fi
+}
+
+# #
 #   Sort Results
 #   
 #   @usage          line=$(parse_spf_record "${ip}" | sort_results)
@@ -696,12 +766,12 @@ sort_results()
 
     # Sort IPv4 numerically, remove duplicates
     if [ -s "$_ipv4_tmp" ]; then
-        sort -t. -n -k1,1 -k2,2 -k3,3 -k4,4 "$_ipv4_tmp" | uniq
+        sort "${sort_cmd_opts[@]}" -t. -n -k1,1 -k2,2 -k3,3 -k4,4 "$_ipv4_tmp" | uniq
     fi
 
     # Sort IPv6 lexicographically, remove duplicates
     if [ -s "$_ipv6_tmp" ]; then
-        sort "$_ipv6_tmp" | uniq
+        sort "${sort_cmd_opts[@]}" "$_ipv6_tmp" | uniq
     fi
 
     # Clean up temp files
@@ -1026,6 +1096,11 @@ filter_bogon_ips( )
     _fnBogonAfter=0
     _fnBogonRemoved=0
 
+    if [ "${argSkipBogonFilter}" = "true" ]; then
+        info "    ⚡ Skipping bogon filtering (BL_FORMAT_SKIP_BOGON_FILTER=true)"
+        return 0
+    fi
+
     case "${argIncludeBogon:-true}" in
         1|true|TRUE|yes|YES)
             return 0
@@ -1071,6 +1146,231 @@ filter_bogon_ips( )
     # #
 
     unset   _fnBogonFile _fnBogonTemp _fnBogonLine _fnBogonBase _fnBogonBefore _fnBogonAfter _fnBogonRemoved _fnBogonIp
+}
+
+
+# #
+#   IPSET › Dedup Contained CIDRs
+#   
+#   Attempts to compress list of CIDRs so that our blocklists are not
+#   insanely large with overlapping subnets.
+#   
+#   Remove any CIDR entry whose address range is fully contained within a
+#   larger CIDR that is already in the list.  Also check single IPs (treated
+#   as /32 or /128) against existing CIDRs.
+#   
+#   Supports both IPv4 and IPv6
+#   
+#   For tests; see python script `verify_cidr.py`.
+#       Requires original list of IPs, and also new list so that it can compare.
+#       python verify_cidr.py alibaba_old.txt alibaba_new.txt
+#   
+#   Examples (IPv4):
+#       8.217.0.0/16    = keep
+#       8.217.0.0/17    = remove  (same base, narrower)
+#       8.217.0.0/24    = remove  (same base, narrower)
+#   
+#       43.106.48.0/20  = keep
+#       43.106.49.0/24  = remove  (different base, but /20 covers it)
+#       43.106.50.0/23  = remove  (different base, but /20 covers it)
+#   
+#   Algorithm:
+#       Align each entry to true network boundary
+#       Sort by network start ascending, then prefix ascending (wider first)
+#       Walk the sorted list keeping a running "max covered" end address;
+#           any entry whose end less than or equal to max_end is fully contained; skip
+#   
+#   Notes:
+#       Run AFTER sort/dedupe for best results
+#       Run BEFORE count_ip_stats for accurate totals
+# #
+
+dedup_cidr( )
+{
+    _fnDedupFile=$1
+    _fnDedupV4=$(mktemp) || return 1
+    _fnDedupV6=$(mktemp) || return 1
+    _fnDedupOther=$(mktemp) || return 1
+    _fnDedupOut=$(mktemp) || return 1
+    _fnDedupBefore=0
+    _fnDedupAfter=0
+    _fnDedupRemoved=0
+
+    if [ ! -f "$_fnDedupFile" ] || [ ! -s "$_fnDedupFile" ]; then
+        rm -f "$_fnDedupV4" "$_fnDedupV6" "$_fnDedupOther" "$_fnDedupOut"
+        return 0
+    fi
+
+    info "    🔍 Removing overlapping CIDR ranges from ${bluel}${_fnDedupFile}${greym}"
+    _fnDedupBefore=$(wc -l < "$_fnDedupFile")
+
+    # #
+    #   Classify lines
+    #       IPv4 CIDR / single  =  _fnDedupV4       (singles promoted to /32)
+    #       IPv6 CIDR / single  =  _fnDedupV6       (singles promoted to /128)
+    #       Other               =  _fnDedupOther    (pass-through)
+    # #
+
+    awk '
+    /\// && /:/  { print > v6; next }
+    /:/          { print $0 "/128" > v6; next }
+    /\// && /\./ { print > v4; next }
+    /\./         { print $0 "/32" > v4; next }
+                 { print > ot }
+    ' v4="$_fnDedupV4" v6="$_fnDedupV6" ot="$_fnDedupOther" "$_fnDedupFile"
+
+    # #
+    #   IPv4 containment dedup
+    #   
+    #   Some notes to remember for how this works:
+    #   
+    #   Step 1 (awk):   convert each CIDR to  "<10-digit network int> <3-digit prefix> <original line>"
+    #                       aligns to the true network boundary so host-bit noise is ignored.
+    #   Step 2 (sort):  network ascending, then prefix ascending (wider ranges first).
+    #   Step 3 (awk):   walk the list; skip any entry whose end address <= max_end.
+    # #
+
+    if [ -s "$_fnDedupV4" ]; then
+        awk -F'[./]' '
+        NF >= 5 {
+            ip  = $1*16777216 + $2*65536 + $3*256 + $4
+            pfx = int($5)
+            if (pfx < 0 || pfx > 32) { printf "_ %s\n", $0; next }
+            size = int(2^(32 - pfx))
+            net  = int(ip / size) * size
+            printf "%010.0f %03d %s\n", net, pfx, $0
+        }
+        NF < 5 { printf "_ %s\n", $0 }
+        ' "$_fnDedupV4" \
+        | sort -t' ' -k1,1n -k2,2n \
+        | awk '
+        /^_ / { sub(/^_ /, ""); print; next }
+        {
+            net = $1 + 0; pfx = $2 + 0
+            e   = net + int(2^(32 - pfx)) - 1
+            if (NR == 1 || e > max_end) {
+                orig = $3
+                if (pfx == 32) sub(/\/32$/, "", orig)
+                print orig
+                max_end = e
+            }
+        }
+        ' >> "$_fnDedupOut"
+    fi
+
+    # #
+    #   IPv6 containment dedup
+    #   
+    #   Same algorithm but uses fully-expanded 32-char lowercase hex for
+    #   network/end addresses so that lexicographic comparison == numeric.
+    # #
+
+    if [ -s "$_fnDedupV6" ]; then
+        awk '
+        function expand_v6(addr,    a, nl, nr, miss, j, i, n, g, res, lg, rg, groups) {
+            sub(/\/.*/, "", addr); addr = tolower(addr)
+            if (index(addr, "::")) {
+                split(addr, a, "::")
+                nl = split(a[1], lg, ":"); if (a[1] == "") nl = 0
+                nr = split(a[2], rg, ":"); if (a[2] == "") nr = 0
+                miss = 8 - nl - nr; j = 0
+                for (i = 1; i <= nl; i++) groups[++j] = lg[i]
+                for (i = 1; i <= miss; i++) groups[++j] = "0"
+                for (i = 1; i <= nr; i++) groups[++j] = rg[i]
+                n = j
+            } else { n = split(addr, groups, ":") }
+            res = ""
+            for (i = 1; i <= n; i++) {
+                g = groups[i]; while (length(g) < 4) g = "0" g; res = res g
+            }
+            while (length(res) < 32) res = res "0"
+            return res
+        }
+
+        function v6_net_hex(hex32, pfx,    fc, rem, c, v, nv, res) {
+            fc = int(pfx / 4); rem = pfx % 4
+            res = substr(hex32, 1, fc)
+            if (rem > 0) {
+                c = substr(hex32, fc + 1, 1)
+                v = index("0123456789abcdef", c) - 1
+                if      (rem == 1) nv = int(v/8)*8
+                else if (rem == 2) nv = int(v/4)*4
+                else               nv = int(v/2)*2
+                res = res substr("0123456789abcdef", nv + 1, 1)
+                fc++
+            }
+            while (length(res) < 32) res = res "0"
+            return res
+        }
+
+        function v6_end_hex(hex32, pfx,    fc, rem, c, v, nv, res) {
+            fc = int(pfx / 4); rem = pfx % 4
+            res = substr(hex32, 1, fc)
+            if (rem > 0) {
+                c = substr(hex32, fc + 1, 1)
+                v = index("0123456789abcdef", c) - 1
+                if      (rem == 1) nv = int(v/8)*8 + 7
+                else if (rem == 2) nv = int(v/4)*4 + 3
+                else               nv = int(v/2)*2 + 1
+                res = res substr("0123456789abcdef", nv + 1, 1)
+                fc++
+            }
+            while (length(res) < 32) res = res "f"
+            return res
+        }
+
+        {
+            line = $0
+            addr = line; sub(/\/[0-9]+$/, "", addr)
+            pfx  = line; sub(/.*\//, "", pfx); pfx = int(pfx)
+            if (pfx < 0 || pfx > 128) { printf "_ %s\n", line; next }
+            hex = expand_v6(addr)
+            net = v6_net_hex(hex, pfx)
+            e   = v6_end_hex(hex, pfx)
+            printf "%s %03d %s %s\n", net, pfx, e, line
+        }
+        ' "$_fnDedupV6" \
+        | sort -k1,1 -k2,2n \
+        | awk '
+        /^_ / { sub(/^_ /, ""); print; next }
+        {
+            e = $3; pfx = $2 + 0
+            orig = ""; for (i = 4; i <= NF; i++) orig = (i == 4 ? $i : orig " " $i)
+            if (NR == 1 || (e "") > (me "")) {
+                if (pfx == 128) sub(/\/128$/, "", orig)
+                print orig
+                me = e
+            }
+        }
+        ' >> "$_fnDedupOut"
+    fi
+
+    # #
+    #   Other lines (pass-through)
+    # #
+
+    if [ -s "$_fnDedupOther" ]; then
+        cat "$_fnDedupOther" >> "$_fnDedupOut"
+    fi
+
+    mv "$_fnDedupOut" "$_fnDedupFile"
+    rm -f "$_fnDedupV4" "$_fnDedupV6" "$_fnDedupOther"
+
+    _fnDedupAfter=$(wc -l < "$_fnDedupFile")
+    _fnDedupRemoved=$(( _fnDedupBefore - _fnDedupAfter ))
+
+    if [ "$_fnDedupRemoved" -gt 0 ]; then
+        ok "    🔍 Removed ${greenl}${_fnDedupRemoved}${greym} overlapping CIDR entries from ${bluel}${_fnDedupFile}${greym}"
+    else
+        ok "    🔍 No overlapping CIDRs found in ${bluel}${_fnDedupFile}${greym}"
+    fi
+
+    # #
+    #   Unset
+    # #
+
+    unset   _fnDedupFile _fnDedupV4 _fnDedupV6 _fnDedupOther _fnDedupOut \
+            _fnDedupBefore _fnDedupAfter _fnDedupRemoved
 }
 
 # #
@@ -1132,9 +1432,12 @@ download_list()
     # remove empty lines (after trimming/comment removal)
     sed -i '/^$/d' "${_fnFileTemp}"
 
-
-    # drop malformed entries before sorting
-    filter_valid_ip_entries "${_fnFileTemp}"
+    # drop malformed entries before sorting (optional trusted-input fast path)
+    if [ "${argTrustedInput}" = "true" ]; then
+        info "    ⚡ Trusted input mode enabled; skipping per-line IP validation"
+    else
+        filter_valid_ip_entries "${_fnFileTemp}"
+    fi
 
     # #
     #   Dedupe, Sort: Move from .tmp to .sort
@@ -1148,6 +1451,14 @@ download_list()
     # #
 
     mv "${_fnFileTemp}.sort" "${_fnFileTemp}"
+
+    # #
+    #   IPSET › Dedup Contained CIDRs
+    #       - Remove CIDRs fully contained within a larger CIDR
+    #       - Run before count_ip_stats for accurate totals
+    # #
+
+    dedup_cidr "${_fnFileTemp}"
 
     # #
     #   IPSET › Filter BOGON
@@ -1262,8 +1573,12 @@ download_list_fallback()
     # remove empty lines (after trimming/comment removal)
     sed -i '/^$/d' "${_fnFileTemp}"
 
-    # drop malformed entries before sorting
-    filter_valid_ip_entries "${_fnFileTemp}"
+    # drop malformed entries before sorting (optional trusted-input fast path)
+    if [ "${argTrustedInput}" = "true" ]; then
+        info "    ⚡ Trusted input mode enabled; skipping per-line IP validation"
+    else
+        filter_valid_ip_entries "${_fnFileTemp}"
+    fi
 
     # #
     #   Dedupe, Sort: Move from .tmp to .sort
@@ -1482,6 +1797,20 @@ ${greyd}\n${greym}Service:	        ${greyd}..........${yellowl} ${templ_url_serv
 
 info "    ⭐ Starting script ${bluel}${app_file_this}${greym}"
 
+if [ "${argTrustedInput}" = "true" ]; then
+    info "    ⚡ Fast mode: trusted input enabled"
+fi
+
+if [ "${argSkipBogonFilter}" = "true" ]; then
+    info "    ⚡ Fast mode: bogon filtering disabled"
+fi
+
+# #
+#   Config Sort Options
+# #
+
+configure_sort_options
+
 # #
 #   Create or Clean file
 # #
@@ -1517,6 +1846,7 @@ i=1
 download_list "${file_ipset_target}" "$i"
 
 if ! has_valid_ip_entries "${file_ipset_target}"; then
+    did_load_fallback="true"
      warn "    ⚠️  Using local IP block fallback ${yellowl}${argBlockCategory}${greym} for ${yellowl}${file_ipset_target}${greym}"
     load_list_fallback "${file_ipset_target}" "${argBlockCategory}" "2"
 fi
@@ -1530,12 +1860,24 @@ fi
 # #
 
 if [ -f "${file_ipset_target}" ]; then
-    info "    🧹 Sorting and removing duplicate IP entries from ${bluel}${PWD}/${file_ipset_target}${greym}"
-    grep -vE '^[[:space:]]*(#|;|$)' "${file_ipset_target}" | sort_results > "${file_ipset_target}.sort"
-    > "${file_ipset_target}"
-    cat "${file_ipset_target}.sort" >> "${file_ipset_target}"
-    rm "${file_ipset_target}.sort"
-    ok "    ✅ Duplicate IPs removed"
+    if [ "${did_load_fallback}" = "true" ]; then
+        info "    🧹 Sorting and removing duplicate IP entries from ${bluel}${PWD}/${file_ipset_target}${greym}"
+        grep -vE '^[[:space:]]*(#|;|$)' "${file_ipset_target}" | sort_results > "${file_ipset_target}.sort"
+        > "${file_ipset_target}"
+        cat "${file_ipset_target}.sort" >> "${file_ipset_target}"
+        rm "${file_ipset_target}.sort"
+        ok "    ✅ Duplicate IPs removed"
+    else
+        info "    ⚡ Skipping final global sort/dedupe (single source already normalized)"
+    fi
+fi
+
+# #
+#   IPSET › Dedup Contained CIDRs (final pass across all ASNs)
+# #
+
+if [ -f "${file_ipset_target}" ] && [ -s "${file_ipset_target}" ]; then
+    dedup_cidr "${file_ipset_target}"
 fi
 
 # #
