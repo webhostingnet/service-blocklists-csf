@@ -1222,7 +1222,12 @@ for arg in "${@:2}"; do
     # Check ASN args
     case "$arg" in
         AS*)
-            _arg_asn_list=$(printf "%s" "$arg" | tr ',;' '\n')
+            # Support all formats:
+            #   AS1 AS2 AS3
+            #   AS1,AS2,AS3
+            #   AS1;AS2;AS3
+            #   "AS1 AS2 AS3"
+            _arg_asn_list=$(printf "%s\n" "$arg" | sed -E 's/[,;[:space:]]+/\n/g')
             while IFS= read -r _arg_asn; do
                 _arg_asn=$(printf "%s" "${_arg_asn}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
                 if printf '%s\n' "${_arg_asn}" | grep -qE '^AS[0-9]+$'; then
