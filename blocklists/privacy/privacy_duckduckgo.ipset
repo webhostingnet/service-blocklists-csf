@@ -5,7 +5,7 @@
 #   @service        https://raw.githubusercontent.com/duckduckgo/duckduckgo-help-pages/master/_docs/results/duckduckbot.md
 #   @id             privacy_duckduckgo_ipset
 #   @uuid           dc7c973c-d5dc-36f4-80d2-9d1296d45935
-#   @updated        Mon Mar 30 09:14:22 UTC 2026
+#   @updated        Mon Mar 30 13:15:24 UTC 2026
 #   @entries        310 ips
 #                   310 subnets
 #                   310 lines
