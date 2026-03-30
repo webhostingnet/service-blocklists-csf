@@ -5,10 +5,10 @@
 #   @service        None
 #   @id             isp_cox_communications_ipset
 #   @uuid           f49f16d6-6f3c-3f66-8c2c-97667aa69669
-#   @updated        Mon Mar 30 02:37:22 UTC 2026
-#   @entries        13,503,211 ips
-#                   1,055 subnets
-#                   1,055 lines
+#   @updated        Mon Mar 30 06:36:39 UTC 2026
+#   @entries        13,503,212 ips
+#                   1,056 subnets
+#                   1,056 lines
 #   @asn            AS22773, AS13432, AS26146, AS26204, AS31771
 #                   AS22318, AS15218, AS25904, AS13493, AS14710
 #                   AS12064, AS6298
@@ -966,6 +966,7 @@
 223.29.148.0/22
 223.29.152.0/22
 223.29.156.0/22
+2001:428:5803::/48
 2001:578::/30
 2600:8800::/28
 2600:c800::/29
