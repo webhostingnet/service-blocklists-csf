@@ -2,10 +2,11 @@
 #   🧱 Firewall Blocklist - blocklists/privacy/privacy_china_tencent.ipset
 #
 #   @repo           https://raw.githubusercontent.com/configserver-software/service-blocklists/main/blocklists/privacy/privacy_china_tencent.ipset
-#   @service        None
+#   @service        429: Too Many Requests
+For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
 #   @id             privacy_china_tencent_ipset
 #   @uuid           484c5ca9-c6b1-34dd-b49e-e06a79cc845b
-#   @updated        Tue Mar 31 13:33:35 UTC 2026
+#   @updated        Tue Mar 31 17:20:23 UTC 2026
 #   @entries        9,673,033 ips
 #                   210 subnets
 #                   210 lines
