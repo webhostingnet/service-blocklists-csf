@@ -5,10 +5,10 @@
 #   @service        None
 #   @id             privacy_sony_playstation_network_ipset
 #   @uuid           ebea1cab-59a0-3997-a5c1-1057747fd584
-#   @updated        Wed Apr  1 16:58:57 UTC 2026
-#   @entries        46,881 ips
-#                   84 subnets
-#                   84 lines
+#   @updated        Wed Apr  1 20:49:55 UTC 2026
+#   @entries        46,882 ips
+#                   85 subnets
+#                   85 lines
 #   @asn            AS33353, AS26580
 #   @expires        6 hours
 #   @category       Uncategorized
@@ -76,6 +76,7 @@
 2403:7940:fcd4::/48
 2604:8540::/33
 2604:8540:8000::/33
+2620:106:7000::/48
 2620:106:7003::/48
 2620:106:7004::/48
 2620:106:700d::/48
