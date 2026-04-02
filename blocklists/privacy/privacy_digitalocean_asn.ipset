@@ -5,10 +5,10 @@
 #   @service        None
 #   @id             privacy_digitalocean_asn_ipset
 #   @uuid           88a7ed54-ef75-32e3-a514-fdec31d77784
-#   @updated        Thu Apr  2 17:00:30 UTC 2026
-#   @entries        3,165,448 ips
-#                   135 subnets
-#                   135 lines
+#   @updated        Thu Apr  2 20:37:51 UTC 2026
+#   @entries        3,165,192 ips
+#                   134 subnets
+#                   134 lines
 #   @asn            AS14061, AS39690, AS62567, AS133165, AS135340
 #                   AS200130, AS201229, AS202018, AS202109, AS205301
 #                   AS393406, AS394362
@@ -49,7 +49,6 @@
 94.229.211.0/24
 95.85.0.0/18
 102.135.0.0/24
-103.95.211.0/24
 103.253.144.0/22
 104.131.0.0/16
 104.236.0.0/16
