@@ -5,12 +5,13 @@
 #   @service        None
 #   @id             privacy_github_codespaces_ipset
 #   @uuid           a733d06d-3e3f-37b4-b8ec-493c1b22192f
-#   @updated        Thu Apr  2 13:09:15 UTC 2026
+#   @updated        Thu Apr  2 17:01:41 UTC 2026
 #   @entries        3,056 ips
 #                   191 subnets
 #                   191 lines
 #   @expires        6 hours
-#   @category       Uncategorized
+#   @category       429: Too Many Requests
+For more on scraping GitHub and how it may affect your rights, please review our Terms of Service (https://docs.github.com/en/site-policy/github-terms/github-terms-of-service).
 #
 #   No description provided
 # #
