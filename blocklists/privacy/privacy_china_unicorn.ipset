@@ -5,10 +5,10 @@
 #   @service        None
 #   @id             privacy_china_unicorn_ipset
 #   @uuid           a532eb4d-9b54-35f9-bdd7-646a4c3e9a14
-#   @updated        Fri Apr  3 06:08:15 UTC 2026
-#   @entries        82,453,903 ips
-#                   3,049 subnets
-#                   3,049 lines
+#   @updated        Fri Apr  3 09:16:08 UTC 2026
+#   @entries        82,454,415 ips
+#                   3,050 subnets
+#                   3,050 lines
 #   @asn            AS4837, AS10099, AS10206, AS133118, AS133119
 #                   AS134542, AS134543, AS135061, AS136958, AS136959
 #                   AS137539, AS138421, AS140979, AS152120, AS17621
@@ -858,6 +858,7 @@
 103.132.212.0/24
 103.132.213.0/24
 103.135.160.0/22
+103.135.164.0/23
 103.135.194.0/24
 103.140.14.0/23
 103.141.10.0/24
