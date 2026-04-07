@@ -590,11 +590,11 @@ jobs:
                   ./.github/scripts/bogon.sh blocklists/bogon.ipset
 
             # #
-            #   Generate › Privacy
+            #   Generate › Privacy › A - G
             # #
 
-            - name: "🧱 Generate › Privacy"
-              id: task_blocklist_generate_privacy
+            - name: "🧱 Generate › Privacy (A-G)"
+              id: task_blocklist_generate_privacy_a_to_g
               if: steps.task_blocklist_generate_run_mode.outputs.run_core == 'true'
               run: |
 
@@ -693,17 +693,17 @@ jobs:
                     | BL_FORMAT_TRUSTED_INPUT=true BL_FORMAT_SKIP_BOGON_FILTER=true .github/scripts/bl-format.sh blocklists/privacy/privacy_apple_icloud.ipset
 
                   # #
-                  #   Privacy › Automattic / Tumblr / Wordpress
-                  # #
-
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_automattic.ipset "${{ vars.BL_AUTOMATTIC_WORDPRESS }}"
-
-                  # #
                   #   Privacy › Alibaba
                   # #
 
                   ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_alibaba.ipset "${{ vars.BL_CHINA_ALIBABA_ASN }}"
                   
+                  # #
+                  #   Privacy › Automattic / Tumblr / Wordpress.com
+                  # #
+
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_automattic.ipset "${{ vars.BL_AUTOMATTIC_WP_ASN }}"
+
                   # #
                   #   Privacy › Baidu
                   # #
@@ -714,13 +714,13 @@ jobs:
                   #   Privacy › Bing
                   # #
 
-                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_bing.ipset "${{ vars.BL_PRIVACY_BING_SRC }}" '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty'
+                  ./.github/scripts/bl-json.sh blocklists/privacy/privacy_bing.ipset "${{ vars.BL_BING_URL }}" '.prefixes | .[] |.ipv4Prefix//empty,.ipv6Prefix//empty'
 
                   # #
                   #   Privacy › Blizzard
                   # #
 
-                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_blizzard.ipset "${{ vars.BL_PRIVACY_BLIZZARD_SRC }}"
+                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_blizzard.ipset "${{ vars.BL_BLIZZARD_URL }}"
 
                   # #
                   #   Privacy › Bluehost
@@ -744,6 +744,36 @@ jobs:
                   # #
 
                   ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_bytedance.ipset "${{ vars.BL_TIKTOK_BYTEDANCE_ASN }}"
+
+                  #   Privacy › Censys, Inc.
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_censys_io.ipset "${{ vars.BL_CENSYS_IO_ASN }}"
+
+                  #   Privacy › China › China Broadcasting Network
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_broadcasting_network.ipset "${{ vars.BL_CHINA_BROADCASTING_NETWORK_ASN }}"
+
+                  #   Privacy › China › China Mobile
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_mobile.ipset "${{ vars.BL_CHINA_MOBILE_ASN }}"
+
+                  #   Privacy › China › ChinaNET
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_chinanet.ipset "${{ vars.BL_CHINA_CHINANET_ASN }}"
+
+                  #   Privacy › China › China / Shanghai Mobile Communications Co.,Ltd.
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_net_mobile.ipset "${{ vars.BL_CHINA_NETMOBILE_ASN }}"
+
+                  #   Privacy › China › China Networks Inter-Exchange
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_networks.ipset "${{ vars.BL_CHINA_NETWORKS_ASN }}"
+
+                  #   Privacy › China › Telecom
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_telecom.ipset "${{ vars.BL_CHINA_TELECOM_ASN }}"
+
+                  #   Privacy › China › Tencent Networks
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_tencent.ipset "${{ vars.BL_CHINA_TENCENT_NET_ASN }}"
+
+                  #   Privacy › China › Tietong
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_tietong.ipset "${{ vars.BL_CHINA_TIETONG_ASN }}"
+
+                  #   Privacy › China › Unicorn
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_unicorn.ipset "${{ vars.BL_CHINA_UNICORN_ASN }}"
 
                   # #
                   #   Privacy › Cloudfront
@@ -791,7 +821,7 @@ jobs:
                     | .github/scripts/bl-format.sh blocklists/privacy/privacy_digitalocean_source.ipset
 
                   # #
-                  #   Privacy › Contabo Hosting
+                  #   Privacy › Dream Hosting
                   # #
 
                   ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_dreamhost.ipset "${{ vars.BL_DREAMHOST_ASN }}"
@@ -812,7 +842,7 @@ jobs:
                   #   Privacy › Electronic Arts & IGN
                   # #
 
-                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_electronicarts_ign.ipset "${{ vars.BL_PRIVACY_ELECTRONICARTS_SRC }}"
+                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_electronicarts_ign.ipset "${{ vars.BL_ELECTRONICARTS_URL }}"
 
                   # #
                   #   Privacy › Facebook
@@ -827,15 +857,6 @@ jobs:
                   # #
 
                   ./.github/scripts/bl-json.sh blocklists/privacy/privacy_fastly.ipset ${{ vars.BL_FASTLY_URL }} 'map(.[]) | .[]'
-
-            # #
-            #   Generate › Privacy › G - 
-            # #
-
-            - name: '🧱 Generate › Privacy'
-              id: task_blocklist_generate_privacy_continued
-              if: steps.task_blocklist_generate_run_mode.outputs.run_core == 'true'
-              run: |
 
                   # #
                   #   Privacy › Github
@@ -875,6 +896,15 @@ jobs:
 
                   ./.github/scripts/bl-json.sh blocklists/privacy/privacy_google_cloud.ipset "${{ vars.BL_GOOGLE_CLOUD_URL }}" '.prefixes[] | select(.ipv4Prefix or .ipv6Prefix) | (.ipv4Prefix // .ipv6Prefix)'
 
+            # #
+            #   Generate › Privacy › H - N
+            # #
+
+            - name: '🧱 Generate › Privacy (H-N)'
+              id: task_blocklist_generate_privacy_h_to_n
+              if: steps.task_blocklist_generate_run_mode.outputs.run_core == 'true'
+              run: |
+
                   # #
                   #   Privacy › Huawei
                   # #
@@ -885,7 +915,7 @@ jobs:
                   #   Privacy › Linode
                   # #
 
-                  curl -fsSL "${{ vars.BL_PRIVACY_LINODE_SRC }}" | awk -F',' '{print $1}' | sort -u | .github/scripts/bl-format.sh blocklists/privacy/privacy_linode.ipset
+                  curl -fsSL "${{ vars.BL_LINODE_URL }}" | awk -F',' '{print $1}' | sort -u | .github/scripts/bl-format.sh blocklists/privacy/privacy_linode.ipset
 
                   # #
                   #   Privacy › Microsoft › 365
@@ -923,6 +953,15 @@ jobs:
 
                   ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_nintendo.ipset "${{ vars.BL_NINTENDO_URL }}"
 
+            # #
+            #   Generate › Privacy › O - T
+            # #
+                  
+            - name: '🧱 Generate › Privacy (O-T)'
+              id: task_blocklist_generate_privacy_o_to_t
+              if: steps.task_blocklist_generate_run_mode.outputs.run_core == 'true'
+              run: |
+
                   # #
                   #   Privacy › Oracle › OCI (EC2 / GCP)
                   # #
@@ -951,15 +990,15 @@ jobs:
                   #   Privacy › Pandora
                   # #
 
-                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_pandora.ipset "${{ vars.BL_PRIVACY_PANDORA_SRC }}"
+                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_pandora.ipset "${{ vars.BL_PANDORA_URL }}"
 
                   # #
                   #   Privacy › Pingdom
                   # #
 
-                  PINGDOM_IPv4=$( curl -sSL "${{ vars.BL_PRIVACY_PINGDOM_SRC }}/ipv4" \
+                  PINGDOM_IPv4=$( curl -sSL "${{ vars.BL_PINGDOM_URL }}/ipv4" \
                     | grep -vE '^(#|;|[[:space:]]*$)')
-                  PINGDOM_IPv6=$( curl -sSL "${{ vars.BL_PRIVACY_PINGDOM_SRC }}/ipv6" \
+                  PINGDOM_IPv6=$( curl -sSL "${{ vars.BL_PINGDOM_URL }}/ipv6" \
                     | grep -vE '^(#|;|[[:space:]]*$)')
                   PINGDOM_LIST=$( echo -e "${PINGDOM_IPv4}\n${PINGDOM_IPv6}" | sort -u )
                   echo "$PINGDOM_LIST" | .github/scripts/bl-format.sh blocklists/privacy/privacy_pingdom.ipset
@@ -968,60 +1007,39 @@ jobs:
                   #   Privacy › Pirate Bay
                   # #
 
-                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_piratebay.ipset "${{ vars.BL_PRIVACY_PIRATEBAY_SRC }}"
-
-            # #
-            #   Generate › Privacy › G - 
-            # #
-                  
-            - name: '🧱 Generate › Privacy'
-              id: task_blocklist_generate_privacy_final
-              if: steps.task_blocklist_generate_run_mode.outputs.run_core == 'true'
-              run: |
+                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_piratebay.ipset "${{ vars.BL_PIRATEBAY_URL }}"
 
                   # #
                   #   Privacy › ProtonVPN
                   #   
                   #   Gathering these are tricky. Requires the authentication COOKIE / session_id to access API.
-                  #     User Id     =>    secrets.BL_PRIVACY_PROTON_VPN_USERID
-                  #     Cookie      =>    secrets.BL_PRIVACY_PROTON_VPN_AUTHCOOKIE
-                  #     Session id  =>    secrets.BL_PRIVACY_PROTON_VPN_SESSIONID
+                  #     User Id     =>    secrets.BL_PROTON_VPN_USERID
+                  #     Cookie      =>    secrets.BL_PROTON_VPN_AUTHCOOKIE
+                  #     Session id  =>    secrets.BL_PROTON_VPN_SESSIONID
                   # #
 
                   curl -s \
                     -H 'x-pm-appversion: AndroidVPN_5.5.52' \
                     -H 'x-pm-apiversion: 3' \
                     -H 'x-pm-locale: en_US' \
-                    -H 'x-pm-uid: ${{ secrets.BL_PRIVACY_PROTON_VPN_USERID }}' \
-                    -H 'cookie: ${{ secrets.BL_PRIVACY_PROTON_VPN_AUTHCOOKIE }}; Session-Id=${{ secrets.BL_PRIVACY_PROTON_VPN_SESSIONID }}; Tag=default; Theme=1; Domain=protonvpn.com; st=eyJ0IjoiZiIsImgiOiIwIn0' \
-                    '${{ vars.BL_PRIVACY_PROTON_VPN_SRC }}' \
+                    -H 'x-pm-uid: ${{ secrets.BL_PROTON_VPN_USERID }}' \
+                    -H 'cookie: ${{ secrets.BL_PROTON_VPN_AUTHCOOKIE }}; Session-Id=${{ secrets.BL_PROTON_VPN_SESSIONID }}; Tag=default; Theme=1; Domain=protonvpn.com; st=eyJ0IjoiZiIsImgiOiIwIn0' \
+                    '${{ vars.BL_PROTON_VPN_URL }}' \
                   | jq -r '.LogicalServers[] | .Servers[]? | .EntryIP, .ExitIP, .ExitIPv6 | select(. != null)' \
                   | sort -u \
                   | .github/scripts/bl-format.sh blocklists/privacy/privacy_proton_vpn.ipset
 
                   #   Privacy › Punkbuster
-                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_punkbuster.ipset "${{ vars.BL_PRIVACY_PUNKBUSTER_SRC }}"
+                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_punkbuster.ipset "${{ vars.BL_PUNKBUSTER_URL }}"
 
                   #   Privacy › Riot Games
-                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_riot_games.ipset "${{ vars.BL_PRIVACY_RIOTGAMES_SRC }}"
+                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_riot_games.ipset "${{ vars.BL_RIOTGAMES_URL }}"
 
                   #   Privacy › RSS API
-                  curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_PRIVACY_RSSAPI_SRC }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_rssapi.ipset
+                  curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_RSSAPI_URL }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_rssapi.ipset
 
                   #   Privacy › Shadow Server
                   ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_shadowserver.ipset "${{ vars.BL_SHADOWSERVER_FOUNDATION_ASN }}"
-
-                  #   Privacy › Steam
-                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_steam.ipset "${{ vars.BL_PRIVACY_STEAM_SRC }}"
-
-                  #   Privacy › Stripe › API
-                  curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_PRIVACY_STRIPE_API_SRC }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_stripe_api.ipset
-
-                  #   Privacy › Stripe › Webhooks
-                  curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_PRIVACY_STRIPE_WEBHOOKS_SRC }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_stripe_webhooks.ipset
-
-                  #   Privacy › Stripe › Armada Gator
-                  curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_PRIVACY_STRIPE_ARMADA_GATOR_SRC }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_stripe_armada_gator.ipset
 
                   #   Privacy › Sony › All
                   ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_sony_all.ipset "${{ vars.BL_SONY_ALL_ASN }}"
@@ -1029,47 +1047,29 @@ jobs:
                   #   Privacy › Sony › Sony Network Communications Inc. (Japan/ISP/So-net)
                   ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_sony_network_communications.ipset "${{ vars.BL_SONY_NETWORK_COMMUNICATIONS_ASN }}"
 
-                  #   Privacy › Sony › Sony Pictures Technologies Inc.
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_sony_pictures_technologies.ipset "${{ vars.BL_SONY_PICTURES_TECHNOLOGIES_ASN }}"
-
                   #   Privacy › Sony › Sony Interactive Entertainment LLC (Playstation)
                   ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_sony_playstation_network.ipset "${{ vars.BL_SONY_PLAYSTATION_NETWORK_ASN }}"
+
+                  #   Privacy › Sony › Sony Pictures Technologies Inc.
+                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_sony_pictures_technologies.ipset "${{ vars.BL_SONY_PICTURES_TECHNOLOGIES_ASN }}"
 
                   #   Privacy › Sony › User Reported
                   ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_sony_userflagged.ipset "${{ vars.BL_SONY_USERFLAGGED_URL }}"
 
+                  #   Privacy › Steam
+                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_steam.ipset "${{ vars.BL_STEAM_URL }}"
+
+                  #   Privacy › Stripe › API
+                  curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_STRIPE_API_URL }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_stripe_api.ipset
+
+                  #   Privacy › Stripe › Armada Gator
+                  curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_STRIPE_ARMADA_GATOR_URL }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_stripe_armada_gator.ipset
+
+                  #   Privacy › Stripe › Webhooks
+                  curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_STRIPE_WEBHOOKS_URL }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_stripe_webhooks.ipset
+
                   #   Privacy › Telegram
-                  curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_PRIVACY_TELEGRAM_SRC }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_telegram.ipset
-
-                  #   Privacy › Censys, Inc.
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_censys_io.ipset "${{ vars.BL_CENSYS_IO_ASN }}"
-
-                  #   Privacy › China › China Broadcasting Network
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_broadcasting_network.ipset "${{ vars.BL_CHINA_BROADCASTING_NETWORK_ASN }}"
-
-                  #   Privacy › China › China Mobile
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_mobile.ipset "${{ vars.BL_CHINA_MOBILE_ASN }}"
-
-                  #   Privacy › China › ChinaNET
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_chinanet.ipset "${{ vars.BL_CHINA_CHINANET_ASN }}"
-
-                  #   Privacy › China › China / Shanghai Mobile Communications Co.,Ltd.
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_net_mobile.ipset "${{ vars.BL_CHINA_NETMOBILE_ASN }}"
-
-                  #   Privacy › China › China Networks Inter-Exchange
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_networks.ipset "${{ vars.BL_CHINA_NETWORKS_ASN }}"
-
-                  #   Privacy › China › Telecom
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_telecom.ipset "${{ vars.BL_CHINA_TELECOM_ASN }}"
-
-                  #   Privacy › China › Tencent Networks
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_tencent.ipset "${{ vars.BL_CHINA_TENCENT_NET_ASN }}"
-
-                  #   Privacy › China › Tietong
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_tietong.ipset "${{ vars.BL_CHINA_TIETONG_ASN }}"
-
-                  #   Privacy › China › Unicorn
-                  ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_china_unicorn.ipset "${{ vars.BL_CHINA_UNICORN_ASN }}"
+                  curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_TELEGRAM_URL }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_telegram.ipset
 
                   #   Privacy › Tumblr
                   ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_tumblr.ipset "${{ vars.BL_TUMBLR_ASN }}"
@@ -1077,11 +1077,20 @@ jobs:
                   #   Privacy › Twitter / X
                   ./.github/scripts/bl-whois.sh blocklists/privacy/privacy_twitter_x.ipset "${{ vars.BL_TWITTER_INC_X_ASN }}"
 
+            # #
+            #   Generate › Privacy › U - Z
+            # #
+                  
+            - name: '🧱 Generate › Privacy (U-Z)'
+              id: task_blocklist_generate_privacy_u_to_z
+              if: steps.task_blocklist_generate_run_mode.outputs.run_core == 'true'
+              run: |
+  
                   #   Privacy › Ubisoft
-                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_ubisoft.ipset "${{ vars.BL_PRIVACY_UBISOFT_SRC }}"
+                  ./.github/scripts/tool-range-iprange.sh blocklists/privacy/privacy_ubisoft.ipset "${{ vars.BL_UBISOFT_URL }}"
 
                   #   Privacy › Uptime Robot
-                  curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_PRIVACY_UPTIMEROBOT_SRC }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_uptimerobot.ipset
+                  curl -sSL -A "${{ env.USERAGENT }}" "${{ vars.BL_UPTIMEROBOT_URL }}" | .github/scripts/bl-format.sh blocklists/privacy/privacy_uptimerobot.ipset
 
                   #   Privacy › WebPageTest
                   curl -sSLk -A "${{ env.USERAGENT }}" "${{ secrets.PROXY_WEB_URL_HTTPS }}/json?url=https%3A%2F%2Fwebpagetest.org%2Faddresses.php%3Ff%3Djson" | jq -r '.data[].addresses[] | select( . != null )' | .github/scripts/bl-format.sh blocklists/privacy/privacy_webpagetest.ipset
@@ -1146,7 +1155,7 @@ jobs:
                   ./.github/scripts/bl-whois.sh blocklists/isp/isp_cablevision.ipset "${{ vars.BL_CABLEVISION_ASN }}"
 
                   #   ISP › Charter & Spectrum (Previously Time Warner Cable)
-                  ./.github/scripts/bl-whois.sh blocklists/isp/isp_charter_spectrum_timewarnercable.ipset "${{ vars.BL_CHARTER_SPECTRUM_TIMEWARNERCABLE }}"
+                  ./.github/scripts/bl-whois.sh blocklists/isp/isp_charter_spectrum_timewarnercable.ipset "${{ vars.BL_CHARTER_SPECTRUM_TIMEWARNERCABLE_ASN }}"
 
                   #   ISP › Comcast
                   ./.github/scripts/bl-whois.sh blocklists/isp/isp_comcast.ipset "${{ vars.BL_COMCAST_ASN }}"
@@ -1250,15 +1259,18 @@ jobs:
 
                   ./.github/scripts/bl-geolite2_asn.sh --folder A --file akamai_core --asn ${{ vars.BL_AKAMAI_CORE_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder A --file akamai_linode --asn ${{ vars.BL_AKAMAI_LINODE_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder A --file alibaba --asn ${{ vars.BL_CHINA_ALIBABA_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder A --file amazon_core --asn ${{ vars.BL_AMAZON_CORE_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder C --file amazon_cloudfront --asn ${{ vars.BL_AMAZON_CLOUDFRONT_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder A --file apple_inc --asn ${{ vars.BL_APPLE_INC_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder A --file att --asn ${{ vars.BL_ATT_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder A --file automattic --asn ${{ vars.BL_AUTOMATTIC_WP_ASN }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder B --file baidu --asn ${{ vars.BL_CHINA_BAIDU_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder B --file bluehost_eig --asn ${{ vars.BL_BLUEHOST_EIG_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder B --file bunnycdn --asn ${{ vars.BL_BUNNYCDN_ASN }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file cablevision --asn ${{ vars.BL_CABLEVISION_ASN }} 
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file cablevision --asn ${{ vars.BL_CABLEVISION_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder C --file censys_io --asn ${{ vars.BL_CENSYS_IO_ASN }}
-                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file charter_spectrum_timewarnercable --asn ${{ vars.BL_CHARTER_SPECTRUM_TIMEWARNERCABLE }}
+                  ./.github/scripts/bl-geolite2_asn.sh --folder C --file charter_spectrum_timewarnercable --asn ${{ vars.BL_CHARTER_SPECTRUM_TIMEWARNERCABLE_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_broadcasting_network --asn ${{ vars.BL_CHINA_BROADCASTING_NETWORK_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_mobile --asn ${{ vars.BL_CHINA_MOBILE_ASN }}
                   ./.github/scripts/bl-geolite2_asn.sh --folder C --file china_chinanet --asn ${{ vars.BL_CHINA_CHINANET_ASN }}
