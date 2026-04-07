@@ -5,14 +5,13 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN-CSV.zip
 #   @id             asn
 #   @uuid           f99d3d34-7b7f-3743-be03-4400566a522a
-#   @updated        Sat Mar 28 13:59:32 UTC 2026
-#   @entries        482,322 ips
+#   @updated        Tue Apr  7 03:45:40 UTC 2026
+#   @entries        482,066 ips
 #                   340 subnets
 #                   340 lines
+#   @asn            AS7979
 #   @expires        24 hours
 #   @category       Autonomous System Number
-#
-#   All IP ranges registered to ASN 7979 ().
 #
 #   Includes both IPv4 and IPv6 networks merged
 # #
@@ -320,7 +319,7 @@
 209.192.192.0/18
 209.205.112.0/20
 212.117.160.0/20
-212.117.176.0/23
+212.117.176.0/24
 212.117.180.0/22
 212.117.184.0/21
 213.196.2.0/24

@@ -5,10 +5,10 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             countries
 #   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
-#   @updated        Sat Mar 28 13:56:29 UTC 2026
-#   @entries        466,797 ips
-#                   223 subnets
-#                   223 lines
+#   @updated        Tue Apr  7 03:40:52 UTC 2026
+#   @entries        462,701 ips
+#                   222 subnets
+#                   222 lines
 #   @country        Namibia (NA)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -136,7 +136,6 @@
 196.3.94.0/24
 196.12.10.0/24
 196.20.0.0/19
-196.31.224.0/20
 196.44.128.0/19
 196.46.28.0/24
 196.47.64.0/20

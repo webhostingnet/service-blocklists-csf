@@ -5,10 +5,10 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             countries
 #   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
-#   @updated        Sat Mar 28 13:56:24 UTC 2026
-#   @entries        121,826 ips
-#                   258 subnets
-#                   258 lines
+#   @updated        Tue Apr  7 03:40:45 UTC 2026
+#   @entries        121,828 ips
+#                   260 subnets
+#                   260 lines
 #   @country        Cayman Islands (KY)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -272,6 +272,8 @@
 2a0a:6044:f400::/46
 2a0a:6044:f404::/48
 2a0a:a700:2000::/47
+2a0a:a703:2000::/47
+2a0a:a703:2002::/48
 2a0b:4e07:3:1360::/60
 2a0f:7803:ff10:c000::/51
 2a10:500:d000::/40
