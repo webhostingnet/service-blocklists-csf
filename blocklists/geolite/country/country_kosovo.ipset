@@ -5,7 +5,7 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             countries
 #   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
-#   @updated        Tue Apr  7 03:41:51 UTC 2026
+#   @updated        Wed Apr  8 04:16:16 UTC 2026
 #   @entries        158,709 ips
 #                   93 subnets
 #                   93 lines
