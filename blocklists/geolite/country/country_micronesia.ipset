@@ -5,10 +5,10 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             countries
 #   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
-#   @updated        Fri Apr 10 04:24:20 UTC 2026
-#   @entries        12,510 ips
-#                   168 subnets
-#                   168 lines
+#   @updated        Sat Apr 11 03:53:27 UTC 2026
+#   @entries        13,022 ips
+#                   169 subnets
+#                   169 lines
 #   @country        Micronesia (FM)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -22,6 +22,7 @@
 #       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
+14.1.90.0/23
 43.248.156.0/22
 45.138.10.140/30
 57.70.180.0/23

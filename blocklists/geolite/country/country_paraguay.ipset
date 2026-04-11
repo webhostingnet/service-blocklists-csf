@@ -5,10 +5,10 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             countries
 #   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
-#   @updated        Fri Apr 10 04:24:56 UTC 2026
-#   @entries        1,255,655 ips
-#                   669 subnets
-#                   669 lines
+#   @updated        Sat Apr 11 03:54:03 UTC 2026
+#   @entries        1,255,911 ips
+#                   670 subnets
+#                   670 lines
 #   @country        Paraguay (PY)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -196,6 +196,7 @@
 135.136.15.128/25
 136.227.141.32/30
 136.227.141.36/31
+138.16.17.0/24
 138.59.164.0/22
 138.59.224.0/22
 138.99.100.0/22

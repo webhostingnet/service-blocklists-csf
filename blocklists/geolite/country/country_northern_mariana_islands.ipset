@@ -5,10 +5,10 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             countries
 #   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
-#   @updated        Fri Apr 10 04:24:43 UTC 2026
-#   @entries        34,532 ips
-#                   112 subnets
-#                   112 lines
+#   @updated        Sat Apr 11 03:53:50 UTC 2026
+#   @entries        35,044 ips
+#                   113 subnets
+#                   113 lines
 #   @country        Northern Mariana Islands (MP)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -57,6 +57,7 @@
 172.225.59.64/27
 172.225.126.224/27
 172.225.241.0/27
+179.65.128.0/23
 194.50.99.150/32
 202.88.79.199/32
 202.88.80.0/20

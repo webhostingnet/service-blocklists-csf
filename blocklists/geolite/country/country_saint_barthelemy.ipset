@@ -5,10 +5,10 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             countries
 #   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
-#   @updated        Fri Apr 10 04:23:56 UTC 2026
-#   @entries        3,369 ips
-#                   125 subnets
-#                   125 lines
+#   @updated        Sat Apr 11 03:53:03 UTC 2026
+#   @entries        3,370 ips
+#                   126 subnets
+#                   126 lines
 #   @country        Saint Barthelemy (BL)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -22,6 +22,7 @@
 #       - https://dev.maxmind.com/geoip/docs/databases/#client-apis
 # #
 
+5.175.190.217/32
 23.135.232.0/24
 23.136.248.0/24
 46.36.203.48/30

@@ -5,8 +5,8 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             countries
 #   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
-#   @updated        Fri Apr 10 04:23:56 UTC 2026
-#   @entries        998,510 ips
+#   @updated        Sat Apr 11 03:53:03 UTC 2026
+#   @entries        998,764 ips
 #                   463 subnets
 #                   463 lines
 #   @country        Bahrain (BH)
@@ -174,6 +174,7 @@
 131.229.204.168/29
 131.229.204.176/28
 131.229.204.192/26
+138.16.117.0/24
 140.248.34.16/30
 140.248.56.22/32
 140.248.57.22/32
@@ -271,7 +272,6 @@
 193.188.96.0/19
 194.33.28.0/24
 194.50.99.23/32
-195.219.152.128/31
 195.242.243.0/24
 196.48.44.0/24
 196.56.44.0/24

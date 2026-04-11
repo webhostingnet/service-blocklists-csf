@@ -5,10 +5,10 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             countries
 #   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
-#   @updated        Fri Apr 10 04:24:34 UTC 2026
-#   @entries        3,246 ips
-#                   108 subnets
-#                   108 lines
+#   @updated        Sat Apr 11 03:53:41 UTC 2026
+#   @entries        3,245 ips
+#                   107 subnets
+#                   107 lines
 #   @country        British Indian Ocean Territory (IO)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -50,7 +50,6 @@
 146.75.168.128/31
 146.75.174.114/31
 146.75.185.128/31
-162.120.208.8/32
 162.120.214.11/32
 162.120.235.179/32
 163.116.195.93/32
@@ -87,7 +86,6 @@
 2606:40:ab8::/45
 2606:40:ac0::/45
 2606:40:1340::/44
-2606:40:2201::/54
 2606:40:22c1:6000::/54
 2606:40:294e:cc00::/54
 2606:54c0:40b0::/45
@@ -101,6 +99,7 @@
 2a02:26f7:d68c:4000::/64
 2a02:26f7:d68c:c3a0::/64
 2a02:26f7:d68d:4000::/64
+2a04:1d47:df00::/40
 2a04:4e41:1316::/48
 2a04:4e41:160f::/48
 2a04:4e41:4016:9000::/52

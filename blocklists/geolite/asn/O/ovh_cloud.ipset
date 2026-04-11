@@ -5,10 +5,10 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN-CSV.zip
 #   @id             asn
 #   @uuid           f99d3d34-7b7f-3743-be03-4400566a522a
-#   @updated        Fri Apr 10 04:29:41 UTC 2026
-#   @entries        4,682,506 ips
-#                   549 subnets
-#                   549 lines
+#   @updated        Sat Apr 11 03:58:49 UTC 2026
+#   @entries        4,681,994 ips
+#                   547 subnets
+#                   547 lines
 #   @asn            AS16276, AS35540
 #   @expires        24 hours
 #   @category       Autonomous System Number
@@ -251,7 +251,6 @@
 92.118.168.0/24
 92.222.0.0/16
 92.246.224.0/19
-92.249.62.0/24
 93.88.206.0/24
 93.114.69.0/24
 93.174.111.0/24
@@ -344,7 +343,6 @@
 143.20.195.0/24
 144.2.32.0/19
 144.31.149.0/24
-144.172.73.0/24
 144.217.0.0/16
 144.225.112.0/24
 144.225.123.0/24

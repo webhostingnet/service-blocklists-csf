@@ -5,10 +5,10 @@
 #   @service        http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country-CSV.zip
 #   @id             countries
 #   @uuid           356cd7cf-d7e8-3e39-82d3-2b023280cac8
-#   @updated        Fri Apr 10 04:24:03 UTC 2026
-#   @entries        9,712 ips
-#                   127 subnets
-#                   127 lines
+#   @updated        Sat Apr 11 03:53:10 UTC 2026
+#   @entries        10,222 ips
+#                   126 subnets
+#                   126 lines
 #   @country        Cook Islands (CK)
 #   @expires        24 hours
 #   @category       Geolocation
@@ -63,7 +63,6 @@
 146.75.146.6/31
 146.75.152.2/31
 162.120.204.50/32
-162.120.216.65/32
 162.120.228.71/32
 163.116.192.100/31
 163.116.194.93/32
@@ -72,6 +71,7 @@
 172.225.230.80/28
 172.225.244.16/28
 172.226.77.96/27
+179.65.134.0/23
 194.50.99.45/32
 202.65.32.0/19
 206.83.127.0/24
@@ -99,7 +99,6 @@
 2606:40:b10::/44
 2606:40:b20::/45
 2606:40:217e:4000::/54
-2606:40:2300:2000::/54
 2606:40:2939:9c00::/54
 2606:54c0:1e68::/45
 2606:54c3:0:4d7::/64
